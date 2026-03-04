@@ -1,0 +1,6 @@
+<button [class]="'btn btn-' + variant" [disabled]="disabled" (click)="onClick($event)">
+    <ng-content select="[svg-icon]"></ng-content>
+    <i *ngIf="iconPrefix" [class]="iconPrefix + ' icon-prefix'"></i>
+    <span class="btn-text"><ng-content></ng-content></span>
+    <i *ngIf="iconSuffix" [class]="iconSuffix + ' icon-suffix'"></i>
+</button>

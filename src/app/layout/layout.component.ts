@@ -1,0 +1,220 @@
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+
+@Component({
+  selector: 'app-layout',
+  standalone: true,
+  imports: [CommonModule, RouterModule],
+  template: `
+    <div class="app-wrapper">
+      <!-- Full width Topbar -->
+      <header class="topbar">
+        <div class="top-logo-area">
+            <div class="brand-logo">
+              <!-- Replicating the provided logo mark with CSS shapes/gradients as close as possible since it's an image cut -->
+              <div class="logo-mark">
+                <div class="mark-left"></div>
+                <div class="mark-right"></div>
+              </div>
+            </div>
+            <div class="brand-text-svgs">
+              <img src="icons/H.svg" alt="H">
+              <img src="icons/I.svg" alt="I">
+              <img src="icons/S.svg" alt="S">
+              <img src="icons/S.svg" alt="S">
+              <img src="icons/A.svg" alt="A">
+              <img src="icons/B.svg" alt="B">
+              <img src="icons/!.svg" alt="!">
+            </div>
+        </div>
+        <div class="topbar-right">
+          <div class="workspace-selector">
+              <span class="workspace-logo">OPTIMA</span>
+              <span class="workspace-name">OPTIMA</span>
+              <i class="las la-angle-down"></i>
+          </div>
+          <div class="topbar-actions">
+              <button class="icon-btn"><div class="svg-icon" style="-webkit-mask-image: url('icons/glob.svg'); mask-image: url('icons/glob.svg');"></div></button>
+              <button class="icon-btn notification">
+              <div class="svg-icon" style="-webkit-mask-image: url('icons/bell.svg'); mask-image: url('icons/bell.svg');"></div>
+              <span class="badge"></span>
+              </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Bottom Layout Container -->
+      <div class="app-body">
+        <aside class="sidebar" [class.expanded]="isSidebarExpanded" (mouseenter)="isHovered = true" (mouseleave)="isHovered = false">
+          <nav class="nav-menu">
+            <a href="#" class="nav-item">
+              <div class="svg-icon" style="-webkit-mask-image: url('icons/Frame (0).svg'); mask-image: url('icons/Frame (0).svg');"></div>
+              <span class="nav-text">Dashboard</span>
+            </a>
+            <div class="nav-item-group">
+              <a href="#" class="nav-item" [class.active]="expandedMenu === 'sales' || !expandedMenu" (click)="toggleSubMenu('sales', $event)">
+                <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('sales', 1, true)" [style.mask-image]="getIconUrl('sales', 1, true)"></div>
+                <span class="nav-text">Sales</span>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'sales'"></i>
+              </a>
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'sales'">
+                <div class="sub-menu-line"></div>
+                <a routerLink="/customers" class="sub-item active"><span class="dot"></span>Customers</a>
+                <a href="#" class="sub-item"><span class="dot"></span>Quotations</a>
+                <a href="#" class="sub-item"><span class="dot"></span>Invoices</a>
+                <a href="#" class="sub-item"><span class="dot"></span>Recurring Invoices</a>
+                <a href="#" class="sub-item"><span class="dot"></span>Sales Orders</a>
+                <a href="#" class="sub-item"><span class="dot"></span>Receipts</a>
+                <a href="#" class="sub-item"><span class="dot"></span>Credit Notes</a>
+              </div>
+            </div>
+            <div class="nav-item-group">
+              <a href="#" class="nav-item" [class.active]="expandedMenu === 'purchases'" (click)="toggleSubMenu('purchases', $event)">
+                <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('purchases', 2)" [style.mask-image]="getIconUrl('purchases', 2)"></div>
+                <span class="nav-text">Purchases</span>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'purchases'"></i>
+              </a>
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'purchases'">
+                <div class="sub-menu-line"></div>
+                <a href="#" class="sub-item"><span class="dot"></span>Purchase Orders</a>
+                <a href="#" class="sub-item"><span class="dot"></span>Bills</a>
+                <a href="#" class="sub-item"><span class="dot"></span>Vendors</a>
+              </div>
+            </div>
+            
+            <div class="nav-item-group">
+              <a href="#" class="nav-item" [class.active]="expandedMenu === 'inventory'" (click)="toggleSubMenu('inventory', $event)">
+                <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('inventory', 3)" [style.mask-image]="getIconUrl('inventory', 3)"></div>
+                <span class="nav-text">Inventory</span>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'inventory'"></i>
+              </a>
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'inventory'">
+                <div class="sub-menu-line"></div>
+                <a href="#" class="sub-item"><span class="dot"></span>Items</a>
+                <a href="#" class="sub-item"><span class="dot"></span>Adjustments</a>
+              </div>
+            </div>
+
+            <div class="nav-item-group">
+              <a href="#" class="nav-item" [class.active]="expandedMenu === 'accounts'" (click)="toggleSubMenu('accounts', $event)">
+                <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('accounts', 4)" [style.mask-image]="getIconUrl('accounts', 4)"></div>
+                <span class="nav-text">Accounts</span>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'accounts'"></i>
+              </a>
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'accounts'">
+                <div class="sub-menu-line"></div>
+                <a href="#" class="sub-item"><span class="dot"></span>Chart of Accounts</a>
+                <a href="#" class="sub-item"><span class="dot"></span>Journals</a>
+              </div>
+            </div>
+
+            <div class="nav-item-group">
+              <a href="#" class="nav-item" [class.active]="expandedMenu === 'hr'" (click)="toggleSubMenu('hr', $event)">
+                <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('hr', 5)" [style.mask-image]="getIconUrl('hr', 5)"></div>
+                <span class="nav-text">HR & Payroll</span>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'hr'"></i>
+              </a>
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'hr'">
+                <div class="sub-menu-line"></div>
+                <a href="#" class="sub-item"><span class="dot"></span>Employees</a>
+                <a href="#" class="sub-item"><span class="dot"></span>Payrolls</a>
+              </div>
+            </div>
+
+            <div class="nav-item-group">
+              <a href="#" class="nav-item" [class.active]="expandedMenu === 'production'" (click)="toggleSubMenu('production', $event)">
+                <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('production', 6)" [style.mask-image]="getIconUrl('production', 6)"></div>
+                <span class="nav-text">Production</span>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'production'"></i>
+              </a>
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'production'">
+                <div class="sub-menu-line"></div>
+                <a href="#" class="sub-item"><span class="dot"></span>Work Orders</a>
+                <a href="#" class="sub-item"><span class="dot"></span>BOM</a>
+              </div>
+            </div>
+
+            <div class="nav-item-group">
+              <a href="#" class="nav-item" [class.active]="expandedMenu === 'projects'" (click)="toggleSubMenu('projects', $event)">
+                <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('projects', 7)" [style.mask-image]="getIconUrl('projects', 7)"></div>
+                <span class="nav-text">Projects</span>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'projects'"></i>
+              </a>
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'projects'">
+                <div class="sub-menu-line"></div>
+                <a href="#" class="sub-item"><span class="dot"></span>All Projects</a>
+                <a href="#" class="sub-item"><span class="dot"></span>Timesheets</a>
+              </div>
+            </div>
+
+            <a href="#" class="nav-item" [class.active]="expandedMenu === 'reports'" (click)="toggleSubMenu('reports', $event)">
+              <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('reports', 8)" [style.mask-image]="getIconUrl('reports', 8)"></div>
+              <span class="nav-text">Reports</span>
+            </a>
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-label">Preferences</div>
+
+            <div class="nav-item-group">
+              <a href="#" class="nav-item" [class.active]="expandedMenu === 'settings'" (click)="toggleSubMenu('settings', $event)">
+                <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('settings', 9)" [style.mask-image]="getIconUrl('settings', 9)"></div>
+                <span class="nav-text">Settings</span>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'settings'"></i>
+              </a>
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'settings'">
+                <div class="sub-menu-line"></div>
+                <a href="#" class="sub-item"><span class="dot"></span>General</a>
+                <a href="#" class="sub-item"><span class="dot"></span>Users</a>
+              </div>
+            </div>
+          </nav>
+
+          <div class="sidebar-bottom">
+            <a href="#" class="nav-item" [class.active]="isSidebarExpanded" (click)="toggleSidebar($event)">
+              <div class="svg-icon" style="-webkit-mask-image: url('icons/Frame(10).svg'); mask-image: url('icons/Frame(10).svg');"></div>
+              <span class="nav-text">{{ isSidebarExpanded ? 'Collapse Menu' : 'Expand Menu' }}</span>
+            </a>
+            <a href="#" class="nav-item logout-link">
+              <div class="svg-icon" style="-webkit-mask-image: url('icons/Frame (11).svg'); mask-image: url('icons/Frame (11).svg');"></div>
+              <span class="nav-text">Logout</span>
+            </a>
+            <div class="user-profile">
+              <img src="https://i.pravatar.cc/150?img=11" alt="User Profile">
+              <div class="user-info">
+                <span class="user-name">Brooklyn Simmons</span>
+                <span class="user-email">brooklynsimmons@gmail.com</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+        
+        <main class="main-content">
+          <div class="page-content">
+            <router-outlet></router-outlet>
+          </div>
+        </main>
+      </div>
+    </div>
+  `,
+  styleUrls: ['./layout.component.scss']
+})
+export class LayoutComponent {
+  isSidebarExpanded = false;
+  isHovered = false;
+  expandedMenu: string | null = 'sales'; // Default to sales based on screenshot
+
+  getIconUrl(menu: string, index: number, isDefaultActive = false): string {
+    const isActive = this.expandedMenu === menu || (isDefaultActive && !this.expandedMenu);
+    return `url('icons/Frame (${index})${isActive ? '-active' : ''}.svg')`;
+  }
+
+  toggleSidebar(event: Event) {
+    event.preventDefault();
+    this.isSidebarExpanded = !this.isSidebarExpanded;
+  }
+
+  toggleSubMenu(menu: string, event: Event) {
+    event.preventDefault();
+    this.expandedMenu = this.expandedMenu === menu ? null : menu;
+  }
+}
