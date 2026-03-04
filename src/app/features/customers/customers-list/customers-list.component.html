@@ -1,8 +1,13 @@
 <div class="page-container">
     <!-- Page Header -->
     <div class="page-header">
-        <h1 class="page-title">Customers</h1>
+        <div class="header-titles">
+            <h1 class="page-title">Customers</h1>
+        </div>
         <div class="header-actions" *ngIf="customers.length > 0">
+            <app-bulk-actions [selectedCount]="selectedCustomerIds.size" [actions]="bulkActions"
+                (actionSelected)="handleBulkAction($event)">
+            </app-bulk-actions>
             <app-button variant="primary" iconPrefix="las la-plus" (clicked)="navigateToNew()">Add New
                 Customer</app-button>
             <app-button variant="outline">
@@ -60,7 +65,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let customer of customers">
+                    <tr *ngFor="let customer of paginatedCustomers">
                         <td class="col-checkbox">
                             <input type="checkbox" [checked]="selectedCustomerIds.has(customer.id)"
                                 (change)="toggleSelection(customer.id)">
@@ -94,34 +99,9 @@
         </div>
 
         <!-- Footer Pagination -->
-        <div class="card-footer">
-            <div class="showing-text">
-                Showing <strong>61</strong> to <strong>72</strong> of <strong>235</strong> entries
-            </div>
-
-            <div class="pagination-pill">
-                <div class="pagination">
-                    <button class="page-btn"><i class="las la-angle-left"></i></button>
-                    <button class="page-btn">1</button>
-                    <span class="page-dots">...</span>
-                    <button class="page-btn">5</button>
-                    <button class="page-btn active">6</button>
-                    <button class="page-btn">7</button>
-                    <span class="page-dots">...</span>
-                    <button class="page-btn">20</button>
-                    <button class="page-btn"><i class="las la-angle-right"></i></button>
-                </div>
-            </div>
-
-            <div class="entries-select">
-                <span>Entries per page</span>
-                <select class="custom-select">
-                    <option>15</option>
-                    <option>30</option>
-                    <option>50</option>
-                </select>
-            </div>
-        </div>
+        <app-pagination [totalItems]="customers.length" [itemsPerPage]="itemsPerPage" [currentPage]="currentPage"
+            (pageChange)="onPageChange($event)" (itemsPerPageChange)="onItemsPerPageChange($event)">
+        </app-pagination>
     </div>
 
     <app-empty-state *ngIf="customers.length === 0" title="No Customers Found."

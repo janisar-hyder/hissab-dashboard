@@ -1,0 +1,241 @@
+<div class="auth-layout">
+    <!-- Left Pane: Login Form -->
+    <div class="auth-left">
+        <div class="auth-header">
+            <!-- Mock Logo Ipsum -->
+            <div class="logo">
+                <svg width="150" height="32" viewBox="0 0 162 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Brand Icon -->
+                    <g fill="#0b5fff">
+                        <path
+                            d="M14.54 0L17.7 5.56H5.47L0.6 14.1L3.77 19.67H19.75L21.34 16.88L24.5 11.34H36.73L41.6 2.81L38.44 -2.76H22.46L20.87 0H14.54Z" />
+                        <path
+                            d="M2.38 22.8H14.61L19.49 14.26L16.32 8.7L0.34 25.54L1.93 28.32L5.09 33.88H17.32L22.19 25.35L19.03 19.78H3.04L1.46 22.56L2.38 22.8Z" />
+                    </g>
+                    <!-- Brand Text (Simple mockup) -->
+                    <text x="50" y="24" font-family="Arial, sans-serif" font-weight="bold" font-style="italic"
+                        font-size="24" fill="#0C132B" letter-spacing="-0.5">LOGOIPSUM</text>
+                </svg>
+            </div>
+        </div>
+
+        <div class="auth-form-container">
+            <h1 class="auth-title">Login to Your Account</h1>
+            <p class="auth-subtitle">Please enter your login details.</p>
+
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
+                <!-- Email Field -->
+                <div class="form-group">
+                    <label>Email address</label>
+                    <div class="input-with-icon">
+                        <i class="las la-at input-icon"></i>
+                        <input type="email" class="form-control pl-icon" formControlName="email"
+                            placeholder="Email address">
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-group">
+                    <label>Password</label>
+                    <div class="input-with-icon">
+                        <i class="las la-unlock-alt input-icon"></i>
+                        <input [type]="showPassword ? 'text' : 'password'" class="form-control pl-icon pr-icon"
+                            formControlName="password" placeholder="Password">
+                        <i class="las input-icon-right cursor-pointer"
+                            [ngClass]="showPassword ? 'la-eye-slash' : 'la-eye'"
+                            (click)="togglePasswordVisibility()"></i>
+                    </div>
+                </div>
+
+                <!-- Form Options -->
+                <div class="form-options">
+                    <label class="custom-checkbox">
+                        <input type="checkbox" formControlName="remember">
+                        <span class="checkmark"></span>
+                        <span class="label-text">Remember me</span>
+                    </label>
+                    <a routerLink="/forgot-password" class="forgot-link">Forgot password?</a>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="auth-submit-btn">Sign in</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right Pane: Promotional Banner -->
+    <div class="auth-right">
+        <!-- Decorative shapes -->
+        <div class="decorative-shape shape-top-left"></div>
+        <div class="decorative-shape shape-center"></div>
+        <div class="decorative-shape shape-bottom-right"></div>
+        <div class="decorative-shape shape-small-top-right"></div>
+
+        <!-- Dashboard Illustration -->
+        <div class="illustration-container">
+            <div class="dashboard-mockup">
+
+                <div class="card-stack">
+                    <!-- Bottom Card: Income -->
+                    <div class="mock-card card-income">
+                        <div class="card-header border-none">
+                            <h4>Income</h4>
+                        </div>
+                        <div class="chart-container">
+                            <div class="y-axis">
+                                <span>20k</span>
+                                <span>10k</span>
+                                <span>0</span>
+                            </div>
+                            <div class="line-chart">
+                                <svg viewBox="0 0 200 80" preserveAspectRatio="none">
+                                    <defs>
+                                        <linearGradient id="income-gradient" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stop-color="#0b5fff" stop-opacity="0.25" />
+                                            <stop offset="100%" stop-color="#0b5fff" stop-opacity="0" />
+                                        </linearGradient>
+                                    </defs>
+                                    <path
+                                        d="M0 60 Q 15 30 30 40 T 60 50 T 90 30 T 120 40 T 150 15 T 180 30 L 200 20 L 200 80 L 0 80 Z"
+                                        fill="url(#income-gradient)" />
+                                    <path d="M0 60 Q 15 30 30 40 T 60 50 T 90 30 T 120 40 T 150 15 T 180 30 L 200 20"
+                                        fill="none" stroke="#0b5fff" stroke-width="2.5" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Middle Card: Products Performance -->
+                    <div class="mock-card card-performance">
+                        <div class="card-header border-none">
+                            <h4>Products Performance</h4>
+                        </div>
+                        <div class="performance-body">
+                            <div class="perf-stats">
+                                <div class="stat-item">
+                                    <strong>9348.78 <small>BHD</small></strong>
+                                    <span>Budget</span>
+                                </div>
+                                <div class="stat-item mt-3">
+                                    <strong>2483 <small>BHD</small></strong>
+                                    <span>Expense</span>
+                                </div>
+                                <button class="btn-download">Download Report</button>
+                                <div class="perf-legend">
+                                    <span><i class="dot light"></i> Budget</span>
+                                    <span><i class="dot dark"></i> Expense</span>
+                                </div>
+                            </div>
+                            <div class="perf-chart">
+                                <div class="y-axis">
+                                    <span>400</span>
+                                    <span>300</span>
+                                    <span>200</span>
+                                    <span>100</span>
+                                </div>
+                                <div class="bars">
+                                    <!-- Jan -->
+                                    <div class="bar-col">
+                                        <div class="bar-track">
+                                            <div class="bar-fill dark" style="height: 80%"></div>
+                                            <div class="bar-fill light" style="height: 50%"></div>
+                                        </div>
+                                        <span class="x-label">Jan</span>
+                                    </div>
+                                    <!-- Feb -->
+                                    <div class="bar-col">
+                                        <div class="bar-track">
+                                            <div class="bar-fill dark" style="height: 95%"></div>
+                                            <div class="bar-fill light" style="height: 60%"></div>
+                                        </div>
+                                        <span class="x-label">Feb</span>
+                                    </div>
+                                    <!-- Mar -->
+                                    <div class="bar-col">
+                                        <div class="bar-track">
+                                            <div class="bar-fill dark" style="height: 40%"></div>
+                                            <div class="bar-fill light" style="height: 25%"></div>
+                                        </div>
+                                        <span class="x-label">Mar</span>
+                                    </div>
+                                    <!-- Apr -->
+                                    <div class="bar-col">
+                                        <div class="bar-track">
+                                            <div class="bar-fill dark" style="height: 85%"></div>
+                                            <div class="bar-fill light" style="height: 65%"></div>
+                                        </div>
+                                        <span class="x-label">Apr</span>
+                                    </div>
+                                    <!-- May -->
+                                    <div class="bar-col">
+                                        <div class="bar-track">
+                                            <div class="bar-fill dark" style="height: 55%"></div>
+                                            <div class="bar-fill light" style="height: 45%"></div>
+                                        </div>
+                                        <span class="x-label">May</span>
+                                    </div>
+                                    <!-- Jun -->
+                                    <div class="bar-col">
+                                        <div class="bar-track">
+                                            <div class="bar-fill dark" style="height: 90%"></div>
+                                            <div class="bar-fill light" style="height: 60%"></div>
+                                        </div>
+                                        <span class="x-label">Jun</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Card: Recent Transactions -->
+                    <div class="mock-card card-transactions">
+                        <div class="card-header border-none padding-lg">
+                            <h4>Recent Transactions</h4>
+                        </div>
+                        <div class="transaction-list">
+                            <div class="txn-item">
+                                <div class="txn-icon bg-light-gray"><img src="assets/icons/benefit-pay.svg" alt="B"
+                                        style="width:16px;"></div>
+                                <div class="txn-details"><span>BenefitPay</span><small>Money received</small></div>
+                                <div class="txn-amount positive">+560 BHD</div>
+                            </div>
+                            <div class="txn-item">
+                                <div class="txn-icon bg-light-blue"><i class="las la-wallet text-primary"></i></div>
+                                <div class="txn-details"><span>Wallet</span><small>Bill payment</small></div>
+                                <div class="txn-amount negative">-150 BHD</div>
+                            </div>
+                            <div class="txn-item">
+                                <div class="txn-icon bg-light-blue"><i class="las la-credit-card text-primary"></i>
+                                </div>
+                                <div class="txn-details"><span>Credit Card</span><small>Money reversed</small></div>
+                                <div class="txn-amount positive">+280 BHD</div>
+                            </div>
+                            <div class="txn-item">
+                                <div class="txn-icon bg-light-blue"><i class="las la-university text-primary"></i></div>
+                                <div class="txn-details"><span>Bank Transfer</span><small>Money added</small></div>
+                                <div class="txn-amount positive">+350 BHD</div>
+                            </div>
+                            <div class="txn-item">
+                                <div class="txn-icon bg-light-blue"><i class="las la-sync text-primary"></i></div>
+                                <div class="txn-details"><span>Refund</span><small>Payment sent</small></div>
+                                <div class="txn-amount negative">-50 BHD</div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn-add">Add</button>
+                            <span class="footer-text">38 Recent transactions</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-promo-text">
+            <h2>{{ slides[currentSlide].title }}<br>{{ slides[currentSlide].subtitle }}</h2>
+            <div class="carousel-dots">
+                <span class="dot" *ngFor="let slide of slides; let i = index" [ngClass]="{'active': i === currentSlide}"
+                    (click)="setSlide(i)"></span>
+            </div>
+        </div>
+    </div>
+</div>

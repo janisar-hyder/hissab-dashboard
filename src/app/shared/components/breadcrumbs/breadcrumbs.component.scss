@@ -1,0 +1,30 @@
+.breadcrumbs-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    font-weight: 500;
+    margin-bottom: 6px; // Space between breadcrumbs and page title
+
+    .breadcrumb-link {
+        color: #aaaebb; // Light gray matching design
+        cursor: pointer;
+        transition: color 0.2s;
+
+        &:hover {
+            color: #4b5563; // Darker on hover
+            text-decoration: underline;
+        }
+    }
+
+    .breadcrumb-active {
+        color: #4b5563; // Darker active state matching design
+    }
+
+    .breadcrumb-separator {
+        color: #aaaebb;
+        font-size: 11px;
+        display: flex;
+        align-items: center;
+    }
+}

@@ -1,0 +1,18 @@
+<div class="breadcrumbs-container">
+    <ng-container *ngFor="let item of items; let isLast = last; let i = index">
+        <!-- Clickable Link -->
+        <span *ngIf="item.url && !isLast" class="breadcrumb-link" (click)="navigate(item.url)">
+            {{ item.label }}
+        </span>
+
+        <!-- Active Page (No URL) -->
+        <span *ngIf="!item.url || isLast" class="breadcrumb-active">
+            {{ item.label }}
+        </span>
+
+        <!-- Separator -->
+        <span class="breadcrumb-separator" *ngIf="!isLast">
+            <i class="las la-angle-right"></i>
+        </span>
+    </ng-container>
+</div>

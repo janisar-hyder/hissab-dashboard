@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { BreadcrumbsComponent } from '../../../shared/components/breadcrumbs/breadcrumbs.component';
 
 @Component({
     selector: 'app-customer-edit',
     standalone: true,
-    imports: [CommonModule, ButtonComponent],
+    imports: [CommonModule, ButtonComponent, BreadcrumbsComponent],
     templateUrl: './customer-edit.component.html',
     styleUrls: ['./customer-edit.component.scss']
 })

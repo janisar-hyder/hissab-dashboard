@@ -1,0 +1,38 @@
+<div class="card-footer">
+    <div class="showing-text">
+        Showing <strong>{{ startIndex }}</strong> to <strong>{{ endIndex }}</strong> of <strong>{{ totalItems
+            }}</strong> entries
+    </div>
+
+    <div class="pagination">
+        <button class="page-btn prev-btn" [disabled]="currentPage === 1" (click)="previousPage()">
+            <i class="las la-angle-left"></i>
+        </button>
+
+        <div class="page-numbers">
+            <ng-container *ngFor="let page of pages">
+                <button *ngIf="page !== '...'" class="page-num" [class.active]="page === currentPage"
+                    (click)="goToPage(page)">
+                    {{ page }}
+                </button>
+                <span *ngIf="page === '...'" class="page-dots">...</span>
+            </ng-container>
+        </div>
+
+        <button class="page-btn next-btn" [disabled]="currentPage === totalPages" (click)="nextPage()">
+            <i class="las la-angle-right"></i>
+        </button>
+    </div>
+
+    <!-- Just showing the items per page dropdown regardless of how many items, 
+         to match standard enterprise tables. -->
+    <div class="items-per-page">
+        <span class="text-muted">Rows per page:</span>
+        <div class="select-wrapper">
+            <select class="form-control select-control borderless-select" [ngModel]="itemsPerPage"
+                (change)="onItemsPerPageChange($event)">
+                <option *ngFor="let option of itemsPerPageOptions" [value]="option">{{ option }}</option>
+            </select>
+        </div>
+    </div>
+</div>

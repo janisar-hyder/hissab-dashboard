@@ -1,0 +1,15 @@
+<div class="bulk-actions-wrapper" *ngIf="selectedCount > 1" [class.open]="isOpen">
+    <button class="bulk-toggle-btn" (click)="toggleDropdown($event)">
+        <!-- Bolt icon from user screenshot -->
+        <span class="icon bolt-icon"></span>
+        <span class="btn-text">Bulk Actions</span>
+        <span class="icon chevron-down"></span>
+    </button>
+
+    <div class="bulk-dropdown-menu" *ngIf="isOpen">
+        <button *ngFor="let action of actions" class="bulk-dropdown-item" [ngClass]="action.colorClass || ''"
+            (click)="selectAction(action.id, $event)">
+            {{ action.label }}
+        </button>
+    </div>
+</div>

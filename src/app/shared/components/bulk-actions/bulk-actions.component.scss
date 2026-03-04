@@ -1,0 +1,121 @@
+.bulk-actions-wrapper {
+    position: relative;
+    display: inline-block;
+
+    .bulk-toggle-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: white;
+        border: 1px solid #E5E7EB; // Light gray border
+        border-radius: 8px;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 14.5px;
+        color: #646569; // Text color from the SVG match
+        font-weight: 500;
+        transition: all 0.2s;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+
+        &:hover {
+            background-color: #f9fafb;
+            border-color: #D1D5DB;
+        }
+
+        .icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background-color: currentColor;
+            mask-size: contain;
+            mask-repeat: no-repeat;
+            mask-position: center;
+            -webkit-mask-size: contain;
+            -webkit-mask-repeat: no-repeat;
+            -webkit-mask-position: center;
+
+            &.bolt-icon {
+                /* Inline SVG data URI for the lightning bolt icon provided by user */
+                mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M8.01 19.95c.26.11.57.02.73-.22l7.03-11.17c.06-.09.09-.19.09-.3a.6.6 0 0 0-.64-.6H10.58l1.75-6.93c.07-.28-.07-.57-.34-.68a.6.6 0 0 0-.73.23l-7.03 11.17c-.06.09-.09.19-.09.3a.6.6 0 0 0 .64.6h4.69l-1.75 6.93c-.07.28.07.57.34.68z"/></svg>');
+                -webkit-mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M8.01 19.95c.26.11.57.02.73-.22l7.03-11.17c.06-.09.09-.19.09-.3a.6.6 0 0 0-.64-.6H10.58l1.75-6.93c.07-.28-.07-.57-.34-.68a.6.6 0 0 0-.73.23l-7.03 11.17c-.06.09-.09.19-.09.3a.6.6 0 0 0 .64.6h4.69l-1.75 6.93c-.07.28.07.57.34.68z"/></svg>');
+                width: 18px;
+                height: 18px;
+            }
+
+            &.chevron-down {
+                mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+                -webkit-mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+                width: 14px;
+                height: 14px;
+                margin-left: 4px;
+                color: #A0A5BB;
+                /* Slightly lighter gray for chevron */
+            }
+        }
+    }
+
+    &.open .bulk-toggle-btn {
+        background-color: #f9fafb;
+        border-color: #D1D5DB;
+    }
+
+    .bulk-dropdown-menu {
+        position: absolute;
+        top: calc(100% + 8px); // 8px gap below the button
+        left: 0;
+        min-width: 180px;
+        background: white;
+        border: 1px solid #E5E7EB;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        padding: 8px;
+        z-index: 50;
+        animation: dropdownFadeIn 0.15s ease-out;
+
+        .bulk-dropdown-item {
+            width: 100%;
+            display: block;
+            text-align: left;
+            padding: 10px 14px;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+
+            &.text-danger {
+                color: #4b5563; // Normal text color like others
+                background-color: transparent;
+
+                &:hover {
+                    background-color: #FEF0F4; // Soft red background on hover
+                    color: #FD305D; // Strong red text on hover
+                    font-weight: 500;
+                }
+            }
+
+            &:not(.text-danger) {
+                color: #4b5563;
+
+                &:hover {
+                    background-color: #f3f4f6;
+                }
+            }
+        }
+    }
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -5,6 +5,8 @@ import { Router } from '@angular/router';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { BulkActionsComponent, BulkAction } from '../../../shared/components/bulk-actions/bulk-actions.component';
 
 export interface Customer {
     id: string;
@@ -19,20 +21,20 @@ export interface Customer {
 @Component({
     selector: 'app-customers-list',
     standalone: true,
-    imports: [CommonModule, FormsModule, DragDropModule, ButtonComponent, DecimalPipe, EmptyStateComponent],
+    imports: [CommonModule, FormsModule, DragDropModule, ButtonComponent, DecimalPipe, EmptyStateComponent, PaginationComponent, BulkActionsComponent],
     templateUrl: './customers-list.component.html',
     styleUrls: ['./customers-list.component.scss']
 })
 export class CustomersListComponent implements OnInit {
     customers: Customer[] = [
-        // { id: '1', displayName: 'APR Supply', companyName: 'APR Supply', workNumber: '3334 834', email: 'bertou@gmail.com', receivables: 21.150, creditNote: 0.050 },
-        // { id: '2', displayName: 'THC', companyName: 'The Habegger Corp', workNumber: '3545 6632', email: 'igerrin@gmail.com', receivables: 841.500, creditNote: 1.500 },
-        // { id: '3', displayName: 'Watsco', companyName: 'Watsco', workNumber: '3476 5456', email: 'dric@gmail.com', receivables: 159.600, creditNote: 0.200 },
-        // { id: '4', displayName: "Sid Harvey's", companyName: "Sid Harvey's", workNumber: '3987 4234', email: 'cedennar@gmail.com', receivables: 8.925, creditNote: 0.025 },
-        // { id: '5', displayName: 'ABCO HVACR Supply', companyName: 'ABCO HVACR Supply', workNumber: '3567 4367', email: 'lline@gmail.com', receivables: 184.400, creditNote: 0.200 },
-        // { id: '6', displayName: 'YSC.', companyName: 'Young Supply Co.', workNumber: '3573 4342', email: 'tinest@gmail.com', receivables: 64.350, creditNote: 0.150 },
-        // { id: '7', displayName: 'U.S Airconditioning', companyName: 'U.S Airconditioning', workNumber: '3323 4243', email: 'osgoodwy@gmail.com', receivables: 4970.000, creditNote: 5.000 },
-        // { id: '8', displayName: 'Carrier Enterprise', companyName: 'Carrier Enterprise LLC', workNumber: '3654 7788', email: 'carrier@gmail.com', receivables: 275.800, creditNote: 0.300 },
+        { id: '1', displayName: 'APR Supply', companyName: 'APR Supply', workNumber: '3334 834', email: 'bertou@gmail.com', receivables: 21.150, creditNote: 0.050 },
+        { id: '2', displayName: 'THC', companyName: 'The Habegger Corp', workNumber: '3545 6632', email: 'igerrin@gmail.com', receivables: 841.500, creditNote: 1.500 },
+        { id: '3', displayName: 'Watsco', companyName: 'Watsco', workNumber: '3476 5456', email: 'dric@gmail.com', receivables: 159.600, creditNote: 0.200 },
+        { id: '4', displayName: "Sid Harvey's", companyName: "Sid Harvey's", workNumber: '3987 4234', email: 'cedennar@gmail.com', receivables: 8.925, creditNote: 0.025 },
+        { id: '5', displayName: 'ABCO HVACR Supply', companyName: 'ABCO HVACR Supply', workNumber: '3567 4367', email: 'lline@gmail.com', receivables: 184.400, creditNote: 0.200 },
+        { id: '6', displayName: 'YSC.', companyName: 'Young Supply Co.', workNumber: '3573 4342', email: 'tinest@gmail.com', receivables: 64.350, creditNote: 0.150 },
+        { id: '7', displayName: 'U.S Airconditioning', companyName: 'U.S Airconditioning', workNumber: '3323 4243', email: 'osgoodwy@gmail.com', receivables: 4970.000, creditNote: 5.000 },
+        { id: '8', displayName: 'Carrier Enterprise', companyName: 'Carrier Enterprise LLC', workNumber: '3654 7788', email: 'carrier@gmail.com', receivables: 275.800, creditNote: 0.300 },
         // { id: '9', displayName: 'Johnstone Supply', companyName: 'Johnstone Supply Inc.', workNumber: '3890 1122', email: 'johnstone@gmail.com', receivables: 512.450, creditNote: 0.450 },
         // { id: '10', displayName: 'Grainger', companyName: 'W.W. Grainger, Inc.', workNumber: '3765 9087', email: 'grainger@gmail.com', receivables: 920.600, creditNote: 0.600 },
         // { id: '11', displayName: 'Ferguson HVAC', companyName: 'Ferguson Enterprises', workNumber: '3445 6677', email: 'ferguson@gmail.com', receivables: 1_240.750, creditNote: 0.750 },
@@ -40,6 +42,15 @@ export class CustomersListComponent implements OnInit {
     ];
 
     selectedCustomerIds = new Set<string>();
+
+    // Pagination properties
+    currentPage = 1;
+    itemsPerPage: number | 'All' = 15;
+
+    // Bulk actions
+    bulkActions: BulkAction[] = [
+        { id: 'delete', label: 'Delete Customers', colorClass: 'text-danger' }
+    ];
 
     isManageColumnsOpen = false;
     openMenuId: string | null = null;
@@ -59,6 +70,12 @@ export class CustomersListComponent implements OnInit {
         { id: 'creditNote', label: 'Credit Note', checked: true },
         { id: 'remarks', label: 'Remarks', checked: false }
     ];
+
+    get paginatedCustomers(): Customer[] {
+        if (this.itemsPerPage === 'All') return this.customers;
+        const start = (this.currentPage - 1) * this.itemsPerPage;
+        return this.customers.slice(start, start + this.itemsPerPage);
+    }
 
     constructor(private eRef: ElementRef, private router: Router) { }
 
@@ -137,6 +154,43 @@ export class CustomersListComponent implements OnInit {
             this.customers = this.customers.filter(c => c.id !== this.customerToDelete!.id);
             this.selectedCustomerIds.delete(this.customerToDelete.id);
             this.customerToDelete = null;
+
+            const Math = window.Math;
+            if (this.itemsPerPage !== 'All') {
+                const maxPage = Math.ceil(this.customers.length / this.itemsPerPage) || 1;
+                if (this.currentPage > maxPage) {
+                    this.currentPage = maxPage;
+                }
+            } else {
+                this.currentPage = 1;
+            }
         }
+    }
+
+    handleBulkAction(actionId: string): void {
+        if (actionId === 'delete') {
+            this.customers = this.customers.filter(c => !this.selectedCustomerIds.has(c.id));
+            this.selectedCustomerIds.clear();
+
+            // adjust pagination limits
+            const Math = window.Math;
+            if (this.itemsPerPage !== 'All') {
+                const maxPage = Math.ceil(this.customers.length / this.itemsPerPage) || 1;
+                if (this.currentPage > maxPage) {
+                    this.currentPage = maxPage;
+                }
+            } else {
+                this.currentPage = 1;
+            }
+        }
+    }
+
+    onPageChange(page: number) {
+        this.currentPage = page;
+    }
+
+    onItemsPerPageChange(size: number | 'All') {
+        this.itemsPerPage = size;
+        this.currentPage = 1;
     }
 }
