@@ -24,45 +24,10 @@
         align-items: center;
         gap: 12px;
 
-        .brand-logo {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
+        .brand-logo-img {
             height: 32px;
-
-            .logo-mark {
-                display: flex;
-                align-items: flex-end;
-                height: 24px;
-                gap: 2px;
-
-                .mark-left {
-                    width: 10px;
-                    height: 24px;
-                    background: linear-gradient(180deg, var(--brand-cyan) 0%, var(--brand-purple) 100%);
-                    border-radius: 10px 0 10px 10px;
-                }
-
-                .mark-right {
-                    width: 10px;
-                    height: 16px;
-                    background: linear-gradient(180deg, var(--brand-cyan) 0%, var(--brand-purple-dark) 100%);
-                    border-radius: 10px 10px 10px 0;
-                }
-            }
-        }
-
-        .brand-text-svgs {
-            display: flex;
-            align-items: center;
-            gap: 2px; // Small gap between letter icons to form the word
-
-            img {
-                height: 18px; // Scaled to visually align with the logo mark
-                object-fit: contain;
-                display: block; // Ensures no weird whitespace below images
-            }
+            object-fit: contain;
+            display: block;
         }
     }
 

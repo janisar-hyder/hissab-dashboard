@@ -11,22 +11,7 @@ import { RouterModule } from '@angular/router';
       <!-- Full width Topbar -->
       <header class="topbar">
         <div class="top-logo-area">
-            <div class="brand-logo">
-              <!-- Replicating the provided logo mark with CSS shapes/gradients as close as possible since it's an image cut -->
-              <div class="logo-mark">
-                <div class="mark-left"></div>
-                <div class="mark-right"></div>
-              </div>
-            </div>
-            <div class="brand-text-svgs">
-              <img src="icons/H.svg" alt="H">
-              <img src="icons/I.svg" alt="I">
-              <img src="icons/S.svg" alt="S">
-              <img src="icons/S.svg" alt="S">
-              <img src="icons/A.svg" alt="A">
-              <img src="icons/B.svg" alt="B">
-              <img src="icons/!.svg" alt="!">
-            </div>
+            <img src="icons/tamezy-logo.svg" alt="Tamezy" class="brand-logo-img">
         </div>
         <div class="topbar-right">
           <div class="workspace-selector">
