@@ -1,9 +1,9 @@
 /* src/styles.scss */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&display=swap');
 
 :root {
   // Brand Colors
-  --primary: #0b5fff;
+  --primary: #0052FF;
   --primary-hover: #004ee6;
   --primary-light: #eef3ff;
   --brand-cyan: #37bcf8;
@@ -60,7 +60,7 @@
   --white: #ffffff;
 
   /* Typography */
-  --font-family: 'Outfit', sans-serif;
+  --font-family: 'Nunito Sans', sans-serif;
 
   // Border Radius
   --radius-sm: 8px;
