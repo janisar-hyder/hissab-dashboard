@@ -133,6 +133,19 @@ import { RouterModule } from '@angular/router';
               </div>
             </div>
 
+            <div class="nav-item-group">
+              <a href="#" class="nav-item" [class.active]="expandedMenu === 'users'" (click)="toggleSubMenu('users', $event)">
+                <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('users', 'user-management')" [style.mask-image]="getIconUrl('users', 'user-management')"></div>
+                <span class="nav-text">User Management</span>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'users'"></i>
+              </a>
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'users'">
+                <div class="sub-menu-line"></div>
+                <a href="#" class="sub-item"><span class="dot"></span>All Users</a>
+                <a href="#" class="sub-item"><span class="dot"></span>Roles & Permissions</a>
+              </div>
+            </div>
+
             <a href="#" class="nav-item" [class.active]="expandedMenu === 'reports'" (click)="toggleSubMenu('reports', $event)">
               <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('reports', 8)" [style.mask-image]="getIconUrl('reports', 8)"></div>
               <span class="nav-text">Reports</span>
@@ -188,9 +201,10 @@ export class LayoutComponent {
   isHovered = false;
   expandedMenu: string | null = 'sales'; // Default to sales based on screenshot
 
-  getIconUrl(menu: string, index: number, isDefaultActive = false): string {
+  getIconUrl(menu: string, index: number | string, isDefaultActive = false): string {
     const isActive = this.expandedMenu === menu || (isDefaultActive && !this.expandedMenu);
-    return `url('icons/Frame (${index})${isActive ? '-active' : ''}.svg')`;
+    const baseName = typeof index === 'number' ? `Frame (${index})` : index;
+    return `url('icons/${baseName}${isActive ? '-active' : ''}.svg')`;
   }
 
   toggleSidebar(event: Event) {
