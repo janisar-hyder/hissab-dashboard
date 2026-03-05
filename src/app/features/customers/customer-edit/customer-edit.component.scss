@@ -20,7 +20,7 @@
         font-size: 28px !important;
         font-weight: 500 !important;
         letter-spacing: -0.2px !important;
-        color: #7e8299 !important;
+        color: var(--text-muted) !important;
         margin: 0;
     }
 
@@ -46,7 +46,7 @@
     border-radius: var(--radius-md);
     border: 1px solid var(--border-light);
     padding: 32px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 3px var(--shadow-sm);
 
     .card-title {
         font-size: 16px;
@@ -85,7 +85,7 @@
         }
 
         .required {
-            color: #f72c5b;
+            color: var(--danger);
             margin-left: 2px;
         }
     }
@@ -184,14 +184,14 @@
             padding: 0 12px;
             background-color: transparent;
             border-right: 1px solid var(--border-light);
-            color: #A1A5B7;
+            color: var(--text-placeholder);
             font-size: 13.5px;
             font-weight: 500;
 
             .flag-bh {
                 width: 14px;
                 height: 10px;
-                background-color: #D3003F; // Bahrain flag red
+                background-color: var(--danger-hover); // Bahrain flag red
                 position: relative;
                 border-radius: 1px;
 
@@ -256,7 +256,7 @@
             }
 
             &.active {
-                background-color: #4f46e5; // Primary Blue
+                background-color: var(--primary); // Primary Blue
                 color: white;
                 box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2); // subtle glow for active
             }
@@ -271,7 +271,7 @@
             border-radius: var(--radius-md);
             border: 1px solid var(--border-light);
             padding: 32px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 1px 3px var(--shadow-sm);
         }
 
         /* Address Tab Layout */
@@ -348,8 +348,8 @@
                 width: 0;
 
                 &:checked~.checkmark {
-                    background-color: #4f46e5;
-                    border-color: #4f46e5;
+                    background-color: var(--primary);
+                    border-color: var(--primary);
 
                     &:after {
                         display: block;
@@ -410,7 +410,7 @@
                 }
 
                 .contacts-thead {
-                    background-color: #f9f9fb; // off-white header area
+                    background-color: var(--bg-light); // off-white header area
                 }
 
                 .contacts-th,
@@ -490,7 +490,7 @@
                             .flag-bh {
                                 width: 14px;
                                 height: 10px;
-                                background-color: #f72c5b; // fake flag
+                                background-color: var(--danger); // fake flag
                                 position: relative;
                             }
 
@@ -538,7 +538,7 @@
                             background: rgba(239, 68, 68, 0.05);
 
                             svg path {
-                                stroke: #ef4444; // Red hover effect
+                                stroke: var(--danger); // Red hover effect
                             }
                         }
                     }
@@ -655,12 +655,12 @@
         }
 
         &.btn-save {
-            background: #4f7bf5; // Brighter primary blue like image
+            background: var(--primary-hover); // Brighter primary blue like image
             border: none;
             color: white;
 
             &:hover {
-                background: #3b66df;
+                background: var(--primary-hover);
             }
         }
     }
@@ -698,7 +698,7 @@
     width: 100%;
     max-width: 500px;
     border-radius: var(--radius-lg); // 16px
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 20px 25px -5px var(--shadow-md), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -714,7 +714,7 @@
                 width: 48px;
                 height: 48px;
                 border-radius: 50%;
-                background-color: #f5f8ff; // Lighter outer blue
+                background-color: var(--primary-light); // Lighter outer blue
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -726,7 +726,7 @@
                     width: 32px;
                     height: 32px;
                     border-radius: 50%;
-                    background-color: #e5edff; // Inner darker blue
+                    background-color: var(--primary-light); // Inner darker blue
                     z-index: 0;
                 }
 
@@ -743,7 +743,7 @@
             width: 64px;
             height: 64px;
             border-radius: 50%;
-            background-color: #f0f4ff; // Light blue background
+            background-color: var(--primary-light); // Light blue background
             display: flex;
             align-items: center;
             justify-content: center;
@@ -780,7 +780,7 @@
             margin-bottom: 24px;
 
             &:hover {
-                background-color: #f8fafc;
+                background-color: var(--bg-offwhite);
                 border-color: #94a3b8;
             }
 
@@ -826,7 +826,7 @@
                 display: flex;
                 align-items: center;
                 padding: 16px;
-                background-color: #f8fafc; // Lighter grey/blue matching image
+                background-color: var(--bg-offwhite); // Lighter grey/blue matching image
                 border-radius: var(--radius-md);
                 gap: 16px;
 
@@ -863,11 +863,11 @@
                         letter-spacing: 0.5px;
 
                         &.pdf-icon {
-                            background-color: #ef4444;
+                            background-color: var(--danger);
                         }
 
                         &.doc-icon {
-                            background-color: #3b82f6;
+                            background-color: var(--primary-hover);
                         }
 
                         &.png-icon {
@@ -879,7 +879,7 @@
                         }
 
                         &.jpeg-icon {
-                            background-color: #06b6d4;
+                            background-color: var(--brand-cyan);
                         }
                     }
                 }
@@ -925,7 +925,7 @@
                             }
 
                             &.delete-btn:hover svg {
-                                stroke: #ef4444;
+                                stroke: var(--danger);
                             }
                         }
                     }
@@ -945,7 +945,7 @@
                             color: var(--text-dark);
 
                             &.uploading i {
-                                color: #3b82f6; // Blue spinner
+                                color: var(--primary-hover); // Blue spinner
                                 font-size: 14px;
                             }
 
@@ -966,7 +966,7 @@
 
                         .progress-fill {
                             height: 100%;
-                            background-color: #4B7BFF;
+                            background-color: var(--primary-light);
                             border-radius: 3px;
                             transition: width 0.3s ease;
                         }
@@ -979,7 +979,7 @@
             display: flex;
             align-items: center;
             padding: 12px 16px;
-            background-color: #f4f6fa; // light grey background
+            background-color: var(--bg-muted); // light grey background
             border-radius: var(--radius-sm);
             gap: 16px;
             border: 1px solid transparent;
@@ -990,7 +990,7 @@
             }
 
             .drag-handle {
-                color: #b5b5c3;
+                color: var(--text-placeholder);
                 cursor: grab;
                 font-size: 20px;
                 display: flex;
@@ -1027,12 +1027,12 @@
 
                     // Green
                     &.ppt-icon {
-                        background-color: #ef4444;
+                        background-color: var(--danger);
                     }
 
                     // Red
                     &.jpeg-icon {
-                        background-color: #06b6d4;
+                        background-color: var(--brand-cyan);
                     }
 
                     // Cyan
@@ -1057,7 +1057,7 @@
 
                 .file-size {
                     font-size: 11.5px;
-                    color: #b5b5c3; // match muted grey
+                    color: var(--text-placeholder); // match muted grey
                 }
             }
 
@@ -1070,7 +1070,7 @@
                     height: 32px;
                     border: none;
                     background: transparent;
-                    color: #a1a5b7;
+                    color: var(--text-placeholder);
                     font-size: 18px;
                     cursor: pointer;
                     border-radius: 6px;
@@ -1080,7 +1080,7 @@
                     transition: all 0.2s;
 
                     &:hover {
-                        background: rgba(0, 0, 0, 0.05);
+                        background: var(--shadow-sm);
                         color: var(--text-dark);
                     }
                 }
@@ -1090,7 +1090,7 @@
         .add-more-btn {
             background: transparent;
             border: none;
-            color: #4f7bf5;
+            color: var(--primary-hover);
             font-size: 13.5px;
             font-weight: 500;
             cursor: pointer;
@@ -1143,12 +1143,12 @@
             }
 
             &.btn-save {
-                background: #4f7bf5; // Brighter primary blue like image
+                background: var(--primary-hover); // Brighter primary blue like image
                 border: none;
                 color: white;
 
                 &:hover {
-                    background: #3b66df;
+                    background: var(--primary-hover);
                 }
             }
         }

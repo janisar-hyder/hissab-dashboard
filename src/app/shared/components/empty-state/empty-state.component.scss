@@ -37,21 +37,21 @@
   .empty-state-title {
     font-size: 24px;
     font-weight: 500;
-    color: #646569;
+    color: var(--text-secondary);
     margin: 0 0 8px 0;
     line-height: 1.4;
   }
 
   .empty-state-subtitle {
     font-size: 16px;
-    color: #a1a5b7;
+    color: var(--text-placeholder);
     margin: 0 0 24px 0;
     line-height: 1.5;
   }
 
   ::ng-deep app-button {
     .btn.btn-primary {
-      background-color: #0b5fff;
+      background-color: var(--primary);
       color: white;
       border: none;
       border-radius: 8px;

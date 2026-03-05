@@ -2,36 +2,70 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
-  // Brand Colors (High-Contrast Professional Palette)
-  --primary: #4F46E5;
-  --primary-hover: #3B82F6; // Lighter blue for hover
+  // Brand Colors
+  --primary: #0b5fff;
+  --primary-hover: #004ee6;
+  --primary-light: #eef3ff;
+  --brand-cyan: #37bcf8;
+  --brand-purple: #d800ff;
+  --brand-purple-dark: #8711c1;
+
+  // Background Colors
   --bg-main: #F3F4F6;
   --bg-card: #FFFFFF;
+  --bg-muted: #f4f6fa;
+  --bg-light: #f9fafb;
+  --bg-offwhite: #fdfdfd;
+
+  // Sidebar / Dark specific
+  --sidebar-bg: #181c32;
+  --sidebar-bg-dark: #2f3239;
 
   // Text Colors
   --text-dark: #1F2937;
-  --text-regular: #7e8299;
-  /* Keeping existing text-regular as it's not in the new block */
-  --text-muted: #6B7280;
+  --text-primary: #525356;
+  --text-secondary: #646569;
+  --text-muted: #7e8299;
+  --text-muted-dark: #5e6278;
+  --text-placeholder: #a1a5b7;
 
-  // UI Colors
+  // UI / Borders
   --border-light: #E5E7EB;
+  --border-medium: #D1D5DB;
+  --border-subtle: #eaecf0;
+  --border-secondary: #e4e6ef;
+  --border-focus: var(--primary);
   --border-row: #f4f6fa;
-  /* Keeping existing border-row as it's not in the new block */
-  --border-focus: #4F46E5;
+
+  // Status Indicators
+  --success: #50CD89;
+  --success-light: #e8fff3;
+  --warning: #FFC700;
+  --warning-light: #fff8dd;
+  --danger: #FD305D;
+  --danger-hover: #e6204c;
+  --danger-light: #fef0f4;
+
+  // Custom Shadows & Overlays
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-primary-focus: 0 0 0 4px rgba(11, 95, 255, 0.1);
+  --shadow-danger: 0 4px 6px -1px rgba(247, 44, 91, 0.4);
+  --overlay-white: inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
+  --overlay-light: rgba(0, 0, 0, 0.05);
+
+  // Static
+  --black: #000000;
+  --white: #ffffff;
 
   /* Typography */
   --font-family: 'Outfit', sans-serif;
-
-  // Shadows (Soft UI - Skeuomorphism lite)
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1); // Provided by user
 
   // Border Radius
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
-  /* Keeping existing radius-lg as it's not in the new block */
 
   // Spacing Scale
   --space-xs: 4px;

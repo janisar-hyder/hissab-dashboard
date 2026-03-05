@@ -8,19 +8,19 @@
         gap: 8px;
         padding: 10px 16px;
         background: white;
-        border: 1px solid #E5E7EB; // Light gray border
+        border: 1px solid var(--border-light); // Light gray border
         border-radius: 8px;
         cursor: pointer;
         font-family: inherit;
         font-size: 14.5px;
-        color: #646569; // Text color from the SVG match
+        color: var(--text-secondary); // Text color from the SVG match
         font-weight: 500;
         transition: all 0.2s;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+        box-shadow: 0 1px 2px var(--shadow-xs);
 
         &:hover {
-            background-color: #f9fafb;
-            border-color: #D1D5DB;
+            background-color: var(--bg-light);
+            border-color: var(--border-medium);
         }
 
         .icon {
@@ -49,15 +49,15 @@
                 width: 14px;
                 height: 14px;
                 margin-left: 4px;
-                color: #A0A5BB;
+                color: var(--text-placeholder);
                 /* Slightly lighter gray for chevron */
             }
         }
     }
 
     &.open .bulk-toggle-btn {
-        background-color: #f9fafb;
-        border-color: #D1D5DB;
+        background-color: var(--bg-light);
+        border-color: var(--border-medium);
     }
 
     .bulk-dropdown-menu {
@@ -66,9 +66,9 @@
         left: 0;
         min-width: 180px;
         background: white;
-        border: 1px solid #E5E7EB;
+        border: 1px solid var(--border-light);
         border-radius: 8px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        box-shadow: 0 4px 6px -1px var(--shadow-sm), 0 2px 4px -1px var(--shadow-xs);
         padding: 8px;
         z-index: 50;
         animation: dropdownFadeIn 0.15s ease-out;
@@ -87,21 +87,21 @@
             transition: all 0.15s ease;
 
             &.text-danger {
-                color: #4b5563; // Normal text color like others
+                color: var(--text-primary); // Normal text color like others
                 background-color: transparent;
 
                 &:hover {
-                    background-color: #FEF0F4; // Soft red background on hover
-                    color: #FD305D; // Strong red text on hover
+                    background-color: var(--danger-light); // Soft red background on hover
+                    color: var(--danger); // Strong red text on hover
                     font-weight: 500;
                 }
             }
 
             &:not(.text-danger) {
-                color: #4b5563;
+                color: var(--text-primary);
 
                 &:hover {
-                    background-color: #f3f4f6;
+                    background-color: var(--bg-main);
                 }
             }
         }

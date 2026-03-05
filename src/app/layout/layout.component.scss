@@ -40,14 +40,14 @@
                 .mark-left {
                     width: 10px;
                     height: 24px;
-                    background: linear-gradient(180deg, #37bcf8 0%, #d800ff 100%);
+                    background: linear-gradient(180deg, var(--brand-cyan) 0%, var(--brand-purple) 100%);
                     border-radius: 10px 0 10px 10px;
                 }
 
                 .mark-right {
                     width: 10px;
                     height: 16px;
-                    background: linear-gradient(180deg, #37bcf8 0%, #8711c1 100%);
+                    background: linear-gradient(180deg, var(--brand-cyan) 0%, var(--brand-purple-dark) 100%);
                     border-radius: 10px 10px 10px 0;
                 }
             }
@@ -83,12 +83,12 @@
             border: 1px solid var(--border-light);
 
             &:hover {
-                background: #f4f6fa;
+                background: var(--bg-muted);
             }
 
             .workspace-logo {
                 font-weight: 800;
-                color: #f72c5b;
+                color: var(--danger);
                 font-size: 9px;
                 letter-spacing: 0.5px;
                 text-transform: uppercase;
@@ -96,7 +96,7 @@
 
             .workspace-name {
                 font-weight: 500;
-                color: #5e6278;
+                color: var(--text-muted-dark);
                 font-size: 13.5px;
             }
 
@@ -119,7 +119,7 @@
                 /* slightly squared like the screenshot */
                 border: none;
                 background: transparent;
-                color: #b5b5c3;
+                color: var(--text-placeholder);
                 font-size: 22px;
                 display: flex;
                 align-items: center;
@@ -141,7 +141,7 @@
                 }
 
                 &:hover {
-                    background: #f4f6fa;
+                    background: var(--bg-muted);
                     color: var(--primary);
                 }
 
@@ -152,7 +152,7 @@
                         right: 6px;
                         width: 8px;
                         height: 8px;
-                        background-color: #f72c5b;
+                        background-color: var(--danger);
                         border-radius: 50%;
                         border: 2px solid var(--bg-card);
                     }
@@ -256,7 +256,7 @@
         align-items: center;
         justify-content: flex-start;
         padding: 0 10px;
-        color: #525356; // Matching SVG exactly
+        color: var(--text-primary); // Matching SVG exactly
         border-radius: 8px;
         text-decoration: none;
         transition: all 0.2s;
@@ -296,7 +296,7 @@
             transition: transform 0.3s, opacity 0.3s;
             font-size: 13px;
             font-weight: 600;
-            color: #5e6278;
+            color: var(--text-muted-dark);
 
             &.rotated {
                 transform: rotate(180deg);
@@ -304,17 +304,17 @@
         }
 
         &:hover {
-            color: #0b5fff;
-            background: #f4f6fa;
+            color: var(--primary);
+            background: var(--bg-muted);
 
             .nav-chevron {
-                color: #0b5fff;
+                color: var(--primary);
             }
         }
 
         &.active {
             color: white;
-            background: #0b5fff; // Vibrant exact blue
+            background: var(--primary); // Vibrant exact blue
             border-radius: 8px;
             box-shadow: none;
             position: relative;
@@ -330,16 +330,16 @@
 
         &.logout-link {
             .nav-text {
-                color: #f72c5b;
+                color: var(--danger);
             }
 
             &:hover {
-                color: #f72c5b;
-                background: #fef0f4;
+                color: var(--danger);
+                background: var(--danger-light);
             }
 
             .svg-icon {
-                color: #f72c5b;
+                color: var(--danger);
             }
         }
     }
@@ -381,7 +381,7 @@
                     width: 6px;
                     height: 6px;
                     border-radius: 50%;
-                    background-color: #e4e6ef; // light grey dot
+                    background-color: var(--border-secondary); // light grey dot
                     position: absolute;
                     left: 17px; // precisely centers over 20px line
                     top: 50%;
@@ -445,7 +445,7 @@
         border: 1px solid transparent; // hide border when collapsed
 
         &:hover {
-            background: #f4f6fa;
+            background: var(--bg-muted);
         }
 
         img {

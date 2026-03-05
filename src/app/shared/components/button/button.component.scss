@@ -29,37 +29,37 @@
         color: white;
         border: 1px solid var(--primary);
         font-weight: 600;
-        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05), inset 0 1px 0 0 rgba(255, 255, 255, 0.15); // tactile inner glow
+        box-shadow: 0 1px 2px 0 var(--shadow-sm), inset 0 1px 0 0 var(--overlay-white); // tactile inner glow
 
         &:hover:not(:disabled) {
             background-color: var(--primary-hover);
             border-color: var(--primary-hover);
-            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);
+            box-shadow: 0 4px 6px -1px var(--shadow-primary-focus);
         }
     }
 
     &.btn-outline {
         background-color: var(--bg-card);
-        color: var(--text-muted); // #6B7280
-        border: 1px solid var(--border-light); // #E5E7EB
-        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        color: var(--text-muted); // var(--text-secondary)
+        border: 1px solid var(--border-light); // var(--border-light)
+        box-shadow: 0 1px 2px 0 var(--shadow-sm);
 
         &:hover:not(:disabled) {
-            background-color: #F9FAFB;
+            background-color: var(--bg-light);
         }
     }
 
     &.btn-danger {
-        background-color: #f72c5b; // Using the red/pink specified color
+        background-color: var(--danger); // Using the red/pink specified color
         color: white;
-        border: 1px solid #f72c5b;
+        border: 1px solid var(--danger);
         font-weight: 500;
-        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05), inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
+        box-shadow: 0 1px 2px 0 var(--shadow-sm), inset 0 1px 0 0 var(--overlay-white);
 
         &:hover:not(:disabled) {
-            background-color: #e6204c; // Slightly darker tone
-            border-color: #e6204c;
-            box-shadow: 0 4px 6px -1px rgba(247, 44, 91, 0.4);
+            background-color: var(--danger-hover); // Slightly darker tone
+            border-color: var(--danger-hover);
+            box-shadow: 0 4px 6px -1px var(--shadow-danger);
         }
     }
 }

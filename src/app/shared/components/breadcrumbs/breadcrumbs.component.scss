@@ -7,22 +7,22 @@
     margin-bottom: 6px; // Space between breadcrumbs and page title
 
     .breadcrumb-link {
-        color: #aaaebb; // Light gray matching design
+        color: var(--text-placeholder); // Light gray matching design
         cursor: pointer;
         transition: color 0.2s;
 
         &:hover {
-            color: #4b5563; // Darker on hover
+            color: var(--text-primary); // Darker on hover
             text-decoration: underline;
         }
     }
 
     .breadcrumb-active {
-        color: #4b5563; // Darker active state matching design
+        color: var(--text-primary); // Darker active state matching design
     }
 
     .breadcrumb-separator {
-        color: #aaaebb;
+        color: var(--text-placeholder);
         font-size: 11px;
         display: flex;
         align-items: center;
