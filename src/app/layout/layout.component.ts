@@ -155,8 +155,8 @@ import { RouterModule } from '@angular/router';
           </nav>
 
           <div class="sidebar-bottom">
-            <a href="#" class="nav-item" [class.active]="isSidebarExpanded" (click)="toggleSidebar($event)">
-              <div class="svg-icon" style="-webkit-mask-image: url('icons/Frame(10).svg'); mask-image: url('icons/Frame(10).svg');"></div>
+            <a href="#" class="nav-item" (click)="toggleSidebar($event)">
+              <div class="svg-icon" [style.-webkit-mask-image]="getToggleIconUrl()" [style.mask-image]="getToggleIconUrl()"></div>
               <span class="nav-text">{{ isSidebarExpanded ? 'Collapse Menu' : 'Expand Menu' }}</span>
             </a>
             <a href="#" class="nav-item logout-link">
@@ -201,5 +201,8 @@ export class LayoutComponent {
   toggleSubMenu(menu: string, event: Event) {
     event.preventDefault();
     this.expandedMenu = this.expandedMenu === menu ? null : menu;
+  }
+  getToggleIconUrl(): string {
+    return this.isSidebarExpanded ? `url('icons/sidebar-collapse.svg')` : `url('icons/Frame(10).svg')`;
   }
 }

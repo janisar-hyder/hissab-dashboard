@@ -135,6 +135,10 @@
 }
 
 .sidebar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
     width: 80px;
     background: var(--bg-card);
     border-right: 1px solid var(--border-light);
@@ -452,10 +456,16 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    margin-left: 80px;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     .page-content {
         flex: 1;
         overflow-y: auto;
         padding: 0;
     }
+}
+
+.sidebar.expanded~.main-content {
+    margin-left: 260px;
 }
