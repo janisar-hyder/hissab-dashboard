@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ButtonComponent } from '../../../shared/components/button/button.component';
-import { BreadcrumbsComponent } from '../../../shared/components/breadcrumbs/breadcrumbs.component';
+import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { BreadcrumbsComponent } from '../../../../shared/components/breadcrumbs/breadcrumbs.component';
+import { AttachmentsModal } from '../../../../shared/components/attachments-modal/attachments-modal';
 
 @Component({
     selector: 'app-customer-edit',
     standalone: true,
-    imports: [CommonModule, ButtonComponent, BreadcrumbsComponent],
+    imports: [CommonModule, ButtonComponent, BreadcrumbsComponent, AttachmentsModal],
     templateUrl: './customer-edit.component.html',
     styleUrls: ['./customer-edit.component.scss']
 })
@@ -40,6 +41,6 @@ export class CustomerEditComponent implements OnInit {
     }
 
     goBack(): void {
-        this.router.navigate(['/customers']);
+        this.router.navigate(['/sales/customers']);
     }
 }

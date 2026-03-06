@@ -2,11 +2,12 @@ import { Component, OnInit, HostListener, ElementRef } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
-import { ButtonComponent } from '../../../shared/components/button/button.component';
-import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
-import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
-import { BulkActionsComponent, BulkAction } from '../../../shared/components/bulk-actions/bulk-actions.component';
+import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
+import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
+import { BulkActionsComponent, BulkAction } from '../../../../shared/components/bulk-actions/bulk-actions.component';
+import { ManageColumnsComponent, ColumnDefinition } from '../../../../shared/components/manage-columns/manage-columns.component';
+import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
 
 export interface Customer {
     id: string;
@@ -21,7 +22,7 @@ export interface Customer {
 @Component({
     selector: 'app-customers-list',
     standalone: true,
-    imports: [CommonModule, FormsModule, DragDropModule, ButtonComponent, DecimalPipe, EmptyStateComponent, PaginationComponent, BulkActionsComponent],
+    imports: [CommonModule, FormsModule, ButtonComponent, DecimalPipe, EmptyStateComponent, PaginationComponent, BulkActionsComponent, ManageColumnsComponent, DeleteModalComponent],
     templateUrl: './customers-list.component.html',
     styleUrls: ['./customers-list.component.scss']
 })
@@ -82,7 +83,7 @@ export class CustomersListComponent implements OnInit {
     ngOnInit(): void { }
 
     navigateToNew(): void {
-        this.router.navigate(['/customers/new']);
+        this.router.navigate(['/sales/customers/new']);
     }
 
     @HostListener('document:click', ['$event'])
@@ -120,8 +121,8 @@ export class CustomersListComponent implements OnInit {
         this.isManageColumnsOpen = false;
     }
 
-    dropColumn(event: CdkDragDrop<any[]>): void {
-        moveItemInArray(this.availableColumns, event.previousIndex, event.currentIndex);
+    onColumnsChange(newColumns: ColumnDefinition[]): void {
+        this.availableColumns = newColumns;
     }
 
     toggleMenu(id: string, event: Event): void {
@@ -142,7 +143,7 @@ export class CustomersListComponent implements OnInit {
     navigateToEdit(id: string, event: Event): void {
         event.stopPropagation();
         this.openMenuId = null;
-        this.router.navigate(['/customers/edit', id]);
+        this.router.navigate(['/sales/customers/edit', id]);
     }
 
     closeDeleteModal(): void {

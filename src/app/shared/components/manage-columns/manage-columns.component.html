@@ -1,0 +1,32 @@
+<div class="side-panel-overlay" *ngIf="isOpen" (click)="close()"></div>
+<div class="side-panel" [class.open]="isOpen">
+    <div class="panel-header">
+        <h2>Manage Columns</h2>
+        <button class="close-btn" (click)="close()"><i class="las la-times"></i></button>
+    </div>
+
+    <div class="panel-body">
+        <div class="search-box">
+            <i class="las la-search search-icon"></i>
+            <input type="text" placeholder="Search for columns" class="search-input">
+        </div>
+
+        <div class="columns-list" cdkDropList (cdkDropListDropped)="dropColumn($event)">
+            <div class="column-item" *ngFor="let col of columns" cdkDrag>
+                <div class="drag-handle" cdkDragHandle>
+                    <div class="svg-icon"
+                        style="-webkit-mask-image: url('/icons/drag-indicator.svg'); mask-image: url('/icons/drag-indicator.svg');">
+                    </div>
+                </div>
+                <!-- Binding to component's own column array instance -->
+                <input type="checkbox" [(ngModel)]="col.checked" [id]="'manage-col-' + col.id" class="custom-checkbox">
+                <label [for]="'manage-col-' + col.id" [class.text-muted]="!col.checked">{{ col.label }}</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-footer">
+        <app-button variant="outline" (clicked)="reset()">Reset to default</app-button>
+        <app-button variant="primary" (clicked)="save()">Save</app-button>
+    </div>
+</div>

@@ -86,7 +86,7 @@
                                         (click)="navigateToEdit(customer.id, $event)">Edit</button>
                                     <button class="menu-item delete-btn" (click)="openDeleteModal(customer, $event)">
                                         <div class="svg-icon"
-                                            style="-webkit-mask-image: url('icons/delete.svg'); mask-image: url('icons/delete.svg');">
+                                            style="-webkit-mask-image: url('/icons/delete.svg'); mask-image: url('/icons/delete.svg');">
                                         </div>
                                         Delete
                                     </button>
@@ -112,50 +112,12 @@
 </div>
 
 <!-- Manage Columns Side Panel -->
-<div class="side-panel-overlay" *ngIf="isManageColumnsOpen" (click)="closeManageColumns()"></div>
-<div class="side-panel" [class.open]="isManageColumnsOpen">
-    <div class="panel-header">
-        <h2>Manage Columns</h2>
-        <button class="close-btn" (click)="closeManageColumns()"><i class="las la-times"></i></button>
-    </div>
-
-    <div class="panel-body">
-        <div class="search-box">
-            <i class="las la-search search-icon"></i>
-            <input type="text" placeholder="Search for columns" class="search-input">
-        </div>
-
-        <div class="columns-list" cdkDropList (cdkDropListDropped)="dropColumn($event)">
-            <div class="column-item" *ngFor="let col of availableColumns" cdkDrag>
-                <div class="drag-handle" cdkDragHandle>
-                    <div class="svg-icon"
-                        style="-webkit-mask-image: url('icons/drag-indicator.svg'); mask-image: url('icons/drag-indicator.svg');">
-                    </div>
-                </div>
-                <input type="checkbox" [(ngModel)]="col.checked" [id]="col.id" class="custom-checkbox">
-                <label [for]="col.id" [class.text-muted]="!col.checked">{{ col.label }}</label>
-            </div>
-        </div>
-    </div>
-
-    <div class="panel-footer">
-        <app-button variant="outline" (clicked)="closeManageColumns()">Reset to default</app-button>
-        <app-button variant="primary" (clicked)="closeManageColumns()">Save</app-button>
-    </div>
-</div>
+<app-manage-columns [isOpen]="isManageColumnsOpen" [columns]="availableColumns" (closePanel)="closeManageColumns()"
+    (columnsChange)="onColumnsChange($event)">
+</app-manage-columns>
 
 <!-- Delete Confirmation Modal -->
-<div class="modal-overlay" *ngIf="customerToDelete" (click)="closeDeleteModal()">
-    <div class="confirm-modal" (click)="$event.stopPropagation()">
-        <div class="modal-icon-container">
-            <div class="svg-icon"
-                style="-webkit-mask-image: url('icons/delete.svg'); mask-image: url('icons/delete.svg');"></div>
-        </div>
-        <h3 class="modal-title">Delete Customer</h3>
-        <p class="modal-message">Are you sure you want to delete this product? This action cannot be undone.</p>
-        <div class="modal-actions">
-            <app-button variant="outline" (clicked)="closeDeleteModal()" class="w-100">Cancel</app-button>
-            <app-button variant="danger" (clicked)="confirmDelete()" class="w-100">Delete</app-button>
-        </div>
-    </div>
-</div>
+<app-delete-modal [isOpen]="!!customerToDelete" title="Delete Customer"
+    message="Are you sure you want to delete this customer? This action cannot be undone." (cancel)="closeDeleteModal()"
+    (confirm)="confirmDelete()">
+</app-delete-modal>

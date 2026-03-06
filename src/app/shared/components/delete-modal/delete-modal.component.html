@@ -1,0 +1,14 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="onCancel()">
+    <div class="confirm-modal" (click)="$event.stopPropagation()">
+        <div class="modal-icon-container">
+            <div class="svg-icon"
+                style="-webkit-mask-image: url('/icons/delete.svg'); mask-image: url('/icons/delete.svg');"></div>
+        </div>
+        <h3 class="modal-title">{{ title }}</h3>
+        <p class="modal-message">{{ message }}</p>
+        <div class="modal-actions">
+            <app-button variant="outline" (clicked)="onCancel()" class="w-100">Cancel</app-button>
+            <app-button variant="danger" (clicked)="onConfirm()" class="w-100">Delete</app-button>
+        </div>
+    </div>
+</div>

@@ -11,7 +11,7 @@ import { RouterModule } from '@angular/router';
       <!-- Full width Topbar -->
       <header class="topbar">
         <div class="top-logo-area">
-            <img src="icons/tamezy-logo.svg" alt="Tamezy" class="brand-logo-img">
+            <img src="/icons/tamezy-logo.svg" alt="Tamezy" class="brand-logo-img">
         </div>
         <div class="topbar-right">
           <div class="workspace-selector">
@@ -20,9 +20,9 @@ import { RouterModule } from '@angular/router';
               <i class="las la-angle-down"></i>
           </div>
           <div class="topbar-actions">
-              <button class="icon-btn"><div class="svg-icon" style="-webkit-mask-image: url('icons/glob.svg'); mask-image: url('icons/glob.svg');"></div></button>
+              <button class="icon-btn"><div class="svg-icon" style="-webkit-mask-image: url('/icons/glob.svg'); mask-image: url('/icons/glob.svg');"></div></button>
               <button class="icon-btn notification">
-              <div class="svg-icon" style="-webkit-mask-image: url('icons/bell.svg'); mask-image: url('icons/bell.svg');"></div>
+              <div class="svg-icon" style="-webkit-mask-image: url('/icons/bell.svg'); mask-image: url('/icons/bell.svg');"></div>
               <span class="badge"></span>
               </button>
           </div>
@@ -34,7 +34,7 @@ import { RouterModule } from '@angular/router';
         <aside class="sidebar" [class.expanded]="isSidebarExpanded" (mouseenter)="isHovered = true" (mouseleave)="isHovered = false">
           <nav class="nav-menu">
             <a href="#" class="nav-item">
-              <div class="svg-icon" style="-webkit-mask-image: url('icons/Frame (0).svg'); mask-image: url('icons/Frame (0).svg');"></div>
+              <div class="svg-icon" style="-webkit-mask-image: url('/icons/Frame (0).svg'); mask-image: url('/icons/Frame (0).svg');"></div>
               <span class="nav-text">Dashboard</span>
             </a>
             <div class="nav-item-group">
@@ -45,8 +45,8 @@ import { RouterModule } from '@angular/router';
               </a>
               <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'sales'">
                 <div class="sub-menu-line"></div>
-                <a routerLink="/customers" class="sub-item active"><span class="dot"></span>Customers</a>
-                <a href="#" class="sub-item"><span class="dot"></span>Quotations</a>
+                <a routerLink="/sales/customers" routerLinkActive="active" class="sub-item"><span class="dot"></span>Customers</a>
+                <a routerLink="/sales/quotations" routerLinkActive="active" class="sub-item"><span class="dot"></span>Quotations</a>
                 <a href="#" class="sub-item"><span class="dot"></span>Invoices</a>
                 <a href="#" class="sub-item"><span class="dot"></span>Recurring Invoices</a>
                 <a href="#" class="sub-item"><span class="dot"></span>Sales Orders</a>
@@ -173,7 +173,7 @@ import { RouterModule } from '@angular/router';
               <span class="nav-text">{{ isSidebarExpanded ? 'Collapse Menu' : 'Expand Menu' }}</span>
             </a>
             <a href="#" class="nav-item logout-link">
-              <div class="svg-icon" style="-webkit-mask-image: url('icons/Frame (11).svg'); mask-image: url('icons/Frame (11).svg');"></div>
+              <div class="svg-icon" style="-webkit-mask-image: url('/icons/Frame (11).svg'); mask-image: url('/icons/Frame (11).svg');"></div>
               <span class="nav-text">Logout</span>
             </a>
             <div class="user-profile">
@@ -204,7 +204,7 @@ export class LayoutComponent {
   getIconUrl(menu: string, index: number | string, isDefaultActive = false): string {
     const isActive = this.expandedMenu === menu || (isDefaultActive && !this.expandedMenu);
     const baseName = typeof index === 'number' ? `Frame (${index})` : index;
-    return `url('icons/${baseName}${isActive ? '-active' : ''}.svg')`;
+    return `url('/icons/${baseName}${isActive ? '-active' : ''}.svg')`;
   }
 
   toggleSidebar(event: Event) {
@@ -217,6 +217,6 @@ export class LayoutComponent {
     this.expandedMenu = this.expandedMenu === menu ? null : menu;
   }
   getToggleIconUrl(): string {
-    return this.isSidebarExpanded ? `url('icons/sidebar-collapse.svg')` : `url('icons/Frame(10).svg')`;
+    return this.isSidebarExpanded ? `url('/icons/sidebar-collapse.svg')` : `url('/icons/Frame(10).svg')`;
   }
 }

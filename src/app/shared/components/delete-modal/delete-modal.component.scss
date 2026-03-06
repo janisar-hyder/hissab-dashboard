@@ -1,0 +1,94 @@
+/* Delete Confirmation Modal */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(2px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-lg);
+}
+
+.confirm-modal {
+    background: var(--bg-card);
+    width: 100%;
+    max-width: 440px; // matches standard confirmation popup sizes
+    border-radius: var(--radius-md); // 12px or 16px as per design
+    box-shadow: 0 20px 25px -5px var(--shadow-md), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; // Changed to match image
+    text-align: left;
+    animation: modalScaleIn 0.2s ease-out;
+
+    .modal-icon-container {
+        width: 60px;
+        height: 60px;
+        background-color: var(--danger-light); // matches the hover background of the delete row button
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+
+        .svg-icon {
+            width: 30px;
+            height: 30px;
+            background-color: var(--danger); // pink/red
+            -webkit-mask-size: contain;
+            -webkit-mask-repeat: no-repeat;
+            -webkit-mask-position: center;
+            mask-size: contain;
+            mask-repeat: no-repeat;
+            mask-position: center;
+        }
+    }
+
+    .modal-title {
+        font-size: 20px;
+        font-weight: 500;
+        color: var(--text-dark);
+        margin: 0 0 12px 0;
+    }
+
+    .modal-message {
+        font-size: 15px;
+        color: var(--text-muted);
+        line-height: 1.6;
+        margin: 0 0 32px 0;
+    }
+
+    .modal-actions {
+        display: flex;
+        width: 100%;
+        gap: 16px;
+
+        .w-100 {
+            flex: 1;
+
+            ::ng-deep button {
+                // targeting the inner button of app-button component
+                width: 100%;
+                justify-content: center;
+                padding-top: 14px;
+                padding-bottom: 14px;
+                font-size: 15px;
+            }
+        }
+    }
+}
+
+@keyframes modalScaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
