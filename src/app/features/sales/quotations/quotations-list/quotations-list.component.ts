@@ -6,7 +6,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { BulkActionsComponent, BulkAction } from '../../../../shared/components/bulk-actions/bulk-actions.component';
-import { ManageColumnsComponent, ColumnDefinition } from '../../../../shared/components/manage-columns/manage-columns.component';
+import { ManageColumnsComponent, ColumnDef } from '../../../../shared/components/manage-columns/manage-columns.component';
 import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
 
 export interface Quotation {
@@ -50,13 +50,13 @@ export class QuotationsListComponent implements OnInit {
     isFilterMenuOpen = false;
     currentFilter: 'All' | 'Sent' | 'Invoiced' | 'Draft' = 'All';
 
-    availableColumns: ColumnDefinition[] = [
-        { id: 'quotationNumber', label: 'Quotation Number', checked: true },
-        { id: 'date', label: 'Date', checked: true },
-        { id: 'customerName', label: 'Customer Name', checked: true },
-        { id: 'amount', label: 'Amount', checked: true },
-        { id: 'status', label: 'Status', checked: true }
-    ];
+    availableColumns: ColumnDef[] = [
+    { id: 'quotationNumber', label: 'Quotation Number', visible: true, required: true },
+    { id: 'date', label: 'Date', visible: true },
+    { id: 'customerName', label: 'Customer Name', visible: true },
+    { id: 'amount', label: 'Amount', visible: true },
+    { id: 'status', label: 'Status', visible: true },
+  ];
 
     get filteredQuotations(): Quotation[] {
         if (this.currentFilter === 'All') {
@@ -108,16 +108,22 @@ export class QuotationsListComponent implements OnInit {
         }
     }
 
-    toggleManageColumns(): void {
-        this.isManageColumnsOpen = !this.isManageColumnsOpen;
-    }
+    isColumnVisible(columnId: string): boolean {
+    const col = this.availableColumns.find(c => c.id === columnId);
+    return col ? col.visible : false;
+  }
 
-    closeManageColumns(): void {
-        this.isManageColumnsOpen = false;
-    }
+  toggleManageColumns() {
+    this.isManageColumnsOpen = true;
+    this.openMenuId = null;
+  }
 
-    onColumnsChange(newColumns: ColumnDefinition[]): void {
-        this.availableColumns = newColumns;
+  closeManageColumns() {
+    this.isManageColumnsOpen = false;
+  }
+
+  onColumnsChange(updatedColumns: ColumnDef[]): void {
+        this.availableColumns = updatedColumns;
     }
 
     toggleFilterMenu(event: Event): void {

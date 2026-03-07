@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 
 @Component({
   selector: 'app-layout',
@@ -32,7 +32,50 @@ import { RouterModule } from '@angular/router';
       <!-- Bottom Layout Container -->
       <div class="app-body">
         <aside class="sidebar" [class.expanded]="isSidebarExpanded" (mouseenter)="isHovered = true" (mouseleave)="isHovered = false">
-          <nav class="nav-menu">
+          
+          <!-- ADMIN SIDEBAR -->
+          <nav class="nav-menu" *ngIf="isAdminPage">
+            <a routerLink="/admin/dashboard" class="nav-item" [class.active]="expandedMenu === 'dashboard'" (click)="toggleSubMenu('dashboard', $event)">
+              <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('dashboard', 0)" [style.mask-image]="getIconUrl('dashboard', 0)"></div>
+              <span class="nav-text">Dashboard</span>
+            </a>
+            
+            <a routerLink="/admin/clients" class="nav-item" [class.active]="expandedMenu === 'clients'" (click)="toggleSubMenu('clients', $event)">
+              <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('clients', 'clients')" [style.mask-image]="getIconUrl('clients', 'clients')"></div>
+              <span class="nav-text">Clients</span>
+            </a>
+
+            <div class="nav-item-group">
+              <a href="#" class="nav-item" [class.active]="expandedMenu === 'users'" (click)="toggleSubMenu('users', $event)">
+                <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('users', 'user-management')" [style.mask-image]="getIconUrl('users', 'user-management')"></div>
+                <span class="nav-text">User Management</span>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'users'"></i>
+              </a>
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'users'">
+                <div class="sub-menu-line"></div>
+                <a routerLink="/admin/user-management/users" routerLinkActive="active" class="sub-item"><span class="dot"></span>Users</a>
+                <a routerLink="/admin/user-management/roles" routerLinkActive="active" class="sub-item"><span class="dot"></span>Roles</a>
+              </div>
+            </div>
+            
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-label">Preferences</div>
+
+            <div class="nav-item-group">
+              <a href="#" class="nav-item" [class.active]="expandedMenu === 'settings'" (click)="toggleSubMenu('settings', $event)">
+                <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('settings', 9)" [style.mask-image]="getIconUrl('settings', 9)"></div>
+                <span class="nav-text">Settings</span>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'settings'"></i>
+              </a>
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'settings'">
+                <div class="sub-menu-line"></div>
+                <a href="#" class="sub-item"><span class="dot"></span>General</a>
+              </div>
+            </div>
+          </nav>
+
+          <!-- SALES SIDEBAR -->
+          <nav class="nav-menu" *ngIf="!isAdminPage">
             <a href="#" class="nav-item">
               <div class="svg-icon" style="-webkit-mask-image: url('/icons/Frame (0).svg'); mask-image: url('/icons/Frame (0).svg');"></div>
               <span class="nav-text">Dashboard</span>
@@ -200,6 +243,12 @@ export class LayoutComponent {
   isSidebarExpanded = false;
   isHovered = false;
   expandedMenu: string | null = 'sales'; // Default to sales based on screenshot
+
+  constructor(private router: Router) {}
+
+  get isAdminPage(): boolean {
+    return this.router.url.startsWith('/admin');
+  }
 
   getIconUrl(menu: string, index: number | string, isDefaultActive = false): string {
     const isActive = this.expandedMenu === menu || (isDefaultActive && !this.expandedMenu);

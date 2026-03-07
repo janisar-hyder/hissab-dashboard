@@ -11,7 +11,7 @@
             <input type="text" placeholder="Search for columns" class="search-input">
         </div>
 
-        <div class="columns-list" cdkDropList (cdkDropListDropped)="dropColumn($event)">
+        <div class="columns-list" cdkDropList (cdkDropListDropped)="drop($event)">
             <div class="column-item" *ngFor="let col of columns" cdkDrag>
                 <div class="drag-handle" cdkDragHandle>
                     <div class="svg-icon"
@@ -19,8 +19,8 @@
                     </div>
                 </div>
                 <!-- Binding to component's own column array instance -->
-                <input type="checkbox" [(ngModel)]="col.checked" [id]="'manage-col-' + col.id" class="custom-checkbox">
-                <label [for]="'manage-col-' + col.id" [class.text-muted]="!col.checked">{{ col.label }}</label>
+                <input type="checkbox" [(ngModel)]="col.visible" [id]="'manage-col-' + col.id" class="custom-checkbox">
+                <label [for]="'manage-col-' + col.id" [class.text-muted]="!col.visible">{{ col.label }}</label>
             </div>
         </div>
     </div>

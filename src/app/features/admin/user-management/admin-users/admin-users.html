@@ -1,0 +1,130 @@
+<div class="page-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-titles">
+            <h1 class="page-title">Users</h1>
+        </div>
+        <div class="header-actions">
+            <app-button variant="primary" iconPrefix="las la-plus" (clicked)="navigateToNew()">
+                Add New Users
+            </app-button>
+            <app-button variant="outline">
+                <svg svg-icon width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 16V4M12 16L8 12M12 16L16 12" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M19 16V18C19 18.5304 18.7893 19.0391 18.4142 19.4142C18.0391 19.7893 17.5304 20 17 20H7C6.46957 20 5.96086 19.7893 5.58579 19.4142C5.21071 19.0391 5 18.5304 5 18V16" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                Import
+            </app-button>
+            <app-button variant="outline">
+                <svg svg-icon width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 4V16M12 4L8 8M12 4L16 8" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M19 16V18C19 18.5304 18.7893 19.0391 18.4142 19.4142C18.0391 19.7893 17.5304 20 17 20H7C6.46957 20 5.96086 19.7893 5.58579 19.4142C5.21071 19.0391 5 18.5304 5 18V16" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                Export
+            </app-button>
+        </div>
+    </div>
+
+    <!-- Data Card -->
+    <div class="data-card" *ngIf="users.length > 0">
+        <!-- Toolbar -->
+        <div class="card-toolbar">
+            <div class="search-box">
+                <i class="las la-search search-icon"></i>
+                <input type="text" placeholder="Search for something.." class="search-input">
+                <i class="las la-times clear-icon"></i>
+            </div>
+            
+            <div class="toolbar-actions" style="display: flex; gap: var(--space-sm); align-items: center;">
+                <div class="custom-dropdown" style="position: relative;">
+                    <button class="dropdown-trigger" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: white; border: 1px solid var(--border-light); border-radius: var(--radius-sm); color: var(--text-muted); font-size: 13px; font-weight: 500; cursor: pointer;">
+                        All Users
+                        <i class="las la-angle-down"></i>
+                    </button>
+                </div>
+                
+                <app-button variant="outline" iconPrefix="las la-sliders-h" (clicked)="toggleManageColumns()">Manage Columns</app-button>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th class="col-checkbox">
+                            <input type="checkbox" [checked]="isAllSelected()" (change)="toggleAll()">
+                        </th>
+                        <th *ngIf="isColumnVisible('name')">Name <i class="las la-sort"></i></th>
+                        <th *ngIf="isColumnVisible('role')">Role <i class="las la-sort"></i></th>
+                        <th *ngIf="isColumnVisible('email')">Email <i class="las la-sort"></i></th>
+                        <th *ngIf="isColumnVisible('status')">Status <i class="las la-sort"></i></th>
+                        <th class="col-actions"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let user of paginatedUsers">
+                        <td class="col-checkbox">
+                            <input type="checkbox" [checked]="selectedUserIds.has(user.id)" (change)="toggleSelection(user.id)">
+                        </td>
+                        <td class="text-muted" *ngIf="isColumnVisible('name')">{{ user.name }}</td>
+                        <td class="text-muted" *ngIf="isColumnVisible('role')">{{ user.role }}</td>
+                        <td class="text-muted" *ngIf="isColumnVisible('email')">{{ user.email }}</td>
+                        <td *ngIf="isColumnVisible('status')">
+                            <span class="status-pill" [ngClass]="user.status.toLowerCase()">
+                                <span class="dot"></span> {{ user.status }}
+                            </span>
+                        </td>
+                        <td class="col-actions">
+                            <div class="action-menu-container">
+                                <button class="action-btn" (click)="toggleMenu(user.id, $event)">
+                                    <i class="las la-ellipsis-h"></i>
+                                </button>
+                                <div class="action-dropdown" *ngIf="openMenuId === user.id">
+                                    <button class="menu-item edit-btn">Edit</button>
+                                    <button class="menu-item delete-btn">
+                                        <div class="svg-icon" style="-webkit-mask-image: url('/icons/delete.svg'); mask-image: url('/icons/delete.svg');"></div>
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer Pagination -->
+        <app-pagination 
+            [totalItems]="users.length" 
+            [itemsPerPage]="itemsPerPage" 
+            [currentPage]="currentPage"
+            (pageChange)="onPageChange($event)" 
+            (itemsPerPageChange)="onItemsPerPageChange($event)">
+        </app-pagination>
+    </div>
+
+    <app-empty-state *ngIf="users.length === 0" 
+        title="No Users Found."
+        subtitle="It looks like you haven't added any users yet." 
+        actionLabel="Add New User"
+        actionIconClass="las la-plus" 
+        (actionClick)="navigateToNew()">
+    </app-empty-state>
+
+</div>
+
+<!-- Manage Columns Side Panel -->
+<app-manage-columns 
+    [isOpen]="isManageColumnsOpen" 
+    [columns]="availableColumns" 
+    (closePanel)="closeManageColumns()"
+    (columnsChange)="onColumnsChange($event)">
+</app-manage-columns>
+
+<!-- Add New User Modal -->
+<app-add-user-modal 
+    *ngIf="isAddUserModalOpen" 
+    (close)="isAddUserModalOpen = false" 
+    (save)="onSaveUser($event)">
+</app-add-user-modal>

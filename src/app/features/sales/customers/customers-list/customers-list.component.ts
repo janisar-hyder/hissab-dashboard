@@ -6,7 +6,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { BulkActionsComponent, BulkAction } from '../../../../shared/components/bulk-actions/bulk-actions.component';
-import { ManageColumnsComponent, ColumnDefinition } from '../../../../shared/components/manage-columns/manage-columns.component';
+import { ManageColumnsComponent, ColumnDef } from '../../../../shared/components/manage-columns/manage-columns.component';
 import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
 
 export interface Customer {
@@ -57,19 +57,13 @@ export class CustomersListComponent implements OnInit {
     openMenuId: string | null = null;
     customerToDelete: Customer | null = null;
 
-    availableColumns = [
-        { id: 'displayName', label: 'Display Name', checked: true },
-        { id: 'registrationNumber', label: 'Registration Number', checked: false },
-        { id: 'companyNameEng', label: 'Company Name (English)', checked: true },
-        { id: 'companyNameAra', label: 'Company Name (Arabic)', checked: false },
-        { id: 'customerType', label: 'Customer Type', checked: false },
-        { id: 'primaryContact', label: 'Primary Contact', checked: false },
-        { id: 'email', label: 'Email', checked: true },
-        { id: 'workNumber', label: 'Work Number', checked: true },
-        { id: 'mobileNumber', label: 'Mobile Number', checked: false },
-        { id: 'receivables', label: 'Receivables', checked: true },
-        { id: 'creditNote', label: 'Credit Note', checked: true },
-        { id: 'remarks', label: 'Remarks', checked: false }
+    availableColumns: ColumnDef[] = [
+        { id: 'displayName', label: 'Display Name', visible: true, required: true },
+        { id: 'companyName', label: 'Company Name (English)', visible: true },
+        { id: 'workNumber', label: 'Work Number', visible: true },
+        { id: 'email', label: 'Email', visible: true },
+        { id: 'receivables', label: 'Receivables', visible: true },
+        { id: 'creditNote', label: 'Credit Note', visible: true },
     ];
 
     get paginatedCustomers(): Customer[] {
@@ -113,16 +107,22 @@ export class CustomersListComponent implements OnInit {
         }
     }
 
-    toggleManageColumns(): void {
-        this.isManageColumnsOpen = !this.isManageColumnsOpen;
+    isColumnVisible(columnId: string): boolean {
+        const col = this.availableColumns.find(c => c.id === columnId);
+        return col ? col.visible : false;
     }
 
-    closeManageColumns(): void {
+    toggleManageColumns() {
+        this.isManageColumnsOpen = true;
+        this.openMenuId = null;
+    }
+
+    closeManageColumns() {
         this.isManageColumnsOpen = false;
     }
 
-    onColumnsChange(newColumns: ColumnDefinition[]): void {
-        this.availableColumns = newColumns;
+    onColumnsChange(updatedColumns: ColumnDef[]): void {
+        this.availableColumns = updatedColumns;
     }
 
     toggleMenu(id: string, event: Event): void {
