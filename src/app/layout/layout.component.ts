@@ -244,7 +244,7 @@ export class LayoutComponent {
   isHovered = false;
   expandedMenu: string | null = 'sales'; // Default to sales based on screenshot
 
-  constructor(private router: Router) {}
+  constructor(private router: Router) { }
 
   get isAdminPage(): boolean {
     return this.router.url.startsWith('/admin');

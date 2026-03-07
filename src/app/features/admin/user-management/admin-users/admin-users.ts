@@ -4,6 +4,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { ManageColumnsComponent, ColumnDef } from '../../../../shared/components/manage-columns/manage-columns.component';
+import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { AddUserModalComponent } from './components/add-user-modal/add-user-modal.component';
 
 interface AdminUser {
@@ -23,12 +24,16 @@ interface AdminUser {
     EmptyStateComponent,
     PaginationComponent,
     ManageColumnsComponent,
+    PageHeaderComponent,
     AddUserModalComponent
   ],
   templateUrl: './admin-users.html',
   styleUrl: './admin-users.scss',
 })
 export class AdminUsers {
+  pageTitle = 'Users';
+  entityName = 'Users';
+
   users: AdminUser[] = [
     { id: '1', name: 'Ali Al-Mansoori', role: 'Super Admin', email: 'alialmansoori@gmail.com', status: 'Active' },
     { id: '2', name: 'Sara Hassan', role: 'Account Manager', email: 'sarahassan@gmail.com', status: 'Inactive' },

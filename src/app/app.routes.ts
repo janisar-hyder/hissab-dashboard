@@ -25,8 +25,15 @@ export const routes: Routes = [
             { path: 'sales/quotations/new', component: QuotationsNew },
             { path: 'admin/dashboard', component: AdminDashboard },
             { path: 'admin/clients', component: AdminClients },
-            { path: 'admin/user-management/users', component: AdminUsers },
-            { path: 'admin/user-management/roles', component: AdminRoles },
+            { 
+                path: 'admin/user-management', 
+                loadComponent: () => import('./features/admin/user-management/user-management.component').then(m => m.UserManagementLayoutComponent),
+                children: [
+                    { path: 'users', component: AdminUsers },
+                    { path: 'roles', component: AdminRoles },
+                    { path: '', redirectTo: 'users', pathMatch: 'full' }
+                ]
+            },
             { path: 'admin/settings/general', component: AdminSettings }
         ]
     },

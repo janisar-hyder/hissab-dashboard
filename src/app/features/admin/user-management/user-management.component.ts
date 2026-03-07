@@ -1,0 +1,55 @@
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-user-management-layout',
+  standalone: true,
+  imports: [RouterOutlet, PageHeaderComponent, CommonModule],
+  template: `
+    <div class="page-container" style="display: flex; flex-direction: column; height: 100%; padding: var(--space-lg);">
+      <app-page-header
+          style="margin-bottom: var(--space-lg); display: block;"
+          [title]="getTitle()"
+          [addBtnText]="getAddBtnText()"
+          [showActions]="true"
+          (addNew)="onAddNew()"
+          (importBtn)="onImport()"
+          (exportBtn)="onExport()">
+      </app-page-header>
+      
+      <!-- Child Datatables inject here -->
+      <router-outlet (activate)="onOutletLoaded($event)"></router-outlet>
+    </div>
+  `
+})
+export class UserManagementLayoutComponent {
+  activeChild: any;
+
+  onOutletLoaded(component: any) {
+    this.activeChild = component;
+  }
+
+  getTitle(): string {
+    return this.activeChild?.pageTitle || 'Users';
+  }
+
+  getAddBtnText(): string {
+    return `Add New ${this.activeChild?.entityName || 'User'}`;
+  }
+
+  onAddNew() {
+    if (this.activeChild && typeof this.activeChild.navigateToNew === 'function') {
+      this.activeChild.navigateToNew();
+    }
+  }
+
+  onImport() {
+    // Scaffold import logic
+  }
+
+  onExport() {
+    // Scaffold export logic
+  }
+}

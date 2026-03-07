@@ -1,40 +1,20 @@
-﻿[33mΓ¥»[39m Building...
+﻿
+> hissab-dashboard@0.0.0 build
+> ng build
+
+[33mΓ¥»[39m Building...
 [32mΓ£ö[39m Building...
-Application bundle generation failed. [5.057 seconds] - 2026-03-07T12:03:21.062Z
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m                    [2m | [22m [1mRaw size[22m[2m | [22m[1mEstimated transfer size[22m
+[32mmain-XCFSGH6U.js[39m   [2m | [22m[2mmain[22m                     [2m | [22m[36m411.56 kB[39m[2m | [22m               [36m55.98 kB[39m
+[32mchunk-PC7TYBW4.js[39m  [2m | [22m[2m-[22m                        [2m | [22m[36m257.89 kB[39m[2m | [22m               [36m70.19 kB[39m
+[32mstyles-5EF6IZ3V.css[39m[2m | [22m[2mstyles[22m                   [2m | [22m  [36m5.27 kB[39m[2m | [22m                [36m1.12 kB[39m
 
-node.exe : [1m[31m[31mX 
-[41;31m[[41;97mERROR[41;31m][0m 
-[1mTS2345: Argument of type 'number | "All"' 
-is not assignable to parameter of type 
-'number'.
-At C:\nvm4w\nodejs\npx.ps1:29 char:3
-+   & $NODE_EXE $NPX_CLI_JS $args
-+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: ( 
-   [1m[31m[31mX... type 'number'.:String) [  
-  ], RemoteException
-    + FullyQualifiedErrorId : NativeCommandErr 
-   or
- 
-  Type 'string' is not assignable to type 
-'number'.[0m [1m[35m[plugin 
-angular-compiler][0m
+[1m [22m                  [2m | [22m[1mInitial total[22m            [2m | [22m[1m674.72 kB[22m[2m | [22m              [1m127.29 kB[22m
 
-    src/app/features/admin/user-management/admi
-n-users/admin-users.html:107:55:
-[37m      107 Γöé             (itemsPerPageCha
-nge)="onItemsPerPageChange([32m$event[37m)">
-          Γò╡                                  
-                      [32m~~~~~~[0m
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                    [2m | [22m [1mRaw size[22m[2m | [22m[1mEstimated transfer size[22m
+[32mchunk-X6RI7YX2.js[39m  [2m | [22m[2muser-management-component[22m[2m | [22m  [36m3.92 kB[39m[2m | [22m                [36m1.43 kB[39m
 
-  Error occurs in the template of component 
-AdminUsers.
+Application bundle generation complete. [5.926 seconds] - 2026-03-07T19:44:27.649Z
 
-    src/app/features/admin/user-management/admi
-n-users/admin-users.ts:26:15:
-[37m      26 Γöé   templateUrl: 
-[32m'./admin-users.html'[37m,
-         Γò╡                
-[32m~~~~~~~~~~~~~~~~~~~~[0m
+Output location: C:\Users\janis\OneDrive\Desktop\Clone\hissab-dashboard\dist\hissab-dashboard
 
-[39m[22m

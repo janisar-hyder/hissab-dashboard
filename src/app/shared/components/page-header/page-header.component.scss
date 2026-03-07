@@ -1,0 +1,24 @@
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .header-titles {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 500;
+        letter-spacing: -0.2px;
+        color: var(--text-dark);
+        margin: 0;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: var(--space-sm);
+        align-items: center;
+    }
+}
