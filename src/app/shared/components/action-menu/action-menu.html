@@ -1,0 +1,24 @@
+<div class="action-menu-container">
+    <button class="action-btn" (click)="toggleMenu($event)" [class.active]="isOpen">
+        <i class="las la-ellipsis-h"></i>
+    </button>
+    <div class="action-dropdown" *ngIf="isOpen">
+        <button *ngFor="let item of actions" 
+                class="menu-item" 
+                [ngClass]="item.customClass || ''"
+                (click)="onActionClick(item.action, $event)">
+            
+            <!-- Standard LineAwesome font icon -->
+            <i *ngIf="item.iconClass" class="las" [ngClass]="item.iconClass"></i>
+            
+            <!-- Custom SVG icon via mask-image -->
+            <div *ngIf="item.svgIconPath" 
+                 class="svg-icon" 
+                 [style.-webkit-mask-image]="'url(' + item.svgIconPath + ')'"
+                 [style.mask-image]="'url(' + item.svgIconPath + ')'">
+            </div>
+            
+            {{ item.label }}
+        </button>
+    </div>
+</div>

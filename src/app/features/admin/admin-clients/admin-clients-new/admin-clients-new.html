@@ -289,7 +289,7 @@
                                     <input type="checkbox" [checked]="isAllSelected(row)" (change)="toggleRow(row, $event)">
                                     <span class="checkmark cbx-span"></span>
                                     <span class="checkbox-label d-flex align-items-center gap-2" [class.child-label]="level > 1">
-                                        <div *ngIf="row.children" class="caret-btn" (click)="toggleExpand(row)">
+                                        <div *ngIf="row.children" class="caret-btn" (click)="$event.preventDefault(); $event.stopPropagation(); toggleExpand(row)">
                                             <i class="las" [ngClass]="row.isExpanded ? 'la-angle-down' : 'la-angle-right'"></i>
                                         </div>
                                         {{ row.moduleName }}
@@ -297,16 +297,16 @@
                                 </label>
                             </div>
                             <div class="col-permission d-flex justify-content-center" (click)="$event.stopPropagation()">
-                                <input type="checkbox" class="cbx-primary" [class.cbx-indeterminate]="row.isIndeterminate" [(ngModel)]="row.create">
+                                <input *ngIf="!row.children" type="checkbox" class="cbx-primary" [(ngModel)]="row.create">
                             </div>
                             <div class="col-permission d-flex justify-content-center" (click)="$event.stopPropagation()">
-                                <input type="checkbox" class="cbx-primary" [(ngModel)]="row.view">
+                                <input *ngIf="!row.children" type="checkbox" class="cbx-primary" [(ngModel)]="row.view">
                             </div>
                             <div class="col-permission d-flex justify-content-center" (click)="$event.stopPropagation()">
-                                <input type="checkbox" class="cbx-primary" [(ngModel)]="row.update">
+                                <input *ngIf="!row.children" type="checkbox" class="cbx-primary" [(ngModel)]="row.update">
                             </div>
                             <div class="col-permission d-flex justify-content-center" (click)="$event.stopPropagation()">
-                                <input type="checkbox" class="cbx-primary" [(ngModel)]="row.delete">
+                                <input *ngIf="!row.children" type="checkbox" class="cbx-primary" [(ngModel)]="row.delete">
                             </div>
                         </div>
 
@@ -321,6 +321,123 @@
                     <ng-container *ngFor="let topRow of modules">
                         <ng-container *ngTemplateOutlet="rowTemplate; context: { row: topRow, level: 1 }"></ng-container>
                     </ng-container>
+                </div>
+            </div>
+        </div>
+
+        <!-- Localization Tab -->
+        <div class="localization-tab" *ngIf="activeTab === 'localization'">
+            <div class="form-card">
+                <div class="form-grid">
+                    <!-- Default Language -->
+                    <div class="form-group">
+                        <label>Default Language <span class="required">*</span></label>
+                        <select class="form-control custom-select">
+                            <option>English</option>
+                        </select>
+                    </div>
+
+                    <!-- Time Zone -->
+                    <div class="form-group">
+                        <label>Time Zone <span class="required">*</span></label>
+                        <select class="form-control custom-select">
+                            <option>UTC + 3:00</option>
+                        </select>
+                    </div>
+
+                    <!-- Date Format -->
+                    <div class="form-group">
+                        <label>Date Format <span class="required">*</span></label>
+                        <select class="form-control custom-select">
+                            <option disabled selected>Select Format</option>
+                        </select>
+                    </div>
+
+                    <!-- Time Format -->
+                    <div class="form-group">
+                        <label>Time Format <span class="required">*</span></label>
+                        <select class="form-control custom-select">
+                            <option disabled selected>Select Format</option>
+                        </select>
+                    </div>
+
+                    <!-- Base Currency -->
+                    <div class="form-group">
+                        <label>Base Currency <span class="required">*</span></label>
+                        <select class="form-control custom-select">
+                            <option>BHD</option>
+                        </select>
+                    </div>
+
+                    <!-- Currency Format -->
+                    <div class="form-group">
+                        <label>Currency Format <span class="required">*</span></label>
+                        <select class="form-control custom-select">
+                            <option disabled selected>Select Format</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Branding Tab -->
+        <div class="branding-tab" *ngIf="activeTab === 'branding'">
+            <div class="form-card">
+                <div class="branding-layout">
+                    <!-- Dropzone -->
+                    <div class="upload-dropzone branding-dropzone">
+                        <div class="dropzone-content">
+                            Drag & Drop or <span class="text-blue">choose</span> logo to upload
+                        </div>
+                    </div>
+
+                    <!-- Guidelines -->
+                    <div class="branding-guidelines">
+                        <p class="guideline-text">This logo will be displayed in transaction PDFs and email notifications.</p>
+                        <p class="guideline-subtext">Preferred Image Dimensions: 240 x 240 pixels @ 72 DPI</p>
+                        <p class="guideline-subtext">Maximum File Size: 1MB</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Credentials Tab -->
+        <div class="credentials-tab" *ngIf="activeTab === 'credentials'">
+            <div class="form-card">
+                <div class="form-grid">
+                    <!-- Admin Username -->
+                    <div class="form-group">
+                        <label>Admin Username <span class="required">*</span></label>
+                        <input type="email" class="form-control" placeholder="Enter Email">
+                    </div>
+
+                    <!-- Password -->
+                    <div class="form-group">
+                        <label>Password <span class="required">*</span></label>
+                        <div class="input-with-icon">
+                            <input [type]="hidePassword ? 'password' : 'text'" class="form-control" placeholder="Enter Password Again">
+                            <i class="icon-right las" [ngClass]="hidePassword ? 'la-eye-slash' : 'la-eye'" (click)="hidePassword = !hidePassword"></i>
+                        </div>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="form-group">
+                        <label>Confirm Password <span class="required">*</span></label>
+                        <div class="input-with-icon">
+                            <input [type]="hideConfirmPassword ? 'password' : 'text'" class="form-control" placeholder="Enter Password Again">
+                            <i class="icon-right las" [ngClass]="hideConfirmPassword ? 'la-eye-slash' : 'la-eye'" (click)="hideConfirmPassword = !hideConfirmPassword"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Remarks Tab -->
+        <div class="remarks-tab" *ngIf="activeTab === 'remarks'">
+            <div class="form-card">
+                <div class="form-group" style="width: 100%;">
+                    <label>Remarks (For internal Use)</label>
+                    <input type="text" class="form-control" placeholder="Enter Remarks">
                 </div>
             </div>
         </div>

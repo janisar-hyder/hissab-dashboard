@@ -5,6 +5,7 @@ import { EmptyStateComponent } from '../../../../shared/components/empty-state/e
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { ManageColumnsComponent, ColumnDef } from '../../../../shared/components/manage-columns/manage-columns.component';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
+import { ActionMenu, MenuAction } from '../../../../shared/components/action-menu/action-menu';
 import { Router, ActivatedRoute } from '@angular/router';
 
 interface AdminRole {
@@ -21,8 +22,8 @@ interface AdminRole {
     ButtonComponent,
     EmptyStateComponent,
     PaginationComponent,
-    PaginationComponent,
-    ManageColumnsComponent
+    ManageColumnsComponent,
+    ActionMenu
   ],
   templateUrl: './admin-roles.html',
   styleUrl: './admin-roles.scss',
@@ -44,8 +45,17 @@ export class AdminRoles {
   itemsPerPage = 15;
 
   // Modals & Action Menus
-  openMenuId: string | null = null;
   isManageColumnsOpen = false;
+
+  getRoleActions(role: AdminRole): MenuAction[] {
+    return [
+      { label: 'Edit', action: 'edit', svgIconPath: '/icons/edit.svg', customClass: 'edit-btn' },
+      role.status === 'Active' 
+        ? { label: 'Mark As Inactive', action: 'mark_inactive', iconClass: 'la-times-circle', customClass: 'edit-btn' }
+        : { label: 'Mark As Active', action: 'mark_active', iconClass: 'la-check-circle', customClass: 'edit-btn' },
+      { label: 'Delete', action: 'delete', svgIconPath: '/icons/delete.svg', customClass: 'delete-btn' }
+    ];
+  }
 
   // Manage Columns Configuration
   availableColumns: ColumnDef[] = [
@@ -111,9 +121,18 @@ export class AdminRoles {
            this.paginatedRoles.every(role => this.selectedRoleIds.has(role.id));
   }
 
-  toggleMenu(id: string, event: Event) {
-    event.stopPropagation();
-    this.openMenuId = this.openMenuId === id ? null : id;
+  handleRoleAction(event: { action: string, data: any }) {
+    console.log(`Executing ${event.action} on role ID: ${event.data.id}`);
+    
+    if (event.action === 'edit') {
+      // Setup edit navigation path mapping future
+    } else if (event.action === 'delete') {
+      // Trigger delete logic
+    } else if (event.action === 'mark_active') {
+      event.data.status = 'Active';
+    } else if (event.action === 'mark_inactive') {
+      event.data.status = 'Inactive';
+    }
   }
 
   constructor(private router: Router, private route: ActivatedRoute) {}

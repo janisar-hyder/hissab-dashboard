@@ -49,7 +49,7 @@
                 <div class="col-maint header-cell" *ngIf="isColumnVisible('annualMaintenanceCost')">Annual Maintenance Cost <i class="las la-sort"></i></div>
                 <div class="col-cloud header-cell" *ngIf="isColumnVisible('cloudCharges')">Cloud Charges <i class="las la-sort"></i></div>
                 <div class="col-currency header-cell" *ngIf="isColumnVisible('baseCurrency')">Base Currency <i class="las la-sort"></i></div>
-                <div class="col-actions" *ngIf="isColumnVisible('actions')"></div>
+                <div class="col-actions"></div>
             </div>
 
             <div class="list-body">
@@ -81,10 +81,12 @@
                         <div class="col-maint text-muted" *ngIf="isColumnVisible('annualMaintenanceCost')">-</div>
                         <div class="col-cloud text-muted" *ngIf="isColumnVisible('cloudCharges')">-</div>
                         <div class="col-currency text-muted" *ngIf="isColumnVisible('baseCurrency')">-</div>
-                        <div class="col-actions text-muted" *ngIf="isColumnVisible('actions')">
-                            <button class="action-btn">
-                                <i class="las la-ellipsis-h"></i>
-                            </button>
+                        <div class="col-actions text-muted">
+                            <app-action-menu 
+                                [actions]="getClientActions(client)" 
+                                [data]="client"
+                                (actionClick)="handleClientAction($event)">
+                            </app-action-menu>
                         </div>
                     </div>
                 </ng-container>

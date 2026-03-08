@@ -45,7 +45,7 @@
                                 <input type="checkbox" [checked]="isAllSelected(row)" (change)="toggleRow(row, $event)">
                                 <span class="checkmark cbx-span"></span>
                                 <span class="checkbox-label d-flex align-items-center gap-2" [class.child-label]="level > 1">
-                                    <div *ngIf="row.children" class="caret-btn" (click)="toggleExpand(row)">
+                                    <div *ngIf="row.children" class="caret-btn" (click)="$event.preventDefault(); $event.stopPropagation(); toggleExpand(row)">
                                         <i class="las" [ngClass]="row.isExpanded ? 'la-angle-down' : 'la-angle-right'"></i>
                                     </div>
                                     {{ row.moduleName }}
@@ -53,16 +53,16 @@
                             </label>
                         </div>
                         <div class="col-permission d-flex justify-content-center" (click)="$event.stopPropagation()">
-                            <input type="checkbox" class="cbx-primary" [(ngModel)]="row.create">
+                            <input *ngIf="!row.children" type="checkbox" class="cbx-primary" [(ngModel)]="row.create">
                         </div>
                         <div class="col-permission d-flex justify-content-center" (click)="$event.stopPropagation()">
-                            <input type="checkbox" class="cbx-primary" [(ngModel)]="row.view">
+                            <input *ngIf="!row.children" type="checkbox" class="cbx-primary" [(ngModel)]="row.view">
                         </div>
                         <div class="col-permission d-flex justify-content-center" (click)="$event.stopPropagation()">
-                            <input type="checkbox" class="cbx-primary" [(ngModel)]="row.update">
+                            <input *ngIf="!row.children" type="checkbox" class="cbx-primary" [(ngModel)]="row.update">
                         </div>
                         <div class="col-permission d-flex justify-content-center" (click)="$event.stopPropagation()">
-                            <input type="checkbox" class="cbx-primary" [(ngModel)]="row.delete">
+                            <input *ngIf="!row.children" type="checkbox" class="cbx-primary" [(ngModel)]="row.delete">
                         </div>
                     </div>
 

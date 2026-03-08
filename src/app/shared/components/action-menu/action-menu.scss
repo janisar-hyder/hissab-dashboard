@@ -1,0 +1,106 @@
+.action-menu-container {
+    position: relative;
+    display: inline-block;
+
+    .action-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        font-size: 20px;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        transition: all 0.2s;
+
+        &:hover, &.active {
+            color: var(--text-dark);
+            background-color: var(--border-light);
+        }
+    }
+
+    .action-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--border-light);
+        min-width: 200px;
+        z-index: 1000;
+        padding: 8px 0;
+        margin-top: 4px;
+
+        .menu-item {
+            width: 100%;
+            text-align: left;
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            gap: 12px;
+            transition: background 0.2s;
+
+            // Handle la font icons
+            i.las {
+                font-size: 20px;
+                color: var(--text-muted);
+            }
+
+            // Handle custom mask SVGs
+            .svg-icon {
+                width: 20px;
+                height: 20px;
+                background-color: var(--text-muted);
+                -webkit-mask-size: contain;
+                -webkit-mask-repeat: no-repeat;
+                -webkit-mask-position: center;
+                mask-size: contain;
+                mask-repeat: no-repeat;
+                mask-position: center;
+            }
+
+            &:hover {
+                background: #f8fafc;
+                
+                i.las, .svg-icon {
+                    color: var(--text-dark);
+                    background-color: var(--text-dark);
+                }
+            }
+
+            &.edit-btn {
+                color: #525356;
+                i.las { color: #525356; }
+                .svg-icon { background-color: #525356; }
+
+                &:hover {
+                    background: #F3F4F6;
+                    color: #374151;
+                    i.las { color: #374151; }
+                    .svg-icon { background-color: #374151; }
+                }
+            }
+
+            &.delete-btn {
+                color: #F43F5E;
+                i.las { color: #F43F5E; }
+                .svg-icon { background-color: #F43F5E; }
+
+                &:hover {
+                    background: #FFF1F2;
+                    color: #E11D48;
+                    i.las, .svg-icon {
+                        color: #E11D48;
+                        background-color: #E11D48;
+                    }
+                }
+            }
+        }
+    }
+}

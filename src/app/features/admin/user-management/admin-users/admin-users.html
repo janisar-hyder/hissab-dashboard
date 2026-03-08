@@ -49,18 +49,11 @@
                             </span>
                         </td>
                         <td class="col-actions">
-                            <div class="action-menu-container">
-                                <button class="action-btn" (click)="toggleMenu(user.id, $event)">
-                                    <i class="las la-ellipsis-h"></i>
-                                </button>
-                                <div class="action-dropdown" *ngIf="openMenuId === user.id">
-                                    <button class="menu-item edit-btn">Edit</button>
-                                    <button class="menu-item delete-btn">
-                                        <div class="svg-icon" style="-webkit-mask-image: url('/icons/delete.svg'); mask-image: url('/icons/delete.svg');"></div>
-                                        Delete
-                                    </button>
-                                </div>
-                            </div>
+                            <app-action-menu 
+                                [actions]="getUserActions(user)" 
+                                [data]="user"
+                                (actionClick)="handleUserAction($event)">
+                            </app-action-menu>
                         </td>
                     </tr>
                 </tbody>

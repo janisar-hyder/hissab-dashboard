@@ -27,6 +27,8 @@ export interface AdminClientsPermissionRow {
 export class AdminClientsNewComponent implements OnInit {
     activeTab: string = 'client-info';
     isAttachmentsModalOpen = false;
+    hidePassword = true;
+    hideConfirmPassword = true;
 
     tabs = [
         { id: 'client-info', label: 'Client Information' },

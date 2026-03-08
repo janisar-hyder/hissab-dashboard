@@ -7,6 +7,7 @@ import { ManageColumnsComponent } from '../../../shared/components/manage-column
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { CustomFilterComponent, FilterOption } from '../../../shared/components/custom-filter/custom-filter';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { ActionMenu, MenuAction } from '../../../shared/components/action-menu/action-menu';
 
 interface Client {
   id: string;
@@ -28,7 +29,8 @@ interface Client {
     ManageColumnsComponent,
     EmptyStateComponent,
     ButtonComponent,
-    CustomFilterComponent
+    CustomFilterComponent,
+    ActionMenu
   ],
   templateUrl: './admin-clients.html',
   styleUrl: './admin-clients.scss'
@@ -64,6 +66,30 @@ export class AdminClients {
   }
   
   isManageColumnsOpen = false;
+
+  getClientActions(client: Client): MenuAction[] {
+    return [
+      { label: 'Edit', action: 'edit', svgIconPath: '/icons/edit.svg', customClass: 'edit-btn' },
+      client.status === 'Active' 
+        ? { label: 'Mark As Inactive', action: 'mark_inactive', iconClass: 'la-times-circle', customClass: 'edit-btn' }
+        : { label: 'Mark As Active', action: 'mark_active', iconClass: 'la-check-circle', customClass: 'edit-btn' },
+      { label: 'Delete', action: 'delete', svgIconPath: '/icons/delete.svg', customClass: 'delete-btn' }
+    ];
+  }
+
+  handleClientAction(event: { action: string, data: any }) {
+    console.log(`Executing ${event.action} on client ID: ${event.data.id}`);
+    
+    if (event.action === 'edit') {
+      // Setup edit navigation path mapping future
+    } else if (event.action === 'delete') {
+      // Trigger delete logic
+    } else if (event.action === 'mark_active') {
+      event.data.status = 'Active';
+    } else if (event.action === 'mark_inactive') {
+      event.data.status = 'Inactive';
+    }
+  }
 
   // Table Columns Setup
   columns = [
