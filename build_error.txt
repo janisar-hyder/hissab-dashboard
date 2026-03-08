@@ -1,20 +1,78 @@
-﻿
-> hissab-dashboard@0.0.0 build
-> ng build
+[33m❯[39m Building...
+[32m✔[39m Building...
+Application bundle generation failed. [5.797 seconds] - 2026-03-08T11:09:17.791Z
 
-[33mΓ¥»[39m Building...
-[32mΓ£ö[39m Building...
-[1mInitial chunk files[22m[2m | [22m[1mNames[22m                    [2m | [22m [1mRaw size[22m[2m | [22m[1mEstimated transfer size[22m
-[32mmain-XCFSGH6U.js[39m   [2m | [22m[2mmain[22m                     [2m | [22m[36m411.56 kB[39m[2m | [22m               [36m55.98 kB[39m
-[32mchunk-PC7TYBW4.js[39m  [2m | [22m[2m-[22m                        [2m | [22m[36m257.89 kB[39m[2m | [22m               [36m70.19 kB[39m
-[32mstyles-5EF6IZ3V.css[39m[2m | [22m[2mstyles[22m                   [2m | [22m  [36m5.27 kB[39m[2m | [22m                [36m1.12 kB[39m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: PageHeaderComponent is not used within the template of AdminUsers[0m [1m[35m[plugin angular-compiler][0m
 
-[1m [22m                  [2m | [22m[1mInitial total[22m            [2m | [22m[1m674.72 kB[22m[2m | [22m              [1m127.29 kB[22m
+    src/app/features/admin/user-management/admin-users/admin-users.ts:27:4:
+[37m      27 │     [32mPageHeaderComponent[37m,
+         ╵     [32m~~~~~~~~~~~~~~~~~~~[0m
 
-[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                    [2m | [22m [1mRaw size[22m[2m | [22m[1mEstimated transfer size[22m
-[32mchunk-X6RI7YX2.js[39m  [2m | [22m[2muser-management-component[22m[2m | [22m  [36m3.92 kB[39m[2m | [22m                [36m1.43 kB[39m
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8001: 'app-custom-filter' is not a known element:
+1. If 'app-custom-filter' is an Angular component, then verify that it is included in the '@Component.imports' of this component.
+2. If 'app-custom-filter' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.[0m [1m[35m[plugin angular-compiler][0m
 
-Application bundle generation complete. [5.926 seconds] - 2026-03-07T19:44:27.649Z
+    src/app/features/sales/quotations/quotations-list/quotations-list.component.html:48:16:
+[37m      48 │                 [32m<app-custom-filter[37m
+         ╵                 [32m~~~~~~~~~~~~~~~~~~[0m
 
-Output location: C:\Users\janis\OneDrive\Desktop\Clone\hissab-dashboard\dist\hissab-dashboard
+  Error occurs in the template of component QuotationsListComponent.
 
+    src/app/features/sales/quotations/quotations-list/quotations-list.component.ts:25:17:
+[37m      25 │     templateUrl: [32m'./quotations-list.component.html'[37m,
+         ╵                  [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8002: Can't bind to 'options' since it isn't a known property of 'app-custom-filter'.
+1. If 'app-custom-filter' is an Angular component and it has 'options' input, then verify that it is included in the '@Component.imports' of this component.
+2. If 'app-custom-filter' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.
+3. To allow any property add 'NO_ERRORS_SCHEMA' to the '@Component.schemas' of this component.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/sales/quotations/quotations-list/quotations-list.component.html:49:20:
+[37m      49 │                     [32m[options]="quotationFilterOptions"[37m
+         ╵                     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component QuotationsListComponent.
+
+    src/app/features/sales/quotations/quotations-list/quotations-list.component.ts:25:17:
+[37m      25 │     templateUrl: [32m'./quotations-list.component.html'[37m,
+         ╵                  [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8002: Can't bind to 'currentFilter' since it isn't a known property of 'app-custom-filter'.
+1. If 'app-custom-filter' is an Angular component and it has 'currentFilter' input, then verify that it is included in the '@Component.imports' of this component.
+2. If 'app-custom-filter' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.
+3. To allow any property add 'NO_ERRORS_SCHEMA' to the '@Component.schemas' of this component.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/sales/quotations/quotations-list/quotations-list.component.html:50:20:
+[37m      50 │                     [32m[currentFilter]="currentFilter"[37m
+         ╵                     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component QuotationsListComponent.
+
+    src/app/features/sales/quotations/quotations-list/quotations-list.component.ts:25:17:
+[37m      25 │     templateUrl: [32m'./quotations-list.component.html'[37m,
+         ╵                  [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2345: Argument of type 'Event' is not assignable to parameter of type 'string'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/sales/quotations/quotations-list/quotations-list.component.html:52:46:
+[37m      52 │                     (filterChange)="setFilter([32m$event[37m)">
+         ╵                                               [32m~~~~~~[0m
+
+  Error occurs in the template of component QuotationsListComponent.
+
+    src/app/features/sales/quotations/quotations-list/quotations-list.component.ts:25:17:
+[37m      25 │     templateUrl: [32m'./quotations-list.component.html'[37m,
+         ╵                  [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2552: Cannot find name 'FilterOption'. Did you mean 'IIRFilterOptions'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/sales/quotations/quotations-list/quotations-list.component.ts:52:28:
+[37m      52 │     quotationFilterOptions: [32mFilterOption[37m[] = [
+         ╵                             [32m~~~~~~~~~~~~[0m
+
+[39m[22m

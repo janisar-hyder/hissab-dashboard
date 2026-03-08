@@ -45,42 +45,12 @@
             </div>
 
             <div class="toolbar-right">
-                <div class="filter-dropdown-container">
-                    <div class="filter-dropdown" (click)="toggleFilterMenu($event)">
-                        <span>{{ currentFilter === 'All' ? 'All Quotations' : currentFilter }}</span>
-                        <i class="las la-angle-down"></i>
-                    </div>
-                    <div class="action-dropdown" *ngIf="isFilterMenuOpen">
-                        <button class="menu-item item-all" (click)="setFilter('All', $event)"
-                            [class.active]="currentFilter === 'All'">
-                            <span class="text-content">All Quotations</span>
-                        </button>
-                        <button class="menu-item item-sent" (click)="setFilter('Sent', $event)"
-                            [class.active]="currentFilter === 'Sent'">
-                            <div class="icon-container">
-                                <i *ngIf="currentFilter === 'Sent'" class="las la-check check-icon"></i>
-                                <div *ngIf="currentFilter !== 'Sent'" class="dot"></div>
-                            </div>
-                            <span class="text-content">Sent</span>
-                        </button>
-                        <button class="menu-item item-invoiced" (click)="setFilter('Invoiced', $event)"
-                            [class.active]="currentFilter === 'Invoiced'">
-                            <div class="icon-container">
-                                <i *ngIf="currentFilter === 'Invoiced'" class="las la-check check-icon"></i>
-                                <div *ngIf="currentFilter !== 'Invoiced'" class="dot"></div>
-                            </div>
-                            <span class="text-content">Invoiced</span>
-                        </button>
-                        <button class="menu-item item-draft" (click)="setFilter('Draft', $event)"
-                            [class.active]="currentFilter === 'Draft'">
-                            <div class="icon-container">
-                                <i *ngIf="currentFilter === 'Draft'" class="las la-check check-icon"></i>
-                                <div *ngIf="currentFilter !== 'Draft'" class="dot"></div>
-                            </div>
-                            <span class="text-content">Draft</span>
-                        </button>
-                    </div>
-                </div>
+                <app-custom-filter
+                    [options]="quotationFilterOptions"
+                    [currentFilter]="currentFilter"
+                    activeLabelPrefix="All Quotations"
+                    (filterChange)="setFilter($event)">
+                </app-custom-filter>
                 <app-button variant="outline" iconPrefix="las la-sliders-h" (clicked)="toggleManageColumns()">Manage
                     Columns</app-button>
             </div>

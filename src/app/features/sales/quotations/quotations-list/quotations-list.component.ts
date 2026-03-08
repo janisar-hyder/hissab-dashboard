@@ -8,6 +8,7 @@ import { PaginationComponent } from '../../../../shared/components/pagination/pa
 import { BulkActionsComponent, BulkAction } from '../../../../shared/components/bulk-actions/bulk-actions.component';
 import { ManageColumnsComponent, ColumnDef } from '../../../../shared/components/manage-columns/manage-columns.component';
 import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
+import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
 
 export interface Quotation {
     id: string;
@@ -21,7 +22,7 @@ export interface Quotation {
 @Component({
     selector: 'app-quotations-list',
     standalone: true,
-    imports: [CommonModule, FormsModule, ButtonComponent, DecimalPipe, EmptyStateComponent, PaginationComponent, BulkActionsComponent, ManageColumnsComponent, DeleteModalComponent],
+    imports: [CommonModule, FormsModule, ButtonComponent, DecimalPipe, EmptyStateComponent, PaginationComponent, BulkActionsComponent, ManageColumnsComponent, DeleteModalComponent, CustomFilterComponent],
     templateUrl: './quotations-list.component.html',
     styleUrls: ['./quotations-list.component.scss']
 })
@@ -47,8 +48,13 @@ export class QuotationsListComponent implements OnInit {
     isManageColumnsOpen = false;
     openMenuId: string | null = null;
     quotationToDelete: Quotation | null = null;
-    isFilterMenuOpen = false;
     currentFilter: 'All' | 'Sent' | 'Invoiced' | 'Draft' = 'All';
+
+    quotationFilterOptions: FilterOption[] = [
+        { label: 'Sent', value: 'Sent', colorHex: '#0ea5e9' },
+        { label: 'Invoiced', value: 'Invoiced', colorHex: '#10b981' },
+        { label: 'Draft', value: 'Draft', colorHex: '#6b7280' }
+    ];
 
     availableColumns: ColumnDef[] = [
     { id: 'quotationNumber', label: 'Quotation Number', visible: true, required: true },
@@ -84,7 +90,6 @@ export class QuotationsListComponent implements OnInit {
     clickout(event: Event) {
         if (!this.eRef.nativeElement.contains(event.target)) {
             this.openMenuId = null;
-            this.isFilterMenuOpen = false;
         }
     }
 
@@ -122,26 +127,17 @@ export class QuotationsListComponent implements OnInit {
     this.isManageColumnsOpen = false;
   }
 
-  onColumnsChange(updatedColumns: ColumnDef[]): void {
+    onColumnsChange(updatedColumns: ColumnDef[]): void {
         this.availableColumns = updatedColumns;
     }
 
-    toggleFilterMenu(event: Event): void {
-        event.stopPropagation();
-        this.isFilterMenuOpen = !this.isFilterMenuOpen;
-        this.openMenuId = null; // Close action menus if open
-    }
-
-    setFilter(filter: 'All' | 'Sent' | 'Invoiced' | 'Draft', event: Event): void {
-        event.stopPropagation();
-        this.currentFilter = filter;
-        this.isFilterMenuOpen = false;
+    setFilter(filter: 'All' | 'Sent' | 'Invoiced' | 'Draft' | string): void {
+        this.currentFilter = filter as 'All' | 'Sent' | 'Invoiced' | 'Draft';
         this.currentPage = 1; // Reset to first page on filter change
     }
 
     toggleMenu(id: string, event: Event): void {
         event.stopPropagation();
-        this.isFilterMenuOpen = false;
         if (this.openMenuId === id) {
             this.openMenuId = null;
         } else {

@@ -8,8 +8,11 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [RouterOutlet, PageHeaderComponent, CommonModule],
   template: `
-    <div class="page-container" style="display: flex; flex-direction: column; height: 100%; padding: var(--space-lg);">
+    <div class="page-container" style="display: flex; flex-direction: column; height: 100%;"
+         [ngStyle]="{'padding': !activeChild?.hideGlobalHeader ? 'var(--space-lg)' : '0'}">
+         
       <app-page-header
+          *ngIf="!activeChild?.hideGlobalHeader"
           style="margin-bottom: var(--space-lg); display: block;"
           [title]="getTitle()"
           [addBtnText]="getAddBtnText()"

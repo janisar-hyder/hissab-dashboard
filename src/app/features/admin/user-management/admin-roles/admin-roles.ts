@@ -5,6 +5,7 @@ import { EmptyStateComponent } from '../../../../shared/components/empty-state/e
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { ManageColumnsComponent, ColumnDef } from '../../../../shared/components/manage-columns/manage-columns.component';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
+import { Router, ActivatedRoute } from '@angular/router';
 
 interface AdminRole {
   id: string;
@@ -20,8 +21,8 @@ interface AdminRole {
     ButtonComponent,
     EmptyStateComponent,
     PaginationComponent,
-    ManageColumnsComponent,
-    PageHeaderComponent
+    PaginationComponent,
+    ManageColumnsComponent
   ],
   templateUrl: './admin-roles.html',
   styleUrl: './admin-roles.scss',
@@ -32,7 +33,7 @@ export class AdminRoles {
 
   roles: AdminRole[] = [
     { id: '1', name: 'Super Admin', status: 'Active' },
-    { id: '2', name: 'Account Manager', status: 'Inactive' }
+    { id: '2', name: 'Account Manager', status: 'Inactive' },
   ];
 
   // Global selections
@@ -115,7 +116,9 @@ export class AdminRoles {
     this.openMenuId = this.openMenuId === id ? null : id;
   }
 
+  constructor(private router: Router, private route: ActivatedRoute) {}
+
   navigateToNew() {
-    // Scaffold for potential add role modal
+    this.router.navigate(['new'], { relativeTo: this.route });
   }
 }

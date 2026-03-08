@@ -1,1 +1,114 @@
-<app-empty-state></app-empty-state>
+<div class="page-container">
+    <app-page-header 
+        title="Clients"
+        addBtnText="Add New Client">
+    </app-page-header>
+
+    <div class="table-container">
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="search-box">
+                <i class="las la-search search-icon"></i>
+                <input type="text" placeholder="Search for something.." [(ngModel)]="searchQuery" class="search-input">
+            </div>
+
+            <div class="toolbar-actions">
+                <app-custom-filter
+                    [options]="clientFilterOptions"
+                    [currentFilter]="selectedFilter"
+                    activeLabelPrefix="All Clients"
+                    (filterChange)="onFilterChange($event)">
+                </app-custom-filter>
+                
+                <app-button variant="outline" iconPrefix="las la-sliders-h" (clicked)="toggleManageColumns()">Manage Columns</app-button>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="list-table">
+            <div class="list-header">
+                <div class="col-checkbox">
+                    <label class="custom-checkbox">
+                        <input type="checkbox" 
+                               [checked]="isAllSelected()"
+                               [indeterminate]="isPartiallySelected()"
+                               (change)="toggleAll($event)">
+                        <span class="checkmark"></span>
+                    </label>
+                </div>
+                <div class="col-name header-cell" *ngIf="isColumnVisible('companyName')">Company Name <i class="las la-sort"></i></div>
+                <div class="col-cr header-cell" *ngIf="isColumnVisible('crNumber')">CR Number <i class="las la-sort"></i></div>
+                <div class="col-email header-cell" *ngIf="isColumnVisible('email')">Email <i class="las la-sort"></i></div>
+                <div class="col-contact header-cell" *ngIf="isColumnVisible('primaryContact')">Primary Contact <i class="las la-sort"></i></div>
+                <div class="col-phone header-cell" *ngIf="isColumnVisible('phoneNumber')">Phone Number <i class="las la-sort"></i></div>
+                <div class="col-status header-cell" *ngIf="isColumnVisible('status')">Status <i class="las la-sort"></i></div>
+                <div class="col-manager header-cell" *ngIf="isColumnVisible('accountManager')">Account Manager <i class="las la-sort"></i></div>
+                <div class="col-billing header-cell" *ngIf="isColumnVisible('billingCycle')">Billing Cycle <i class="las la-sort"></i></div>
+                <div class="col-substart header-cell" *ngIf="isColumnVisible('subscriptionStartDate')">Subscription Start Date <i class="las la-sort"></i></div>
+                <div class="col-subend header-cell" *ngIf="isColumnVisible('subscriptionEndDate')">Subscription End Date <i class="las la-sort"></i></div>
+                <div class="col-maint header-cell" *ngIf="isColumnVisible('annualMaintenanceCost')">Annual Maintenance Cost <i class="las la-sort"></i></div>
+                <div class="col-cloud header-cell" *ngIf="isColumnVisible('cloudCharges')">Cloud Charges <i class="las la-sort"></i></div>
+                <div class="col-currency header-cell" *ngIf="isColumnVisible('baseCurrency')">Base Currency <i class="las la-sort"></i></div>
+                <div class="col-actions" *ngIf="isColumnVisible('actions')"></div>
+            </div>
+
+            <div class="list-body">
+                <ng-container *ngIf="displayedClients.length > 0; else emptyState">
+                    <div class="list-row" *ngFor="let client of displayedClients">
+                        <div class="col-checkbox">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" 
+                                       [checked]="selectedClientIds.has(client.id)"
+                                       (change)="toggleSelection(client.id)">
+                                <span class="checkmark"></span>
+                            </label>
+                        </div>
+                        <div class="col-name text-muted" *ngIf="isColumnVisible('companyName')">{{ client.companyName }}</div>
+                        <div class="col-cr text-muted" *ngIf="isColumnVisible('crNumber')">-</div>
+                        <div class="col-email text-muted" *ngIf="isColumnVisible('email')">{{ client.email }}</div>
+                        <div class="col-contact text-muted" *ngIf="isColumnVisible('primaryContact')">{{ client.primaryContact }}</div>
+                        <div class="col-phone text-muted" *ngIf="isColumnVisible('phoneNumber')">{{ client.phoneNumber }}</div>
+                        <div class="col-status" *ngIf="isColumnVisible('status')">
+                            <div class="status-pill" [ngClass]="client.status.toLowerCase()">
+                                <span class="dot"></span>
+                                {{ client.status }}
+                            </div>
+                        </div>
+                        <div class="col-manager text-muted" *ngIf="isColumnVisible('accountManager')">-</div>
+                        <div class="col-billing text-muted" *ngIf="isColumnVisible('billingCycle')">-</div>
+                        <div class="col-substart text-muted" *ngIf="isColumnVisible('subscriptionStartDate')">-</div>
+                        <div class="col-subend text-muted" *ngIf="isColumnVisible('subscriptionEndDate')">-</div>
+                        <div class="col-maint text-muted" *ngIf="isColumnVisible('annualMaintenanceCost')">-</div>
+                        <div class="col-cloud text-muted" *ngIf="isColumnVisible('cloudCharges')">-</div>
+                        <div class="col-currency text-muted" *ngIf="isColumnVisible('baseCurrency')">-</div>
+                        <div class="col-actions text-muted" *ngIf="isColumnVisible('actions')">
+                            <button class="action-btn">
+                                <i class="las la-ellipsis-h"></i>
+                            </button>
+                        </div>
+                    </div>
+                </ng-container>
+                
+                <ng-template #emptyState>
+                    <app-empty-state></app-empty-state>
+                </ng-template>
+            </div>
+        </div>
+
+        <app-pagination 
+            [totalItems]="totalEntries"
+            [itemsPerPage]="itemsPerPage"
+            [currentPage]="currentPage"
+            (pageChange)="onPageChange($event)"
+            (itemsPerPageChange)="onItemsPerPageChange($event)">
+        </app-pagination>
+    </div>
+
+    <!-- Manage Columns Side Panel -->
+    <app-manage-columns 
+        [isOpen]="isManageColumnsOpen" 
+        [columns]="columns" 
+        (closePanel)="closeManageColumns()"
+        (columnsChange)="onColumnsChange($event)">
+    </app-manage-columns>
+</div>

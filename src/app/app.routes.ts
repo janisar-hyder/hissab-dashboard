@@ -11,6 +11,8 @@ import { AdminClients } from './features/admin/admin-clients/admin-clients';
 import { AdminUsers } from './features/admin/user-management/admin-users/admin-users';
 import { AdminRoles } from './features/admin/user-management/admin-roles/admin-roles';
 import { AdminSettings } from './features/admin/settings/admin-settings/admin-settings';
+import { AdminRolesNew } from './features/admin/user-management/admin-roles/admin-roles-new/admin-roles-new';
+import { AdminClientsNewComponent } from './features/admin/admin-clients/admin-clients-new/admin-clients-new';
 
 export const routes: Routes = [
     {
@@ -25,12 +27,14 @@ export const routes: Routes = [
             { path: 'sales/quotations/new', component: QuotationsNew },
             { path: 'admin/dashboard', component: AdminDashboard },
             { path: 'admin/clients', component: AdminClients },
+            { path: 'admin/clients/new', component: AdminClientsNewComponent },
             { 
                 path: 'admin/user-management', 
                 loadComponent: () => import('./features/admin/user-management/user-management.component').then(m => m.UserManagementLayoutComponent),
                 children: [
                     { path: 'users', component: AdminUsers },
                     { path: 'roles', component: AdminRoles },
+                    { path: 'roles/new', component: AdminRolesNew },
                     { path: '', redirectTo: 'users', pathMatch: 'full' }
                 ]
             },

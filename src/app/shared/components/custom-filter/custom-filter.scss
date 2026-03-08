@@ -1,0 +1,114 @@
+/* filter dropdown styling */
+.filter-dropdown-container {
+    position: relative;
+    display: inline-block;
+    min-width: 160px;
+}
+
+.filter-dropdown {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    color: var(--text-dark);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    background: white;
+    user-select: none;
+    width: 100%;
+    justify-content: space-between;
+    box-sizing: border-box;
+    font-family: inherit;
+    transition: all 0.2s;
+
+    i {
+        font-size: 14px;
+        color: var(--text-muted);
+        transition: transform 0.2s;
+    }
+
+    &.open i {
+        transform: rotate(180deg);
+    }
+
+    &:hover, &:focus {
+        border-color: var(--primary);
+        outline: none;
+    }
+}
+
+.action-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    width: 100%;
+    box-sizing: border-box;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--border-light);
+    padding: 6px;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .menu-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 8px 12px;
+        border: none;
+        background: transparent;
+        border-radius: 6px;
+        font-family: inherit;
+        font-size: 14px;
+        color: var(--text-dark);
+        cursor: pointer;
+        transition: background-color 0.2s;
+        text-align: left;
+        box-sizing: border-box;
+
+        .icon-container {
+            width: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            .dot {
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+            }
+        }
+
+        .text-content {
+            font-weight: 400;
+        }
+
+        &:hover {
+            background-color: var(--bg-main);
+        }
+
+        &.active {
+            background-color: var(--bg-light);
+            
+            .text-content {
+                font-weight: 500;
+            }
+        }
+        
+        &.item-all {
+            margin-bottom: 4px;
+            padding-left: 12px; /* Align text since there's no icon */
+            
+            &.active {
+                background-color: var(--bg-light); 
+            }
+        }
+    }
+}

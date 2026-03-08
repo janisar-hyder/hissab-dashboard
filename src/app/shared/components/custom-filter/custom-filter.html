@@ -1,0 +1,19 @@
+<div class="filter-dropdown-container">
+    <button class="filter-dropdown" (click)="toggleMenu($event)" [class.open]="isOpen">
+        <span>{{ activeOptionLabel }}</span>
+        <i class="las la-angle-down"></i>
+    </button>
+    <div class="action-dropdown" *ngIf="isOpen">
+        <button class="menu-item item-all" (click)="setFilter('All', $event)"
+            [class.active]="currentFilter === 'All'">
+            <span class="text-content">{{ activeLabelPrefix }}</span>
+        </button>
+        <button *ngFor="let option of options" class="menu-item" (click)="setFilter(option.value, $event)"
+            [class.active]="currentFilter === option.value">
+            <div class="icon-container">
+                <div class="dot" [style.background-color]="option.colorHex || '#6B7280'"></div>
+            </div>
+            <span class="text-content">{{ option.label }}</span>
+        </button>
+    </div>
+</div>
