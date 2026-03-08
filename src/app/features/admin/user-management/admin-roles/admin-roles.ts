@@ -5,6 +5,7 @@ import { EmptyStateComponent } from '../../../../shared/components/empty-state/e
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { ManageColumnsComponent, ColumnDef } from '../../../../shared/components/manage-columns/manage-columns.component';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
+import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
 import { ActionMenu, MenuAction } from '../../../../shared/components/action-menu/action-menu';
 import { Router, ActivatedRoute } from '@angular/router';
 
@@ -23,7 +24,8 @@ interface AdminRole {
     EmptyStateComponent,
     PaginationComponent,
     ManageColumnsComponent,
-    ActionMenu
+    ActionMenu,
+    DeleteModalComponent
   ],
   templateUrl: './admin-roles.html',
   styleUrl: './admin-roles.scss',
@@ -46,6 +48,7 @@ export class AdminRoles {
 
   // Modals & Action Menus
   isManageColumnsOpen = false;
+  roleToDelete: AdminRole | null = null;
 
   getRoleActions(role: AdminRole): MenuAction[] {
     return [
@@ -127,7 +130,7 @@ export class AdminRoles {
     if (event.action === 'edit') {
       // Setup edit navigation path mapping future
     } else if (event.action === 'delete') {
-      // Trigger delete logic
+      this.roleToDelete = event.data;
     } else if (event.action === 'mark_active') {
       event.data.status = 'Active';
     } else if (event.action === 'mark_inactive') {
@@ -139,5 +142,27 @@ export class AdminRoles {
 
   navigateToNew() {
     this.router.navigate(['new'], { relativeTo: this.route });
+  }
+
+  closeDeleteModal() {
+    this.roleToDelete = null;
+  }
+
+  confirmDelete() {
+    if (this.roleToDelete) {
+      this.roles = this.roles.filter(r => r.id !== this.roleToDelete!.id);
+      this.selectedRoleIds.delete(this.roleToDelete.id);
+      this.roleToDelete = null;
+      
+      const Math = window.Math;
+      if (this.itemsPerPage !== -1) {
+          const maxPage = Math.ceil(this.roles.length / this.itemsPerPage) || 1;
+          if (this.currentPage > maxPage) {
+              this.currentPage = maxPage;
+          }
+      } else {
+          this.currentPage = 1;
+      }
+    }
   }
 }

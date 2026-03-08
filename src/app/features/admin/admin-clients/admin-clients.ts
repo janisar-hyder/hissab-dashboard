@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
@@ -8,6 +9,7 @@ import { EmptyStateComponent } from '../../../shared/components/empty-state/empt
 import { CustomFilterComponent, FilterOption } from '../../../shared/components/custom-filter/custom-filter';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ActionMenu, MenuAction } from '../../../shared/components/action-menu/action-menu';
+import { DeleteModalComponent } from '../../../shared/components/delete-modal/delete-modal.component';
 
 interface Client {
   id: string;
@@ -30,7 +32,8 @@ interface Client {
     EmptyStateComponent,
     ButtonComponent,
     CustomFilterComponent,
-    ActionMenu
+    ActionMenu,
+    DeleteModalComponent
   ],
   templateUrl: './admin-clients.html',
   styleUrl: './admin-clients.scss'
@@ -60,12 +63,19 @@ export class AdminClients {
   selectedClientIds: Set<string> = new Set();
   currentPage = 1;
   itemsPerPage = 15;
+
+  constructor(private router: Router, private route: ActivatedRoute) {}
+
+  navigateToNew() {
+    this.router.navigate(['new'], { relativeTo: this.route });
+  }
   
   get totalEntries() {
     return this.filteredClients.length;
   }
   
   isManageColumnsOpen = false;
+  clientToDelete: Client | null = null;
 
   getClientActions(client: Client): MenuAction[] {
     return [
@@ -83,7 +93,7 @@ export class AdminClients {
     if (event.action === 'edit') {
       // Setup edit navigation path mapping future
     } else if (event.action === 'delete') {
-      // Trigger delete logic
+      this.clientToDelete = event.data;
     } else if (event.action === 'mark_active') {
       event.data.status = 'Active';
     } else if (event.action === 'mark_inactive') {
@@ -194,5 +204,27 @@ export class AdminClients {
 
   onColumnsChange(updatedColumns: any[]) {
     this.columns = updatedColumns;
+  }
+
+  closeDeleteModal() {
+    this.clientToDelete = null;
+  }
+
+  confirmDelete() {
+    if (this.clientToDelete) {
+      this.clients = this.clients.filter(c => c.id !== this.clientToDelete!.id);
+      this.selectedClientIds.delete(this.clientToDelete.id);
+      this.clientToDelete = null;
+      
+      const Math = window.Math;
+      if (typeof this.itemsPerPage === 'number' && this.itemsPerPage !== -1) {
+          const maxPage = Math.ceil(this.clients.length / this.itemsPerPage) || 1;
+          if (this.currentPage > maxPage) {
+              this.currentPage = maxPage;
+          }
+      } else {
+          this.currentPage = 1;
+      }
+    }
   }
 }

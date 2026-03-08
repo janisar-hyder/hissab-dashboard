@@ -81,3 +81,12 @@
     (closePanel)="closeManageColumns()"
     (columnsChange)="onColumnsChange($event)">
 </app-manage-columns>
+
+<!-- Delete Confirmation Modal -->
+<app-delete-modal 
+    [isOpen]="!!roleToDelete" 
+    title="Delete Role"
+    message="Are you sure you want to delete this role? This action cannot be undone." 
+    (cancel)="closeDeleteModal()"
+    (confirm)="confirmDelete()">
+</app-delete-modal>

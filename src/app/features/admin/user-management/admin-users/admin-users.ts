@@ -6,6 +6,7 @@ import { PaginationComponent } from '../../../../shared/components/pagination/pa
 import { ManageColumnsComponent, ColumnDef } from '../../../../shared/components/manage-columns/manage-columns.component';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { ActionMenu, MenuAction } from '../../../../shared/components/action-menu/action-menu';
+import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
 import { AddUserModalComponent } from './components/add-user-modal/add-user-modal.component';
 
 interface AdminUser {
@@ -27,7 +28,8 @@ interface AdminUser {
     ManageColumnsComponent,
     PageHeaderComponent,
     AddUserModalComponent,
-    ActionMenu
+    ActionMenu,
+    DeleteModalComponent
   ],
   templateUrl: './admin-users.html',
   styleUrl: './admin-users.scss',
@@ -53,6 +55,7 @@ export class AdminUsers {
   // Modals & Action Menus
   isManageColumnsOpen = false;
   isAddUserModalOpen = false;
+  userToDelete: AdminUser | null = null;
 
   getUserActions(user: AdminUser): MenuAction[] {
     return [
@@ -131,7 +134,7 @@ export class AdminUsers {
     if (event.action === 'edit') {
       // Future mapping
     } else if (event.action === 'delete') {
-      // Future routing
+      this.userToDelete = event.data;
     } else if (event.action === 'mark_active') {
       event.data.status = 'Active';
     } else if (event.action === 'mark_inactive') {
@@ -153,5 +156,27 @@ export class AdminUsers {
     };
     // Prepend new user
     this.users = [newUser, ...this.users];
+  }
+
+  closeDeleteModal() {
+    this.userToDelete = null;
+  }
+
+  confirmDelete() {
+    if (this.userToDelete) {
+      this.users = this.users.filter(u => u.id !== this.userToDelete!.id);
+      this.selectedUserIds.delete(this.userToDelete.id);
+      this.userToDelete = null;
+      
+      const Math = window.Math;
+      if (typeof this.itemsPerPage === 'number' && this.itemsPerPage !== -1) {
+          const maxPage = Math.ceil(this.users.length / this.itemsPerPage) || 1;
+          if (this.currentPage > maxPage) {
+              this.currentPage = maxPage;
+          }
+      } else {
+          this.currentPage = 1;
+      }
+    }
   }
 }
