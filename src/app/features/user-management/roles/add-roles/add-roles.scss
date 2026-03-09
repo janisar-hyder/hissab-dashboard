@@ -1,0 +1,276 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.page-container {
+    padding: 24px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding-bottom: 100px;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+
+    .header-titles {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 500;
+        letter-spacing: -0.2px;
+        color: var(--text-dark);
+        margin: 0;
+    }
+}
+
+.form-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.form-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 3px var(--shadow-sm);
+    border: 1px solid var(--border-light);
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.role-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    label {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-muted);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        color: var(--text-dark);
+        transition: border-color 0.2s;
+
+        &:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        &::placeholder { color: #9CA3AF; }
+    }
+}
+
+.permissions-table-container {
+    width: 100%;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+}
+
+.permissions-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    align-items: center;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border-light);
+
+    &:last-child { border-bottom: none; }
+}
+
+.permissions-header {
+    background-color: var(--bg-light);
+    font-size: 14px;
+
+    .font-medium {
+        font-weight: 500;
+        color: var(--text-dark);
+    }
+}
+
+.permissions-row {
+    background-color: white;
+    font-size: 14px;
+    color: var(--text-muted);
+
+    &.has-children {
+        cursor: pointer;
+        &:hover { background-color: #F8F9FA; }
+    }
+
+    &.child-row {
+        background-color: #FAFAFA;
+        padding-left: 48px;
+    }
+}
+
+.col-module {
+    display: flex;
+    align-items: center;
+}
+
+.cbx-primary {
+    appearance: none;
+    background-color: #fff;
+    margin: 0;
+    font: inherit;
+    color: currentColor;
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid var(--border-light);
+    border-radius: 4px;
+    display: grid;
+    place-content: center;
+    cursor: pointer;
+
+    &::before {
+        content: "";
+        width: 10px;
+        height: 10px;
+        transform: scale(0);
+        transition: 120ms transform ease-in-out;
+        box-shadow: inset 1em 1em white;
+        clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+    }
+
+    &:checked {
+        background-color: var(--primary);
+        border-color: var(--primary);
+        &::before { transform: scale(1); }
+    }
+}
+
+.custom-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    cursor: pointer;
+    margin: 0;
+    user-select: none;
+
+    input { display: none; }
+
+    .checkmark {
+        min-width: 20px;
+        width: 20px;
+        height: 20px;
+        border: 1.5px solid var(--border-light);
+        border-radius: 4px;
+        background-color: white;
+        position: relative;
+        transition: all 0.2s;
+
+        &:after {
+            content: "";
+            position: absolute;
+            display: none;
+            left: 6px;
+            top: 2px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+    }
+
+    input:checked ~ .checkmark {
+        background-color: var(--primary);
+        border-color: var(--primary);
+        &:after { display: block; }
+    }
+
+    .checkbox-label {
+        font-size: 14px;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        &.header-label { font-weight: 500; color: var(--text-dark); }
+        &.child-label {
+            color: var(--text-dark);
+            i { font-size: 16px; color: var(--text-muted); }
+        }
+
+        .caret-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+
+            &:hover { background-color: var(--border-light); }
+
+            i.la-angle-down, i.la-angle-right {
+                font-size: 18px;
+                color: var(--text-dark);
+                font-weight: 600;
+            }
+        }
+    }
+}
+
+.d-flex { display: flex; }
+.justify-content-center { justify-content: center; }
+.align-items-center { align-items: center; }
+.text-center { text-align: center; }
+.text-muted { color: var(--text-muted); }
+.gap-2 { gap: 8px; }
+
+.page-footer {
+    position: fixed;
+    bottom: 0;
+    left: 80px;
+    right: 0;
+    background: transparent;
+    padding: 24px 48px 24px 32px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 16px;
+    z-index: 100;
+
+    .footer-btn {
+        padding: 12px 24px;
+        font-size: 14px;
+        font-family: inherit;
+        font-weight: 500;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        min-width: 100px;
+
+        &.btn-cancel {
+            background: white;
+            border: 1px solid var(--border-light);
+            color: var(--text-muted);
+            &:hover { background: var(--bg-body); color: var(--text-dark); }
+        }
+
+        &.btn-save {
+            background: var(--primary-hover);
+            border: none;
+            color: white;
+            &:hover { background: var(--primary-hover); }
+        }
+    }
+}

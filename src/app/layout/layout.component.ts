@@ -178,15 +178,15 @@ import { filter } from 'rxjs/operators';
             </div>
 
             <div class="nav-item-group">
-              <a href="#" class="nav-item" [class.active]="expandedMenu === 'users'" (click)="toggleSubMenu('users', $event)">
-                <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('users', 'user-management')" [style.mask-image]="getIconUrl('users', 'user-management')"></div>
+              <a href="#" class="nav-item" [class.active]="expandedMenu === 'user-management'" (click)="toggleSubMenu('user-management', $event)">
+                <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('user-management', 'user-management')" [style.mask-image]="getIconUrl('user-management', 'user-management')"></div>
                 <span class="nav-text">User Management</span>
-                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'users'"></i>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'user-management'"></i>
               </a>
-              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'users'">
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'user-management'">
                 <div class="sub-menu-line"></div>
-                <a href="#" class="sub-item"><span class="dot"></span>All Users</a>
-                <a href="#" class="sub-item"><span class="dot"></span>Roles & Permissions</a>
+                <a routerLink="/user-management/users" routerLinkActive="active" class="sub-item"><span class="dot"></span>Users</a>
+                <a routerLink="/user-management/roles" routerLinkActive="active" class="sub-item"><span class="dot"></span>Roles</a>
               </div>
             </div>
 
@@ -256,6 +256,7 @@ export class LayoutComponent implements OnInit {
     // Main sidebar sections
     if (url.startsWith('/sales')) return 'sales';
     if (url.startsWith('/inventory')) return 'inventory';
+    if (url.startsWith('/user-management')) return 'user-management';
     if (url.startsWith('/accounting')) return 'accounting';
     if (url.startsWith('/hr')) return 'hr';
     return null;

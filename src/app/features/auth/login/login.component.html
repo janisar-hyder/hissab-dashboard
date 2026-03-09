@@ -46,8 +46,22 @@
                     <a routerLink="/forgot-password" class="forgot-link">Forgot password?</a>
                 </div>
 
+                <!-- Error Message -->
+                <div class="auth-error" *ngIf="loginError">
+                    <i class="las la-exclamation-circle"></i>
+                    {{ loginError }}
+                </div>
+
+                <!-- Demo Hint -->
+                <!-- <div class="auth-hint">
+                    <strong>Demo accounts:</strong><br>
+                    <span>Admin: <code>admin@tamezy.com</code> / <code>admin123</code></span><br>
+                    <span>Customer: <code>customer@tamezy.com</code> / <code>customer123</code></span>
+                </div> -->
+
                 <!-- Submit Button -->
                 <button type="submit" class="auth-submit-btn">Sign in</button>
+
             </form>
         </div>
     </div>

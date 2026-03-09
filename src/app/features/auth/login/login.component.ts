@@ -3,6 +3,11 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 
+const DUMMY_CREDENTIALS = [
+    { email: 'admin@tamezy.com', password: 'admin123', redirectTo: '/admin/clients' },
+    { email: 'customer@tamezy.com', password: 'customer123', redirectTo: '/sales/customers' }
+];
+
 @Component({
     selector: 'app-login',
     standalone: true,
@@ -13,6 +18,7 @@ import { Router, RouterModule } from '@angular/router';
 export class LoginComponent implements OnInit, OnDestroy {
     loginForm: FormGroup;
     showPassword = false;
+    loginError = '';
 
     // Carousel logic
     currentSlide = 0;
@@ -51,7 +57,6 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     setSlide(index: number): void {
         this.currentSlide = index;
-        // Reset interval when user manually clicks
         if (this.intervalId) {
             clearInterval(this.intervalId);
         }
@@ -63,11 +68,18 @@ export class LoginComponent implements OnInit, OnDestroy {
     }
 
     onSubmit(): void {
+        this.loginError = '';
         if (this.loginForm.valid) {
-            // For now, redirect to dashboard
-            this.router.navigate(['/']);
+            const { email, password } = this.loginForm.value;
+            const match = DUMMY_CREDENTIALS.find(
+                c => c.email === email.trim().toLowerCase() && c.password === password
+            );
+            if (match) {
+                this.router.navigate([match.redirectTo]);
+            } else {
+                this.loginError = 'Invalid email or password. Please try again.';
+            }
         } else {
-            // Mark fields as touched to show errors
             this.loginForm.markAllAsTouched();
         }
     }

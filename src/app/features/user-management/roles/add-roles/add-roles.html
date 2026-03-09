@@ -1,0 +1,90 @@
+<div class="page-container">
+    <div class="page-header">
+        <div class="header-titles">
+            <app-breadcrumbs [items]="[
+                { label: 'Roles', url: '/user-management/roles' },
+                { label: 'Add New Role' }
+            ]"></app-breadcrumbs>
+            <h1 class="page-title">Add New Role</h1>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <!-- Main Form Card -->
+        <div class="form-card">
+            
+            <!-- Role Name -->
+            <div class="form-group role-input-group">
+                <label>Role Name</label>
+                <input type="text" class="form-control" [(ngModel)]="roleName" placeholder="Enter Role Name">
+            </div>
+
+            <!-- Permissions Table -->
+            <div class="permissions-table-container">
+                <div class="permissions-grid permissions-header">
+                    <div class="col-module">
+                        <label class="custom-checkbox header-checkbox">
+                            <input type="checkbox" [checked]="isEntireMatrixSelected()" (change)="toggleEntireMatrix($event)">
+                            <span class="checkmark"></span>
+                            <span class="checkbox-label header-label">Module</span>
+                        </label>
+                    </div>
+                    <div class="col-permission text-center font-medium">Create</div>
+                    <div class="col-permission text-center font-medium">View</div>
+                    <div class="col-permission text-center font-medium">Update</div>
+                    <div class="col-permission text-center font-medium">Delete</div>
+                </div>
+
+                <ng-template #rowTemplate let-row="row" let-level="level">
+                    <div class="permissions-grid permissions-row" 
+                         [class.has-children]="row.children" 
+                         [class.child-row]="level > 1">
+                         
+                        <div class="col-module" [ngStyle]="{'padding-left.px': (level - 1) * 48}">
+                            <label class="custom-checkbox cbx-wrapper">
+                                <input type="checkbox" [checked]="isAllSelected(row)" (change)="toggleRow(row, $event)">
+                                <span class="checkmark cbx-span"></span>
+                                <span class="checkbox-label d-flex align-items-center gap-2" [class.child-label]="level > 1">
+                                    <div *ngIf="row.children" class="caret-btn" (click)="$event.preventDefault(); $event.stopPropagation(); toggleExpand(row)">
+                                        <i class="las" [ngClass]="row.isExpanded ? 'la-angle-down' : 'la-angle-right'"></i>
+                                    </div>
+                                    {{ row.moduleName }}
+                                </span>
+                            </label>
+                        </div>
+                        <div class="col-permission d-flex justify-content-center" (click)="$event.stopPropagation()">
+                            <input *ngIf="!row.children" type="checkbox" class="cbx-primary" [(ngModel)]="row.create">
+                        </div>
+                        <div class="col-permission d-flex justify-content-center" (click)="$event.stopPropagation()">
+                            <input *ngIf="!row.children" type="checkbox" class="cbx-primary" [(ngModel)]="row.view">
+                        </div>
+                        <div class="col-permission d-flex justify-content-center" (click)="$event.stopPropagation()">
+                            <input *ngIf="!row.children" type="checkbox" class="cbx-primary" [(ngModel)]="row.update">
+                        </div>
+                        <div class="col-permission d-flex justify-content-center" (click)="$event.stopPropagation()">
+                            <input *ngIf="!row.children" type="checkbox" class="cbx-primary" [(ngModel)]="row.delete">
+                        </div>
+                    </div>
+
+                    <!-- Render Children Recursively -->
+                    <ng-container *ngIf="row.children && row.isExpanded">
+                        <ng-container *ngFor="let child of row.children">
+                            <ng-container *ngTemplateOutlet="rowTemplate; context: { row: child, level: level + 1 }"></ng-container>
+                        </ng-container>
+                    </ng-container>
+                </ng-template>
+
+                <ng-container *ngFor="let topRow of permissions">
+                    <ng-container *ngTemplateOutlet="rowTemplate; context: { row: topRow, level: 1 }"></ng-container>
+                </ng-container>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Footer -->
+    <div class="page-footer">
+        <button class="footer-btn btn-cancel" (click)="goBack()">Cancel</button>
+        <button class="footer-btn btn-save" (click)="goBack()">Save</button>
+    </div>
+</div>

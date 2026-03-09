@@ -1,0 +1,58 @@
+<div class="modal-overlay" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <!-- Profile Icon Badge -->
+    <div class="modal-icon-badge">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" fill="#0052FF"/>
+        <path d="M6 21V19C6 16.7909 7.79086 15 10 15H14C16.2091 15 18 16.7909 18 19V21" fill="#0052FF"/>
+      </svg>
+    </div>
+
+    <!-- Title -->
+    <h2 class="modal-title">Add New User</h2>
+
+    <!-- Form -->
+    <form class="modal-form" (ngSubmit)="onSave()">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Name<span class="required">*</span></label>
+          <input type="text" class="form-control" placeholder="Enter Name" [(ngModel)]="formData.name" name="name" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Role<span class="required">*</span></label>
+          <div class="select-wrapper">
+            <select class="form-control select-control" [(ngModel)]="formData.role" name="role" required>
+              <option value="" disabled selected>Select Role</option>
+              <option value="Super Admin">Super Admin</option>
+              <option value="Admin">Admin</option>
+              <option value="Sales Manager">Sales Manager</option>
+              <option value="Account Manager">Account Manager</option>
+            </select>
+            <i class="las la-angle-down select-chevron"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Email<span class="required">*</span></label>
+          <input type="email" class="form-control" placeholder="Enter Email" [(ngModel)]="formData.email" name="email" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password<span class="required">*</span></label>
+          <div class="password-wrapper">
+            <input [type]="showPassword ? 'text' : 'password'" class="form-control" placeholder="Enter Password" [(ngModel)]="formData.password" name="password" required>
+            <button type="button" class="toggle-password-btn" (click)="togglePassword()">
+              <i class="lar" [ngClass]="showPassword ? 'la-eye-slash' : 'la-eye'"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <app-button variant="outline" type="button" (clicked)="closeModal()">Cancel</app-button>
+        <app-button variant="primary" type="submit">Save</app-button>
+      </div>
+    </form>
+  </div>
+</div>

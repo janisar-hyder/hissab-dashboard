@@ -15,13 +15,16 @@ import { AdminRolesNew } from './features/admin/user-management/admin-roles/admi
 import { AdminClientsNewComponent } from './features/admin/admin-clients/admin-clients-new/admin-clients-new';
 import { ItemsList } from './features/inventory/items/items-list/items-list';
 import { ItemsNewComponent } from './features/inventory/items/items-new/items-new';
+import { UsersComponent } from './features/user-management/users/users';
+import { RolesComponent } from './features/user-management/roles/roles';
+import { AddRolesComponent } from './features/user-management/roles/add-roles/add-roles';
 
 export const routes: Routes = [
     {
         path: '',
         component: LayoutComponent,
         children: [
-            { path: '', redirectTo: 'sales/customers', pathMatch: 'full' },
+            { path: '', redirectTo: '/login', pathMatch: 'full' },
             { path: 'sales/customers', component: CustomersListComponent },
             { path: 'sales/customers/new', component: CustomerEditComponent },
             { path: 'sales/customers/edit/:id', component: CustomerEditComponent },
@@ -42,10 +45,20 @@ export const routes: Routes = [
             },
             { path: 'admin/settings/general', component: AdminSettings },
             { path: 'inventory/items', component: ItemsList },
-            { path: 'inventory/items/new', component: ItemsNewComponent }
+            { path: 'inventory/items/new', component: ItemsNewComponent },
+            {
+                path: 'user-management',
+                loadComponent: () => import('./features/user-management/user-management.component').then(m => m.UserManagementClientLayoutComponent),
+                children: [
+                    { path: 'users', component: UsersComponent },
+                    { path: 'roles', component: RolesComponent },
+                    { path: 'roles/new', component: AddRolesComponent },
+                    { path: '', redirectTo: 'users', pathMatch: 'full' }
+                ]
+            }
         ]
     },
     { path: 'login', component: LoginComponent },
     { path: 'forgot-password', component: ForgotPasswordComponent },
-    { path: '**', redirectTo: 'sales/customers' }
+    { path: '**', redirectTo: 'login' }
 ];

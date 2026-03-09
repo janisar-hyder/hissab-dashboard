@@ -1,0 +1,146 @@
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { ManageColumnsComponent, ColumnDef } from '../../../shared/components/manage-columns/manage-columns.component';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { ActionMenu, MenuAction } from '../../../shared/components/action-menu/action-menu';
+import { DeleteModalComponent } from '../../../shared/components/delete-modal/delete-modal.component';
+import { AddUserModalComponent } from './components/add-user-modal/add-user-modal.component';
+
+interface User {
+  id: string;
+  name: string;
+  role: string;
+  email: string;
+  status: 'Active' | 'Inactive';
+}
+
+@Component({
+  selector: 'app-users',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ButtonComponent,
+    EmptyStateComponent,
+    PaginationComponent,
+    ManageColumnsComponent,
+    PageHeaderComponent,
+    AddUserModalComponent,
+    ActionMenu,
+    DeleteModalComponent
+  ],
+  templateUrl: './users.html',
+  styleUrl: './users.scss',
+})
+export class UsersComponent {
+  pageTitle = 'Users';
+  entityName = 'User';
+
+  users: User[] = [
+    { id: '1', name: 'Ali Al-Mansoori', role: 'Super Admin', email: 'alialmansoori@gmail.com', status: 'Active' },
+    { id: '2', name: 'Sara Hassan', role: 'Account Manager', email: 'sarahassan@gmail.com', status: 'Inactive' },
+    { id: '3', name: 'Zainab Al-Khalifa', role: 'Account Manager', email: 'zainabalkhalifa@gmail.com', status: 'Active' },
+    { id: '4', name: 'Tariq Mahmood', role: 'Admin', email: 'tariq@gmail.com', status: 'Active' },
+  ];
+
+  selectedUserIds = new Set<string>();
+  currentPage = 1;
+  itemsPerPage = 15;
+  isManageColumnsOpen = false;
+  isAddUserModalOpen = false;
+  userToDelete: User | null = null;
+
+  getUserActions(user: User): MenuAction[] {
+    return [
+      { label: 'Edit', action: 'edit', svgIconPath: '/icons/edit.svg', customClass: 'edit-btn' },
+      user.status === 'Active'
+        ? { label: 'Mark As Inactive', action: 'mark_inactive', iconClass: 'la-times-circle', customClass: 'edit-btn' }
+        : { label: 'Mark As Active', action: 'mark_active', iconClass: 'la-check-circle', customClass: 'edit-btn' },
+      { label: 'Delete', action: 'delete', svgIconPath: '/icons/delete.svg', customClass: 'delete-btn' }
+    ];
+  }
+
+  availableColumns: ColumnDef[] = [
+    { id: 'name', label: 'Name', visible: true, required: true },
+    { id: 'role', label: 'Role', visible: true },
+    { id: 'email', label: 'Email', visible: true },
+    { id: 'status', label: 'Status', visible: true },
+  ];
+
+  get paginatedUsers(): User[] {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    return this.users.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  isColumnVisible(columnId: string): boolean {
+    const col = this.availableColumns.find(c => c.id === columnId);
+    return col ? col.visible : false;
+  }
+
+  toggleManageColumns() { this.isManageColumnsOpen = true; }
+  closeManageColumns() { this.isManageColumnsOpen = false; }
+  onColumnsChange(updatedColumns: ColumnDef[]) { this.availableColumns = updatedColumns; }
+  onPageChange(page: number) { this.currentPage = page; this.selectedUserIds.clear(); }
+  onItemsPerPageChange(items: number | 'All') {
+    this.itemsPerPage = items === 'All' ? this.users.length : items;
+    this.currentPage = 1;
+  }
+
+  toggleAll() {
+    if (this.isAllSelected()) {
+      this.selectedUserIds.clear();
+    } else {
+      this.paginatedUsers.forEach(u => this.selectedUserIds.add(u.id));
+    }
+  }
+
+  toggleSelection(id: string) {
+    if (this.selectedUserIds.has(id)) {
+      this.selectedUserIds.delete(id);
+    } else {
+      this.selectedUserIds.add(id);
+    }
+  }
+
+  isAllSelected(): boolean {
+    return this.paginatedUsers.length > 0 &&
+           this.paginatedUsers.every(u => this.selectedUserIds.has(u.id));
+  }
+
+  handleUserAction(event: { action: string, data: any }) {
+    if (event.action === 'delete') {
+      this.userToDelete = event.data;
+    } else if (event.action === 'mark_active') {
+      event.data.status = 'Active';
+    } else if (event.action === 'mark_inactive') {
+      event.data.status = 'Inactive';
+    }
+  }
+
+  navigateToNew() { this.isAddUserModalOpen = true; }
+
+  onSaveUser(userData: any) {
+    const newUser: User = {
+      id: Math.random().toString(36).substr(2, 9),
+      name: userData.name,
+      role: userData.role,
+      email: userData.email,
+      status: 'Active'
+    };
+    this.users = [newUser, ...this.users];
+  }
+
+  closeDeleteModal() { this.userToDelete = null; }
+
+  confirmDelete() {
+    if (this.userToDelete) {
+      this.users = this.users.filter(u => u.id !== this.userToDelete!.id);
+      this.selectedUserIds.delete(this.userToDelete.id);
+      this.userToDelete = null;
+      const maxPage = Math.ceil(this.users.length / this.itemsPerPage) || 1;
+      if (this.currentPage > maxPage) this.currentPage = maxPage;
+    }
+  }
+}

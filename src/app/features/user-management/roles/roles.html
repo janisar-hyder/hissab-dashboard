@@ -1,0 +1,92 @@
+<!-- Data Card -->
+<div class="data-card" style="margin: 0; display: flex; flex-direction: column;" *ngIf="roles.length > 0">
+        <!-- Toolbar -->
+        <div class="card-toolbar">
+            <div class="search-box">
+                <i class="las la-search search-icon"></i>
+                <input type="text" placeholder="Search for something.." class="search-input">
+                <i class="las la-times clear-icon"></i>
+            </div>
+            
+            <div class="toolbar-actions" style="display: flex; gap: var(--space-sm); align-items: center;">
+                <div class="custom-dropdown" style="position: relative;">
+                    <button class="dropdown-trigger" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: white; border: 1px solid var(--border-light); border-radius: var(--radius-sm); color: var(--text-muted); font-size: 13px; font-weight: 500; cursor: pointer;">
+                        All Roles
+                        <i class="las la-angle-down"></i>
+                    </button>
+                </div>
+                
+                <app-button variant="outline" iconPrefix="las la-sliders-h" (clicked)="toggleManageColumns()">Manage Columns</app-button>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th class="col-checkbox">
+                            <input type="checkbox" [checked]="isAllSelected()" (change)="toggleAll()">
+                        </th>
+                        <th *ngIf="isColumnVisible('name')">Role Name <i class="las la-sort"></i></th>
+                        <th class="col-status" *ngIf="isColumnVisible('status')">Status <i class="las la-sort"></i></th>
+                        <th class="col-actions"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let role of paginatedRoles">
+                        <td class="col-checkbox">
+                            <input type="checkbox" [checked]="selectedRoleIds.has(role.id)" (change)="toggleSelection(role.id)">
+                        </td>
+                        <td class="text-muted" *ngIf="isColumnVisible('name')">{{ role.name }}</td>
+                        <td class="col-status" *ngIf="isColumnVisible('status')">
+                            <span class="status-pill" [ngClass]="role.status.toLowerCase()">
+                                <span class="dot"></span> {{ role.status }}
+                            </span>
+                        </td>
+                        <td class="col-actions">
+                            <app-action-menu 
+                                [actions]="getRoleActions(role)" 
+                                [data]="role"
+                                (actionClick)="handleRoleAction($event)">
+                            </app-action-menu>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer Pagination -->
+        <app-pagination 
+            [totalItems]="roles.length" 
+            [itemsPerPage]="itemsPerPage" 
+            [currentPage]="currentPage"
+            (pageChange)="onPageChange($event)" 
+            (itemsPerPageChange)="onItemsPerPageChange($event)">
+        </app-pagination>
+    </div>
+
+    <app-empty-state *ngIf="roles.length === 0" 
+        title="No Roles Found."
+        subtitle="It looks like you haven't added any roles yet." 
+        actionLabel="Add New Role"
+        actionIconClass="las la-plus" 
+        (actionClick)="navigateToNew()">
+    </app-empty-state>
+
+<!-- Manage Columns Side Panel -->
+<app-manage-columns 
+    [isOpen]="isManageColumnsOpen" 
+    [columns]="availableColumns" 
+    (closePanel)="closeManageColumns()"
+    (columnsChange)="onColumnsChange($event)">
+</app-manage-columns>
+
+<!-- Delete Confirmation Modal -->
+<app-delete-modal 
+    [isOpen]="!!roleToDelete" 
+    title="Delete Role"
+    message="Are you sure you want to delete this role? This action cannot be undone." 
+    (cancel)="closeDeleteModal()"
+    (confirm)="confirmDelete()">
+</app-delete-modal>
