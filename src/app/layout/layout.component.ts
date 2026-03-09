@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-layout',
@@ -119,7 +120,7 @@ import { RouterModule, Router } from '@angular/router';
               </a>
               <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'inventory'">
                 <div class="sub-menu-line"></div>
-                <a href="#" class="sub-item"><span class="dot"></span>Items</a>
+                <a routerLink="/inventory/items" routerLinkActive="active" class="sub-item"><span class="dot"></span>Items</a>
                 <a href="#" class="sub-item"><span class="dot"></span>Adjustments</a>
               </div>
             </div>
@@ -239,12 +240,35 @@ import { RouterModule, Router } from '@angular/router';
   `,
   styleUrls: ['./layout.component.scss']
 })
-export class LayoutComponent {
+export class LayoutComponent implements OnInit {
   isSidebarExpanded = false;
   isHovered = false;
-  expandedMenu: string | null = 'sales'; // Default to sales based on screenshot
+  expandedMenu: string | null = null;
 
   constructor(private router: Router) { }
+
+  private getMenuFromUrl(url: string): string | null {
+    // Admin sub-routes
+    if (url.startsWith('/admin/user-management')) return 'users';
+    if (url.startsWith('/admin/clients')) return 'clients';
+    if (url.startsWith('/admin/dashboard')) return 'dashboard';
+    if (url.startsWith('/admin/settings')) return 'settings';
+    // Main sidebar sections
+    if (url.startsWith('/sales')) return 'sales';
+    if (url.startsWith('/inventory')) return 'inventory';
+    if (url.startsWith('/accounting')) return 'accounting';
+    if (url.startsWith('/hr')) return 'hr';
+    return null;
+  }
+
+  ngOnInit(): void {
+    this.expandedMenu = this.getMenuFromUrl(this.router.url);
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: NavigationEnd) => {
+      this.expandedMenu = this.getMenuFromUrl(event.urlAfterRedirects);
+    });
+  }
 
   get isAdminPage(): boolean {
     return this.router.url.startsWith('/admin');
@@ -263,7 +287,13 @@ export class LayoutComponent {
 
   toggleSubMenu(menu: string, event: Event) {
     event.preventDefault();
-    this.expandedMenu = this.expandedMenu === menu ? null : menu;
+    // If this menu is already active because we're on its sub-page, only allow expanding, not collapsing
+    const activeFromUrl = this.getMenuFromUrl(this.router.url);
+    if (activeFromUrl === menu) {
+      this.expandedMenu = menu; // keep open
+    } else {
+      this.expandedMenu = this.expandedMenu === menu ? null : menu;
+    }
   }
   getToggleIconUrl(): string {
     return this.isSidebarExpanded ? `url('/icons/sidebar-collapse.svg')` : `url('/icons/Frame(10).svg')`;

@@ -13,6 +13,8 @@ import { AdminRoles } from './features/admin/user-management/admin-roles/admin-r
 import { AdminSettings } from './features/admin/settings/admin-settings/admin-settings';
 import { AdminRolesNew } from './features/admin/user-management/admin-roles/admin-roles-new/admin-roles-new';
 import { AdminClientsNewComponent } from './features/admin/admin-clients/admin-clients-new/admin-clients-new';
+import { ItemsList } from './features/inventory/items/items-list/items-list';
+import { ItemsNewComponent } from './features/inventory/items/items-new/items-new';
 
 export const routes: Routes = [
     {
@@ -38,7 +40,9 @@ export const routes: Routes = [
                     { path: '', redirectTo: 'users', pathMatch: 'full' }
                 ]
             },
-            { path: 'admin/settings/general', component: AdminSettings }
+            { path: 'admin/settings/general', component: AdminSettings },
+            { path: 'inventory/items', component: ItemsList },
+            { path: 'inventory/items/new', component: ItemsNewComponent }
         ]
     },
     { path: 'login', component: LoginComponent },

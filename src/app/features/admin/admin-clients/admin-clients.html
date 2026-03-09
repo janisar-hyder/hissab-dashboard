@@ -13,7 +13,7 @@
                 <input type="text" placeholder="Search for something.." [(ngModel)]="searchQuery" class="search-input">
             </div>
 
-            <div class="toolbar-actions">
+            <div class="toolbar-actions" style="display: flex; gap: var(--space-sm); align-items: center;">
                 <app-custom-filter
                     [options]="clientFilterOptions"
                     [currentFilter]="selectedFilter"

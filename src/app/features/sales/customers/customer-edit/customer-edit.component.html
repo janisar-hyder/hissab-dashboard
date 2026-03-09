@@ -33,74 +33,13 @@
         </div>
     </div>
 
+
     <div class="form-container">
-        <!-- Customer Information Card -->
-        <div class="form-card">
-            <h2 class="card-title">Customer Information</h2>
-
-            <div class="form-grid" style="grid-template-columns: repeat(3, 1fr);">
-                <!-- Customer Name -->
-                <div class="form-group">
-                    <label>Customer Name <span class="required">*</span></label>
-                    <input type="text" class="form-control" [value]="isEditMode ? 'Young Supply Co.' : ''"
-                        placeholder="Enter Customer Name">
-                </div>
-
-                <!-- Customer Type -->
-                <div class="form-group">
-                    <label>Customer Type</label>
-                    <select class="form-control custom-select">
-                        <option *ngIf="!isEditMode" disabled selected>Select Customer Type</option>
-                        <option *ngIf="isEditMode" selected>Business</option>
-                    </select>
-                </div>
-
-                <!-- Primary Contact -->
-                <div class="form-group">
-                    <label>Primary Contact</label>
-                    <input type="text" class="form-control" [value]="isEditMode ? 'Ahmed Ali' : ''"
-                        placeholder="Enter Primary Contact">
-                </div>
-
-                <!-- Email -->
-                <div class="form-group">
-                    <label>Email</label>
-                    <div class="input-with-icon">
-                        <i class="las la-at input-icon"></i>
-                        <input type="email" class="form-control pl-icon" [value]="isEditMode ? 'enter your email' : ''"
-                            placeholder="Enter your Email">
-                    </div>
-                </div>
-
-                <!-- Phone Number -->
-                <div class="form-group">
-                    <label>Phone Number</label>
-                    <div class="phone-input">
-                        <div class="flag-prefix">
-                            <span class="flag-bh"></span> +973 <i class="las la-angle-down"></i>
-                        </div>
-                        <input type="tel" class="form-control" [value]="isEditMode ? '1798 6489' : ''"
-                            placeholder="Enter Phone Number">
-                    </div>
-                </div>
-
-                <!-- Mobile Number -->
-                <div class="form-group">
-                    <label>Mobile Number</label>
-                    <div class="phone-input">
-                        <div class="flag-prefix">
-                            <span class="flag-bh"></span> +973 <i class="las la-angle-down"></i>
-                        </div>
-                        <input type="tel" class="form-control" [value]="isEditMode ? '3258 4290' : ''"
-                            placeholder="Enter Mobile Number">
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Tabbed Section -->
         <div class="tabs-container">
             <div class="tabs-header">
+                <button class="tab-btn" [class.active]="activeTab === 'customer-info'"
+                    (click)="setTab('customer-info')">Customer Information</button>
                 <button class="tab-btn" [class.active]="activeTab === 'additional'"
                     (click)="setTab('additional')">Additional Information</button>
                 <button class="tab-btn" [class.active]="activeTab === 'address'"
@@ -112,6 +51,68 @@
             </div>
 
             <div class="tab-content">
+                <!-- Customer Information Tab -->
+                <div class="form-card" *ngIf="activeTab === 'customer-info'">
+                    <div class="form-grid" style="grid-template-columns: repeat(3, 1fr);">
+                        <!-- Customer Name -->
+                        <div class="form-group">
+                            <label>Customer Name <span class="required">*</span></label>
+                            <input type="text" class="form-control" [value]="isEditMode ? 'Young Supply Co.' : ''"
+                                placeholder="Enter Customer Name">
+                        </div>
+
+                        <!-- Customer Type -->
+                        <div class="form-group">
+                            <label>Customer Type</label>
+                            <select class="form-control custom-select">
+                                <option *ngIf="!isEditMode" disabled selected>Select Customer Type</option>
+                                <option *ngIf="isEditMode" selected>Business</option>
+                            </select>
+                        </div>
+
+                        <!-- Primary Contact -->
+                        <div class="form-group">
+                            <label>Primary Contact</label>
+                            <input type="text" class="form-control" [value]="isEditMode ? 'Ahmed Ali' : ''"
+                                placeholder="Enter Primary Contact">
+                        </div>
+
+                        <!-- Email -->
+                        <div class="form-group">
+                            <label>Email</label>
+                            <div class="input-with-icon">
+                                <i class="las la-at input-icon"></i>
+                                <input type="email" class="form-control pl-icon" [value]="isEditMode ? 'enter your email' : ''"
+                                    placeholder="Enter your Email">
+                            </div>
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <div class="phone-input">
+                                <div class="flag-prefix">
+                                    <span class="flag-bh"></span> +973 <i class="las la-angle-down"></i>
+                                </div>
+                                <input type="tel" class="form-control" [value]="isEditMode ? '1798 6489' : ''"
+                                    placeholder="Enter Phone Number">
+                            </div>
+                        </div>
+
+                        <!-- Mobile Number -->
+                        <div class="form-group">
+                            <label>Mobile Number</label>
+                            <div class="phone-input">
+                                <div class="flag-prefix">
+                                    <span class="flag-bh"></span> +973 <i class="las la-angle-down"></i>
+                                </div>
+                                <input type="tel" class="form-control" [value]="isEditMode ? '3258 4290' : ''"
+                                    placeholder="Enter Mobile Number">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Additional Information Tab -->
                 <div class="tabs-grid" *ngIf="activeTab === 'additional'">
                     <!-- Tax Treatment -->
@@ -165,12 +166,13 @@
                         <div class="address-grid">
                             <div class="form-group">
                                 <label>Attention</label>
-                                <input type="text" class="form-control" [value]="isEditMode ? 'John Doe' : ''"
+                                <input type="text" class="form-control" #billingAttention
+                                    [value]="isEditMode ? 'John Doe' : ''"
                                     placeholder="Enter Name">
                             </div>
                             <div class="form-group">
                                 <label>Country / Region</label>
-                                <select class="form-control custom-select">
+                                <select class="form-control custom-select" #billingCountry>
                                     <option selected>Bahrain</option>
                                     <option>United Arab Emirates</option>
                                     <option>Saudi Arabia</option>
@@ -178,30 +180,14 @@
                             </div>
                             <div class="form-group">
                                 <label>Address</label>
-                                <textarea class="form-control" rows="3"
+                                <textarea class="form-control" rows="3" #billingAddress
                                     placeholder="Enter Address">{{ isEditMode ? '123 Business Rd, Manama' : '' }}</textarea>
                             </div>
                             <div class="form-group">
                                 <label>City</label>
-                                <input type="text" class="form-control" [value]="isEditMode ? 'Manama' : ''"
+                                <input type="text" class="form-control" #billingCity
+                                    [value]="isEditMode ? 'Manama' : ''"
                                     placeholder="Enter City">
-                            </div>
-                            <div class="form-group">
-                                <label>State</label>
-                                <select class="form-control custom-select">
-                                    <option *ngIf="!isEditMode" disabled selected>Select State</option>
-                                    <option *ngIf="isEditMode" selected>Capital Governorate</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Zip Code</label>
-                                <input type="text" class="form-control" [value]="isEditMode ? '312' : ''"
-                                    placeholder="Enter Zip Code">
-                            </div>
-                            <div class="form-group">
-                                <label>Phone</label>
-                                <input type="tel" class="form-control" [value]="isEditMode ? '17001122' : ''"
-                                    placeholder="Enter Phone Number">
                             </div>
                         </div>
                     </div>
@@ -211,7 +197,8 @@
                         <div class="address-header shipment-header">
                             <h2 class="card-title">Shipment Address</h2>
                             <label class="custom-checkbox">
-                                <input type="checkbox">
+                                <input type="checkbox" [(ngModel)]="sameAsBilling"
+                                    (change)="onSameAsBillingChange(billingAttention.value, billingCountry.value, billingAddress.value, billingCity.value)">
                                 <span class="checkmark"></span>
                                 <span class="checkbox-label text-muted">Same as Billing Address</span>
                             </label>
@@ -219,13 +206,14 @@
                         <div class="address-grid">
                             <div class="form-group">
                                 <label>Attention</label>
-                                <input type="text" class="form-control" [value]="isEditMode ? 'Jane Doe' : ''"
+                                <input type="text" class="form-control"
+                                    [value]="sameAsBilling ? shipmentAddress.attention : (isEditMode ? 'Jane Doe' : '')"
                                     placeholder="Enter Name">
                             </div>
                             <div class="form-group">
                                 <label>Country / Region</label>
                                 <select class="form-control custom-select">
-                                    <option selected>Bahrain</option>
+                                    <option [selected]="sameAsBilling ? shipmentAddress.country === 'Bahrain' : true">Bahrain</option>
                                     <option>United Arab Emirates</option>
                                     <option>Saudi Arabia</option>
                                 </select>
@@ -233,29 +221,13 @@
                             <div class="form-group">
                                 <label>Address</label>
                                 <textarea class="form-control" rows="3"
-                                    placeholder="Enter Address">{{ isEditMode ? 'Building 45, Seef District' : '' }}</textarea>
+                                    placeholder="Enter Address">{{ sameAsBilling ? shipmentAddress.address : (isEditMode ? 'Building 45, Seef District' : '') }}</textarea>
                             </div>
                             <div class="form-group">
                                 <label>City</label>
-                                <input type="text" class="form-control" [value]="isEditMode ? 'Seef' : ''"
+                                <input type="text" class="form-control"
+                                    [value]="sameAsBilling ? shipmentAddress.city : (isEditMode ? 'Seef' : '')"
                                     placeholder="Enter City">
-                            </div>
-                            <div class="form-group">
-                                <label>State</label>
-                                <select class="form-control custom-select">
-                                    <option *ngIf="!isEditMode" disabled selected>Select State</option>
-                                    <option *ngIf="isEditMode" selected>Capital Governorate</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Zip Code</label>
-                                <input type="text" class="form-control" [value]="isEditMode ? '428' : ''"
-                                    placeholder="Enter Zip Code">
-                            </div>
-                            <div class="form-group">
-                                <label>Phone</label>
-                                <input type="tel" class="form-control" [value]="isEditMode ? '39001122' : ''"
-                                    placeholder="Enter Phone Number">
                             </div>
                         </div>
                     </div>
