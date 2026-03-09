@@ -4,7 +4,7 @@ import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
-import { ManageColumnsComponent } from '../../../shared/components/manage-columns/manage-columns.component';
+import { ManageColumnsComponent, ColumnDef } from '../../../shared/components/manage-columns/manage-columns.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { CustomFilterComponent, FilterOption } from '../../../shared/components/custom-filter/custom-filter';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
@@ -102,20 +102,20 @@ export class AdminClients {
   }
 
   // Table Columns Setup
-  columns = [
-    { id: 'companyName', label: 'Company Name', visible: true, width: '20%' },
-    { id: 'crNumber', label: 'CR Number', visible: false, width: '15%' },
-    { id: 'email', label: 'Email', visible: true, width: '20%' },
-    { id: 'primaryContact', label: 'Primary Contact', visible: true, width: '20%' },
-    { id: 'phoneNumber', label: 'Phone Number', visible: true, width: '15%' },
-    { id: 'status', label: 'Status', visible: true, width: '15%' },
-    { id: 'accountManager', label: 'Account Manager', visible: false, width: '15%' },
-    { id: 'billingCycle', label: 'Billing Cycle', visible: false, width: '15%' },
-    { id: 'subscriptionStartDate', label: 'Subscription Start Date', visible: false, width: '15%' },
-    { id: 'subscriptionEndDate', label: 'Subscription End Date', visible: false, width: '15%' },
-    { id: 'annualMaintenanceCost', label: 'Annual Maintenance Cost', visible: false, width: '15%' },
-    { id: 'cloudCharges', label: 'Cloud Charges', visible: false, width: '15%' },
-    { id: 'baseCurrency', label: 'Base Currency', visible: false, width: '10%' },
+  availableColumns: ColumnDef[] = [
+    { id: 'companyName', label: 'Company Name', visible: true },
+    { id: 'crNumber', label: 'CR Number', visible: false },
+    { id: 'email', label: 'Email', visible: true },
+    { id: 'primaryContact', label: 'Primary Contact', visible: true },
+    { id: 'phoneNumber', label: 'Phone Number', visible: true },
+    { id: 'status', label: 'Status', visible: true },
+    { id: 'accountManager', label: 'Account Manager', visible: false },
+    { id: 'billingCycle', label: 'Billing Cycle', visible: false },
+    { id: 'subscriptionStartDate', label: 'Subscription Start Date', visible: false },
+    { id: 'subscriptionEndDate', label: 'Subscription End Date', visible: false },
+    { id: 'annualMaintenanceCost', label: 'Annual Maintenance Cost', visible: false },
+    { id: 'cloudCharges', label: 'Cloud Charges', visible: false },
+    { id: 'baseCurrency', label: 'Base Currency', visible: false },
   ];
 
   get filteredClients() {
@@ -156,7 +156,7 @@ export class AdminClients {
   }
 
   isColumnVisible(columnId: string): boolean {
-    const col = this.columns.find(c => c.id === columnId);
+    const col = this.availableColumns.find(c => c.id === columnId);
     return col ? col.visible : false;
   }
 
@@ -202,8 +202,8 @@ export class AdminClients {
     this.isManageColumnsOpen = false;
   }
 
-  onColumnsChange(updatedColumns: any[]) {
-    this.columns = updatedColumns;
+  onColumnsChange(updatedColumns: ColumnDef[]) {
+    this.availableColumns = updatedColumns;
   }
 
   closeDeleteModal() {

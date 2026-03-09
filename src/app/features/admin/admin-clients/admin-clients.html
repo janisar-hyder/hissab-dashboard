@@ -37,19 +37,23 @@
                         <span class="checkmark"></span>
                     </label>
                 </div>
-                <div class="col-name header-cell" *ngIf="isColumnVisible('companyName')">Company Name <i class="las la-sort"></i></div>
-                <div class="col-cr header-cell" *ngIf="isColumnVisible('crNumber')">CR Number <i class="las la-sort"></i></div>
-                <div class="col-email header-cell" *ngIf="isColumnVisible('email')">Email <i class="las la-sort"></i></div>
-                <div class="col-contact header-cell" *ngIf="isColumnVisible('primaryContact')">Primary Contact <i class="las la-sort"></i></div>
-                <div class="col-phone header-cell" *ngIf="isColumnVisible('phoneNumber')">Phone Number <i class="las la-sort"></i></div>
-                <div class="col-status header-cell" *ngIf="isColumnVisible('status')">Status <i class="las la-sort"></i></div>
-                <div class="col-manager header-cell" *ngIf="isColumnVisible('accountManager')">Account Manager <i class="las la-sort"></i></div>
-                <div class="col-billing header-cell" *ngIf="isColumnVisible('billingCycle')">Billing Cycle <i class="las la-sort"></i></div>
-                <div class="col-substart header-cell" *ngIf="isColumnVisible('subscriptionStartDate')">Subscription Start Date <i class="las la-sort"></i></div>
-                <div class="col-subend header-cell" *ngIf="isColumnVisible('subscriptionEndDate')">Subscription End Date <i class="las la-sort"></i></div>
-                <div class="col-maint header-cell" *ngIf="isColumnVisible('annualMaintenanceCost')">Annual Maintenance Cost <i class="las la-sort"></i></div>
-                <div class="col-cloud header-cell" *ngIf="isColumnVisible('cloudCharges')">Cloud Charges <i class="las la-sort"></i></div>
-                <div class="col-currency header-cell" *ngIf="isColumnVisible('baseCurrency')">Base Currency <i class="las la-sort"></i></div>
+                <ng-container *ngFor="let col of availableColumns">
+                    <ng-container *ngIf="col.visible" [ngSwitch]="col.id">
+                        <div *ngSwitchCase="'companyName'"    class="col-name header-cell">{{ col.label }} <i class="las la-sort"></i></div>
+                        <div *ngSwitchCase="'crNumber'"       class="col-cr header-cell">{{ col.label }} <i class="las la-sort"></i></div>
+                        <div *ngSwitchCase="'email'"          class="col-email header-cell">{{ col.label }} <i class="las la-sort"></i></div>
+                        <div *ngSwitchCase="'primaryContact'" class="col-contact header-cell">{{ col.label }} <i class="las la-sort"></i></div>
+                        <div *ngSwitchCase="'phoneNumber'"    class="col-phone header-cell">{{ col.label }} <i class="las la-sort"></i></div>
+                        <div *ngSwitchCase="'status'"         class="col-status header-cell">{{ col.label }} <i class="las la-sort"></i></div>
+                        <div *ngSwitchCase="'accountManager'"         class="col-manager header-cell">{{ col.label }} <i class="las la-sort"></i></div>
+                        <div *ngSwitchCase="'billingCycle'"           class="col-billing header-cell">{{ col.label }} <i class="las la-sort"></i></div>
+                        <div *ngSwitchCase="'subscriptionStartDate'"  class="col-substart header-cell">{{ col.label }} <i class="las la-sort"></i></div>
+                        <div *ngSwitchCase="'subscriptionEndDate'"    class="col-subend header-cell">{{ col.label }} <i class="las la-sort"></i></div>
+                        <div *ngSwitchCase="'annualMaintenanceCost'"  class="col-maint header-cell">{{ col.label }} <i class="las la-sort"></i></div>
+                        <div *ngSwitchCase="'cloudCharges'"           class="col-cloud header-cell">{{ col.label }} <i class="las la-sort"></i></div>
+                        <div *ngSwitchCase="'baseCurrency'"           class="col-currency header-cell">{{ col.label }} <i class="las la-sort"></i></div>
+                    </ng-container>
+                </ng-container>
                 <div class="col-actions"></div>
             </div>
 
@@ -64,24 +68,28 @@
                                 <span class="checkmark"></span>
                             </label>
                         </div>
-                        <div class="col-name text-muted" *ngIf="isColumnVisible('companyName')">{{ client.companyName }}</div>
-                        <div class="col-cr text-muted" *ngIf="isColumnVisible('crNumber')">-</div>
-                        <div class="col-email text-muted" *ngIf="isColumnVisible('email')">{{ client.email }}</div>
-                        <div class="col-contact text-muted" *ngIf="isColumnVisible('primaryContact')">{{ client.primaryContact }}</div>
-                        <div class="col-phone text-muted" *ngIf="isColumnVisible('phoneNumber')">{{ client.phoneNumber }}</div>
-                        <div class="col-status" *ngIf="isColumnVisible('status')">
-                            <div class="status-pill" [ngClass]="client.status.toLowerCase()">
-                                <span class="dot"></span>
-                                {{ client.status }}
-                            </div>
-                        </div>
-                        <div class="col-manager text-muted" *ngIf="isColumnVisible('accountManager')">-</div>
-                        <div class="col-billing text-muted" *ngIf="isColumnVisible('billingCycle')">-</div>
-                        <div class="col-substart text-muted" *ngIf="isColumnVisible('subscriptionStartDate')">-</div>
-                        <div class="col-subend text-muted" *ngIf="isColumnVisible('subscriptionEndDate')">-</div>
-                        <div class="col-maint text-muted" *ngIf="isColumnVisible('annualMaintenanceCost')">-</div>
-                        <div class="col-cloud text-muted" *ngIf="isColumnVisible('cloudCharges')">-</div>
-                        <div class="col-currency text-muted" *ngIf="isColumnVisible('baseCurrency')">-</div>
+                        <ng-container *ngFor="let col of availableColumns">
+                            <ng-container *ngIf="col.visible" [ngSwitch]="col.id">
+                                <div *ngSwitchCase="'companyName'"    class="col-name text-muted">{{ client.companyName }}</div>
+                                <div *ngSwitchCase="'crNumber'"       class="col-cr text-muted">-</div>
+                                <div *ngSwitchCase="'email'"          class="col-email text-muted">{{ client.email }}</div>
+                                <div *ngSwitchCase="'primaryContact'" class="col-contact text-muted">{{ client.primaryContact }}</div>
+                                <div *ngSwitchCase="'phoneNumber'"    class="col-phone text-muted">{{ client.phoneNumber }}</div>
+                                <div *ngSwitchCase="'status'" class="col-status">
+                                    <div class="status-pill" [ngClass]="client.status.toLowerCase()">
+                                        <span class="dot"></span>
+                                        {{ client.status }}
+                                    </div>
+                                </div>
+                                <div *ngSwitchCase="'accountManager'"        class="col-manager text-muted">-</div>
+                                <div *ngSwitchCase="'billingCycle'"          class="col-billing text-muted">-</div>
+                                <div *ngSwitchCase="'subscriptionStartDate'" class="col-substart text-muted">-</div>
+                                <div *ngSwitchCase="'subscriptionEndDate'"   class="col-subend text-muted">-</div>
+                                <div *ngSwitchCase="'annualMaintenanceCost'" class="col-maint text-muted">-</div>
+                                <div *ngSwitchCase="'cloudCharges'"          class="col-cloud text-muted">-</div>
+                                <div *ngSwitchCase="'baseCurrency'"          class="col-currency text-muted">-</div>
+                            </ng-container>
+                        </ng-container>
                         <div class="col-actions text-muted">
                             <app-action-menu 
                                 [actions]="getClientActions(client)" 
@@ -110,7 +118,7 @@
     <!-- Manage Columns Side Panel -->
     <app-manage-columns 
         [isOpen]="isManageColumnsOpen" 
-        [columns]="columns" 
+        [columns]="availableColumns" 
         (closePanel)="closeManageColumns()"
         (columnsChange)="onColumnsChange($event)">
     </app-manage-columns>

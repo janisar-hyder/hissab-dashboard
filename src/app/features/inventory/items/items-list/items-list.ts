@@ -4,7 +4,7 @@ import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
-import { ManageColumnsComponent } from '../../../../shared/components/manage-columns/manage-columns.component';
+import { ManageColumnsComponent, ColumnDef } from '../../../../shared/components/manage-columns/manage-columns.component';
 import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { ActionMenu, MenuAction } from '../../../../shared/components/action-menu/action-menu';
@@ -68,14 +68,14 @@ export class ItemsList {
   isManageColumnsOpen = false;
   itemToDelete: Item | null = null;
   
-  columns = [
-    { id: 'name', label: 'Item & Description', visible: true, width: '30%' },
-    { id: 'stockInHand', label: 'Stock in hand', visible: true, width: '10%' },
-    { id: 'unit', label: 'Unit', visible: true, width: '10%' },
-    { id: 'sellingPrice', label: 'Selling Price', visible: true, width: '15%' },
-    { id: 'costPrice', label: 'Cost Price', visible: true, width: '15%' },
-    { id: 'stockValue', label: 'Stock Value', visible: true, width: '15%' },
-    { id: 'status', label: 'Status', visible: true, width: '10%' }
+  availableColumns: ColumnDef[] = [
+    { id: 'name', label: 'Item & Description', visible: true},
+    { id: 'stockInHand', label: 'Stock in hand', visible: true },
+    { id: 'unit', label: 'Unit', visible: true },
+    { id: 'sellingPrice', label: 'Selling Price', visible: true },
+    { id: 'costPrice', label: 'Cost Price', visible: true },
+    { id: 'stockValue', label: 'Stock Value', visible: true },
+    { id: 'status', label: 'Status', visible: true }
   ];
 
   constructor(private router: Router, private route: ActivatedRoute) {}
@@ -141,7 +141,7 @@ export class ItemsList {
   }
 
   isColumnVisible(columnId: string): boolean {
-    const col = this.columns.find(c => c.id === columnId);
+    const col = this.availableColumns.find(c => c.id === columnId);
     return col ? col.visible : false;
   }
 
@@ -191,8 +191,8 @@ export class ItemsList {
     this.isManageColumnsOpen = false;
   }
 
-  onColumnsChange(updatedColumns: any[]) {
-    this.columns = updatedColumns;
+  onColumnsChange(updatedColumns: ColumnDef[]) {
+    this.availableColumns = updatedColumns;
   }
 
   closeDeleteModal() {

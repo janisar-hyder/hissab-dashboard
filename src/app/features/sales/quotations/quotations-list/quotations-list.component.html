@@ -64,11 +64,12 @@
                         <th class="col-checkbox">
                             <input type="checkbox" [checked]="isAllSelected()" (change)="toggleAll()">
                         </th>
-                        <th>Quotation Number</th>
-                        <th>Date</th>
-                        <th>Customer Name</th>
-                        <th class="text-right">Amount</th>
-                        <th>Status</th>
+                        <ng-container *ngFor="let col of availableColumns">
+                            <th *ngIf="col.visible" [ngSwitch]="col.id">
+                                <ng-container *ngSwitchCase="'amount'" class="text-right">{{ col.label }}</ng-container>
+                                <ng-container *ngSwitchDefault>{{ col.label }}</ng-container>
+                            </th>
+                        </ng-container>
                         <th class="col-actions"></th>
                     </tr>
                 </thead>
@@ -78,16 +79,28 @@
                             <input type="checkbox" [checked]="selectedQuotationIds.has(quotation.id)"
                                 (change)="toggleSelection(quotation.id)">
                         </td>
-                        <td class="text-muted">{{ quotation.quotationNumber }}</td>
-                        <td class="text-muted">{{ quotation.date }}</td>
-                        <td class="text-muted">{{ quotation.customerName }}</td>
-                        <td class="text-muted text-right">BHD {{ quotation.amount | number:'1.3-3' }}</td>
-                        <td>
-                            <span class="status-pill" [ngClass]="'status-' + quotation.status.toLowerCase()">
-                                <span class="dot"></span>
-                                {{ quotation.status }}
-                            </span>
-                        </td>
+                        <ng-container *ngFor="let col of availableColumns">
+                            <td *ngIf="col.visible" [ngSwitch]="col.id">
+                                <ng-container *ngSwitchCase="'quotationNumber'">
+                                    <span class="text-muted">{{ quotation.quotationNumber }}</span>
+                                </ng-container>
+                                <ng-container *ngSwitchCase="'date'">
+                                    <span class="text-muted">{{ quotation.date }}</span>
+                                </ng-container>
+                                <ng-container *ngSwitchCase="'customerName'">
+                                    <span class="text-muted">{{ quotation.customerName }}</span>
+                                </ng-container>
+                                <ng-container *ngSwitchCase="'amount'">
+                                    <span class="text-muted text-right">BHD {{ quotation.amount | number:'1.3-3' }}</span>
+                                </ng-container>
+                                <ng-container *ngSwitchCase="'status'">
+                                    <span class="status-pill" [ngClass]="'status-' + quotation.status.toLowerCase()">
+                                        <span class="dot"></span>
+                                        {{ quotation.status }}
+                                    </span>
+                                </ng-container>
+                            </td>
+                        </ng-container>
                         <td class="col-actions">
                             <div class="action-menu-container">
                                 <button class="action-btn" (click)="toggleMenu(quotation.id, $event)"><i
@@ -109,6 +122,9 @@
                 </tbody>
             </table>
         </div>
+
+
+
 
         <!-- Footer Pagination -->
         <app-pagination [totalItems]="filteredQuotations.length" [itemsPerPage]="itemsPerPage"

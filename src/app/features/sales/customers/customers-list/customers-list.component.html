@@ -55,12 +55,11 @@
                         <th class="col-checkbox">
                             <input type="checkbox" [checked]="isAllSelected()" (change)="toggleAll()">
                         </th>
-                        <th>Display Name <i class="las la-sort"></i></th>
-                        <th>Company Name (English) <i class="las la-sort"></i></th>
-                        <th>Work Number <i class="las la-sort"></i></th>
-                        <th>Email <i class="las la-sort"></i></th>
-                        <th>Receivables <i class="las la-sort"></i></th>
-                        <th>Credit Note <i class="las la-sort"></i></th>
+                        <ng-container *ngFor="let col of availableColumns">
+                            <th *ngIf="col.visible" [ngSwitch]="col.id">
+                                <ng-container *ngSwitchDefault>{{ col.label }} <i class="las la-sort"></i></ng-container>
+                            </th>
+                        </ng-container>
                         <th class="col-actions"></th>
                     </tr>
                 </thead>
@@ -70,12 +69,16 @@
                             <input type="checkbox" [checked]="selectedCustomerIds.has(customer.id)"
                                 (change)="toggleSelection(customer.id)">
                         </td>
-                        <td class="text-muted">{{ customer.displayName }}</td>
-                        <td class="text-muted">{{ customer.companyName }}</td>
-                        <td class="text-muted">{{ customer.workNumber }}</td>
-                        <td class="text-muted">{{ customer.email }}</td>
-                        <td class="text-muted">BHD {{ customer.receivables | number:'1.3-3' }}</td>
-                        <td class="font-medium text-muted">BHD {{ customer.creditNote | number:'1.3-3' }}</td>
+                        <ng-container *ngFor="let col of availableColumns">
+                            <td class="text-muted" *ngIf="col.visible" [ngSwitch]="col.id">
+                                <ng-container *ngSwitchCase="'displayName'">{{ customer.displayName }}</ng-container>
+                                <ng-container *ngSwitchCase="'companyName'">{{ customer.companyName }}</ng-container>
+                                <ng-container *ngSwitchCase="'workNumber'">{{ customer.workNumber }}</ng-container>
+                                <ng-container *ngSwitchCase="'email'">{{ customer.email }}</ng-container>
+                                <ng-container *ngSwitchCase="'receivables'">BHD {{ customer.receivables | number:'1.3-3' }}</ng-container>
+                                <ng-container *ngSwitchCase="'creditNote'">BHD {{ customer.creditNote | number:'1.3-3' }}</ng-container>
+                            </td>
+                        </ng-container>
                         <td class="col-actions">
                             <div class="action-menu-container">
                                 <button class="action-btn" (click)="toggleMenu(customer.id, $event)"><i
@@ -97,6 +100,7 @@
                 </tbody>
             </table>
         </div>
+
 
         <!-- Footer Pagination -->
         <app-pagination [totalItems]="customers.length" [itemsPerPage]="itemsPerPage" [currentPage]="currentPage"

@@ -62,7 +62,7 @@ export class AdminRoles {
 
   // Manage Columns Configuration
   availableColumns: ColumnDef[] = [
-    { id: 'name', label: 'Role Name', visible: true, required: true },
+    { id: 'name', label: 'Role Name', visible: true },
     { id: 'status', label: 'Status', visible: true }
   ];
 

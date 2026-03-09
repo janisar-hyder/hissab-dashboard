@@ -69,7 +69,7 @@ export class AdminUsers {
 
   // Manage Columns Configuration
   availableColumns: ColumnDef[] = [
-    { id: 'name', label: 'Name', visible: true, required: true },
+    { id: 'name', label: 'Name', visible: true },
     { id: 'role', label: 'Role', visible: true },
     { id: 'email', label: 'Email', visible: true },
     { id: 'status', label: 'Status', visible: true },

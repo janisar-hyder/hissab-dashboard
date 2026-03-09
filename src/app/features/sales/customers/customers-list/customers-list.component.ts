@@ -58,7 +58,7 @@ export class CustomersListComponent implements OnInit {
     customerToDelete: Customer | null = null;
 
     availableColumns: ColumnDef[] = [
-        { id: 'displayName', label: 'Display Name', visible: true, required: true },
+        { id: 'displayName', label: 'Display Name', visible: true },
         { id: 'companyName', label: 'Company Name (English)', visible: true },
         { id: 'workNumber', label: 'Work Number', visible: true },
         { id: 'email', label: 'Email', visible: true },

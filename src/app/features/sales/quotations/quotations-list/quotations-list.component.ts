@@ -57,12 +57,12 @@ export class QuotationsListComponent implements OnInit {
     ];
 
     availableColumns: ColumnDef[] = [
-    { id: 'quotationNumber', label: 'Quotation Number', visible: true, required: true },
-    { id: 'date', label: 'Date', visible: true },
-    { id: 'customerName', label: 'Customer Name', visible: true },
-    { id: 'amount', label: 'Amount', visible: true },
-    { id: 'status', label: 'Status', visible: true },
-  ];
+        { id: 'quotationNumber', label: 'Quotation Number', visible: true},
+        { id: 'date', label: 'Date', visible: true },
+        { id: 'customerName', label: 'Customer Name', visible: true },
+        { id: 'amount', label: 'Amount', visible: true },
+        { id: 'status', label: 'Status', visible: true },
+    ];
 
     get filteredQuotations(): Quotation[] {
         if (this.currentFilter === 'All') {

@@ -30,20 +30,24 @@
             <div class="list-header">
                 <div class="col-checkbox">
                     <label class="custom-checkbox">
-                        <input type="checkbox" 
+                        <input type="checkbox"
                                [checked]="isAllSelected()"
                                [indeterminate]="isPartiallySelected()"
                                (change)="toggleAll($event)">
                         <span class="checkmark"></span>
                     </label>
                 </div>
-                <div class="col-name header-cell" *ngIf="isColumnVisible('name')">Item & Description <i class="las la-sort"></i></div>
-                <div class="col-stock header-cell" *ngIf="isColumnVisible('stockInHand')">Stock in hand <i class="las la-sort"></i></div>
-                <div class="col-unit header-cell" *ngIf="isColumnVisible('unit')">Unit <i class="las la-sort"></i></div>
-                <div class="col-price header-cell" *ngIf="isColumnVisible('sellingPrice')">Selling Price <i class="las la-sort"></i></div>
-                <div class="col-price header-cell" *ngIf="isColumnVisible('costPrice')">Cost Price <i class="las la-sort"></i></div>
-                <div class="col-price header-cell" *ngIf="isColumnVisible('stockValue')">Stock Value <i class="las la-sort"></i></div>
-                <div class="col-status header-cell" *ngIf="isColumnVisible('status')">Status <i class="las la-sort"></i></div>
+                <ng-container *ngFor="let col of availableColumns">
+                    <ng-container *ngIf="col.visible" [ngSwitch]="col.id">
+                        <div *ngSwitchCase="'name'"        class="col-name header-cell">{{ col.label }} <i class="las la-sort"></i></div>
+                        <div *ngSwitchCase="'stockInHand'" class="col-stock header-cell">{{ col.label }} <i class="las la-sort"></i></div>
+                        <div *ngSwitchCase="'unit'"        class="col-unit header-cell">{{ col.label }} <i class="las la-sort"></i></div>
+                        <div *ngSwitchCase="'sellingPrice'" class="col-price header-cell">{{ col.label }} <i class="las la-sort"></i></div>
+                        <div *ngSwitchCase="'costPrice'"   class="col-price header-cell">{{ col.label }} <i class="las la-sort"></i></div>
+                        <div *ngSwitchCase="'stockValue'"  class="col-price header-cell">{{ col.label }} <i class="las la-sort"></i></div>
+                        <div *ngSwitchCase="'status'"      class="col-status header-cell">{{ col.label }} <i class="las la-sort"></i></div>
+                    </ng-container>
+                </ng-container>
                 <div class="col-actions"></div>
             </div>
 
@@ -51,48 +55,51 @@
                 <div class="list-row" *ngFor="let item of displayedItems">
                     <div class="col-checkbox">
                         <label class="custom-checkbox">
-                            <input type="checkbox" 
+                            <input type="checkbox"
                                    [checked]="selectedItemIds.has(item.id)"
                                    (change)="toggleSelection(item.id)">
                             <span class="checkmark"></span>
                         </label>
                     </div>
-                    
-                    <div class="col-name text-muted" *ngIf="isColumnVisible('name')">
-                        <div class="item-name">{{ item.name }}</div>
-                        <div class="item-desc">{{ item.description }}</div>
-                    </div>
-                    
-                    <div class="col-stock text-muted" *ngIf="isColumnVisible('stockInHand')">{{ item.stockInHand !== null ? item.stockInHand : '-' }}</div>
-                    <div class="col-unit text-muted" *ngIf="isColumnVisible('unit')">{{ item.unit ? item.unit : '-' }}</div>
-                    <div class="col-price text-muted" *ngIf="isColumnVisible('sellingPrice')">{{ item.sellingPrice !== null ? 'BHD ' + (item.sellingPrice | number:'1.3-3') : '-' }}</div>
-                    <div class="col-price text-muted" *ngIf="isColumnVisible('costPrice')">{{ item.costPrice !== null ? 'BHD ' + (item.costPrice | number:'1.3-3') : '-' }}</div>
-                    <div class="col-price text-muted" *ngIf="isColumnVisible('stockValue')">{{ item.stockValue !== null ? 'BHD ' + (item.stockValue | number:'1.3-3') : '-' }}</div>
-                    
-                    <div class="col-status" *ngIf="isColumnVisible('status')">
-                        <span class="status-pill" [ngClass]="item.status.toLowerCase()">
-                            <span class="dot"></span> {{ item.status }}
-                        </span>
-                    </div>
+
+                    <ng-container *ngFor="let col of availableColumns">
+                        <ng-container *ngIf="col.visible" [ngSwitch]="col.id">
+                            <div *ngSwitchCase="'name'" class="col-name text-muted">
+                                <div class="item-name">{{ item.name }}</div>
+                                <div class="item-desc">{{ item.description }}</div>
+                            </div>
+                            <div *ngSwitchCase="'stockInHand'" class="col-stock text-muted">{{ item.stockInHand !== null ? item.stockInHand : '-' }}</div>
+                            <div *ngSwitchCase="'unit'"        class="col-unit text-muted">{{ item.unit ? item.unit : '-' }}</div>
+                            <div *ngSwitchCase="'sellingPrice'" class="col-price text-muted">{{ item.sellingPrice !== null ? 'BHD ' + (item.sellingPrice | number:'1.3-3') : '-' }}</div>
+                            <div *ngSwitchCase="'costPrice'"   class="col-price text-muted">{{ item.costPrice !== null ? 'BHD ' + (item.costPrice | number:'1.3-3') : '-' }}</div>
+                            <div *ngSwitchCase="'stockValue'"  class="col-price text-muted">{{ item.stockValue !== null ? 'BHD ' + (item.stockValue | number:'1.3-3') : '-' }}</div>
+                            <div *ngSwitchCase="'status'" class="col-status">
+                                <span class="status-pill" [ngClass]="item.status.toLowerCase()">
+                                    <span class="dot"></span> {{ item.status }}
+                                </span>
+                            </div>
+                        </ng-container>
+                    </ng-container>
 
                     <div class="col-actions text-muted">
-                        <app-action-menu 
-                            [actions]="getItemActions(item)" 
+                        <app-action-menu
+                            [actions]="getItemActions(item)"
                             [data]="item"
                             (actionClick)="handleItemAction($event)">
                         </app-action-menu>
                     </div>
                 </div>
             </div>
-            
-            <app-empty-state *ngIf="filteredItems.length === 0" 
-                title="No Items Found" 
-                subtitle="We couldn't find any items matching your criteria." 
-                actionLabel="Add New Item" 
+
+            <app-empty-state *ngIf="filteredItems.length === 0"
+                title="No Items Found"
+                subtitle="We couldn't find any items matching your criteria."
+                actionLabel="Add New Item"
                 actionIconClass="las la-plus"
                 (actionClick)="navigateToNew()">
             </app-empty-state>
         </div>
+
 
         <app-pagination 
             [totalItems]="totalEntries" 
@@ -106,7 +113,7 @@
     <!-- Manage Columns Side Panel -->
     <app-manage-columns 
         [isOpen]="isManageColumnsOpen" 
-        [columns]="columns" 
+        [columns]="availableColumns" 
         (closePanel)="closeManageColumns()"
         (columnsChange)="onColumnsChange($event)">
     </app-manage-columns>

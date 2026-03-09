@@ -8,25 +8,36 @@
     <div class="panel-body">
         <div class="search-box">
             <i class="las la-search search-icon"></i>
-            <input type="text" placeholder="Search for columns" class="search-input">
+            <input type="text" placeholder="Search for columns" class="search-input"
+                [(ngModel)]="searchTerm">
+            <i class="las la-times clear-icon" *ngIf="searchTerm" (click)="searchTerm = ''"></i>
         </div>
 
         <div class="columns-list" cdkDropList (cdkDropListDropped)="drop($event)">
-            <div class="column-item" *ngFor="let col of columns" cdkDrag>
-                <div class="drag-handle" cdkDragHandle>
+            <div class="column-item" *ngFor="let col of filteredColumns" cdkDrag
+                [cdkDragDisabled]="!!searchTerm.trim()">
+                <div class="drag-handle" cdkDragHandle [class.drag-disabled]="!!searchTerm.trim()">
                     <div class="svg-icon"
                         style="-webkit-mask-image: url('/icons/drag-indicator.svg'); mask-image: url('/icons/drag-indicator.svg');">
                     </div>
                 </div>
-                <!-- Binding to component's own column array instance -->
-                <input type="checkbox" [(ngModel)]="col.visible" [id]="'manage-col-' + col.id" class="custom-checkbox">
-                <label [for]="'manage-col-' + col.id" [class.text-muted]="!col.visible">{{ col.label }}</label>
+                <input type="checkbox" [(ngModel)]="col.visible" [id]="'manage-col-' + col.id"
+                    class="custom-checkbox" [disabled]="!!col.required">
+                <label [for]="'manage-col-' + col.id" [class.text-muted]="!col.visible"
+                    [class.required-col]="col.required">{{ col.label }}</label>
             </div>
         </div>
+    </div>
+
+    <!-- Save Error -->
+    <div class="save-error" *ngIf="saveError">
+        <i class="las la-exclamation-circle"></i>
+        {{ saveError }}
     </div>
 
     <div class="panel-footer">
         <app-button variant="outline" (clicked)="reset()">Reset to default</app-button>
         <app-button variant="primary" (clicked)="save()">Save</app-button>
     </div>
+
 </div>
