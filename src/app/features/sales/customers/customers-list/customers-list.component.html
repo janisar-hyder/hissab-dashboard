@@ -121,7 +121,12 @@
 </app-manage-columns>
 
 <!-- Delete Confirmation Modal -->
-<app-delete-modal [isOpen]="!!customerToDelete" title="Delete Customer"
-    message="Are you sure you want to delete this customer? This action cannot be undone." (cancel)="closeDeleteModal()"
+<app-delete-modal
+    [isOpen]="!!customerToDelete || bulkDeletePending"
+    [title]="bulkDeletePending ? 'Delete Customers' : 'Delete Customer'"
+    [message]="bulkDeletePending
+        ? 'Are you sure you want to delete ' + selectedCustomerIds.size + ' selected customer(s)? This action cannot be undone.'
+        : 'Are you sure you want to delete this customer? This action cannot be undone.'"
+    (cancel)="closeDeleteModal()"
     (confirm)="confirmDelete()">
-</app-delete-modal>
+</app-delete-modal>

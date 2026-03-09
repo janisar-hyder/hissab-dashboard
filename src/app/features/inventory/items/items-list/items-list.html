@@ -1,8 +1,15 @@
 <div class="page-container">
-    <app-page-header 
+    <app-page-header
         title="Items"
         addBtnText="Add New Item"
         (addNew)="navigateToNew()">
+        <!-- Projected into the [custom-actions] slot, appears before Add New Item -->
+        <app-bulk-actions
+            custom-actions
+            [selectedCount]="selectedItemIds.size"
+            [actions]="bulkActions"
+            (actionSelected)="handleBulkAction($event)">
+        </app-bulk-actions>
     </app-page-header>
 
     <div class="table-container">
@@ -119,10 +126,12 @@
     </app-manage-columns>
 
     <!-- Delete Confirmation Modal -->
-    <app-delete-modal 
-        [isOpen]="!!itemToDelete" 
-        title="Delete Item"
-        message="Are you sure you want to delete this item? This action cannot be undone." 
+    <app-delete-modal
+        [isOpen]="!!itemToDelete || bulkDeletePending"
+        [title]="bulkDeletePending ? 'Delete Items' : 'Delete Item'"
+        [message]="bulkDeletePending
+            ? 'Are you sure you want to delete ' + selectedItemIds.size + ' selected item(s)? This action cannot be undone.'
+            : 'Are you sure you want to delete this item? This action cannot be undone.'"
         (cancel)="closeDeleteModal()"
         (confirm)="confirmDelete()">
     </app-delete-modal>

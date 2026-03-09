@@ -8,6 +8,7 @@ import { PageHeaderComponent } from '../../../../shared/components/page-header/p
 import { ActionMenu, MenuAction } from '../../../../shared/components/action-menu/action-menu';
 import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
 import { AddUserModalComponent } from './components/add-user-modal/add-user-modal.component';
+import { BulkActionsComponent, BulkAction } from '../../../../shared/components/bulk-actions/bulk-actions.component';
 
 interface AdminUser {
   id: string;
@@ -29,7 +30,8 @@ interface AdminUser {
     PageHeaderComponent,
     AddUserModalComponent,
     ActionMenu,
-    DeleteModalComponent
+    DeleteModalComponent,
+    BulkActionsComponent
   ],
   templateUrl: './admin-users.html',
   styleUrl: './admin-users.scss',
@@ -56,6 +58,11 @@ export class AdminUsers {
   isManageColumnsOpen = false;
   isAddUserModalOpen = false;
   userToDelete: AdminUser | null = null;
+  bulkDeletePending = false;
+
+  bulkActions: BulkAction[] = [
+    { id: 'delete', label: 'Delete Users', colorClass: 'text-danger' }
+  ];
 
   getUserActions(user: AdminUser): MenuAction[] {
     return [
@@ -160,23 +167,29 @@ export class AdminUsers {
 
   closeDeleteModal() {
     this.userToDelete = null;
+    this.bulkDeletePending = false;
   }
 
   confirmDelete() {
-    if (this.userToDelete) {
+    const adjustPage = () => {
+      const Math = window.Math;
+      const maxPage = Math.ceil(this.users.length / this.itemsPerPage) || 1;
+      if (this.currentPage > maxPage) this.currentPage = maxPage;
+    };
+    if (this.bulkDeletePending) {
+      this.users = this.users.filter(u => !this.selectedUserIds.has(u.id));
+      this.selectedUserIds.clear();
+      this.bulkDeletePending = false;
+      adjustPage();
+    } else if (this.userToDelete) {
       this.users = this.users.filter(u => u.id !== this.userToDelete!.id);
       this.selectedUserIds.delete(this.userToDelete.id);
       this.userToDelete = null;
-      
-      const Math = window.Math;
-      if (typeof this.itemsPerPage === 'number' && this.itemsPerPage !== -1) {
-          const maxPage = Math.ceil(this.users.length / this.itemsPerPage) || 1;
-          if (this.currentPage > maxPage) {
-              this.currentPage = maxPage;
-          }
-      } else {
-          this.currentPage = 1;
-      }
+      adjustPage();
     }
+  }
+
+  handleBulkAction(actionId: string): void {
+    if (actionId === 'delete') this.bulkDeletePending = true;
   }
 }

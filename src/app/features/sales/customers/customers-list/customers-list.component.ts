@@ -56,6 +56,7 @@ export class CustomersListComponent implements OnInit {
     isManageColumnsOpen = false;
     openMenuId: string | null = null;
     customerToDelete: Customer | null = null;
+    bulkDeletePending = false;
 
     availableColumns: ColumnDef[] = [
         { id: 'displayName', label: 'Display Name', visible: true },
@@ -148,41 +149,39 @@ export class CustomersListComponent implements OnInit {
 
     closeDeleteModal(): void {
         this.customerToDelete = null;
+        this.bulkDeletePending = false;
     }
 
     confirmDelete(): void {
-        if (this.customerToDelete) {
-            this.customers = this.customers.filter(c => c.id !== this.customerToDelete!.id);
-            this.selectedCustomerIds.delete(this.customerToDelete.id);
-            this.customerToDelete = null;
-
+        const adjustPage = () => {
             const Math = window.Math;
             if (this.itemsPerPage !== 'All') {
                 const maxPage = Math.ceil(this.customers.length / this.itemsPerPage) || 1;
-                if (this.currentPage > maxPage) {
-                    this.currentPage = maxPage;
-                }
+                if (this.currentPage > maxPage) this.currentPage = maxPage;
             } else {
                 this.currentPage = 1;
             }
+        };
+
+        if (this.bulkDeletePending) {
+            // Bulk delete
+            this.customers = this.customers.filter(c => !this.selectedCustomerIds.has(c.id));
+            this.selectedCustomerIds.clear();
+            this.bulkDeletePending = false;
+            adjustPage();
+        } else if (this.customerToDelete) {
+            // Single delete
+            this.customers = this.customers.filter(c => c.id !== this.customerToDelete!.id);
+            this.selectedCustomerIds.delete(this.customerToDelete.id);
+            this.customerToDelete = null;
+            adjustPage();
         }
     }
 
     handleBulkAction(actionId: string): void {
         if (actionId === 'delete') {
-            this.customers = this.customers.filter(c => !this.selectedCustomerIds.has(c.id));
-            this.selectedCustomerIds.clear();
-
-            // adjust pagination limits
-            const Math = window.Math;
-            if (this.itemsPerPage !== 'All') {
-                const maxPage = Math.ceil(this.customers.length / this.itemsPerPage) || 1;
-                if (this.currentPage > maxPage) {
-                    this.currentPage = maxPage;
-                }
-            } else {
-                this.currentPage = 1;
-            }
+            // Show confirmation modal instead of deleting immediately
+            this.bulkDeletePending = true;
         }
     }
 

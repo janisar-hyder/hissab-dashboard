@@ -10,6 +10,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { ActionMenu, MenuAction } from '../../../../shared/components/action-menu/action-menu';
 import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
+import { BulkActionsComponent, BulkAction } from '../../../../shared/components/bulk-actions/bulk-actions.component';
 
 export interface Item {
   id: string;
@@ -37,7 +38,8 @@ export interface Item {
     ButtonComponent,
     ActionMenu,
     DeleteModalComponent,
-    EmptyStateComponent
+    EmptyStateComponent,
+    BulkActionsComponent
   ],
   templateUrl: './items-list.html',
   styleUrl: './items-list.scss',
@@ -67,6 +69,11 @@ export class ItemsList {
 
   isManageColumnsOpen = false;
   itemToDelete: Item | null = null;
+  bulkDeletePending = false;
+
+  bulkActions: BulkAction[] = [
+    { id: 'delete', label: 'Delete Items', colorClass: 'text-danger' }
+  ];
   
   availableColumns: ColumnDef[] = [
     { id: 'name', label: 'Item & Description', visible: true},
@@ -197,23 +204,36 @@ export class ItemsList {
 
   closeDeleteModal() {
     this.itemToDelete = null;
+    this.bulkDeletePending = false;
   }
 
   confirmDelete() {
-    if (this.itemToDelete) {
+    const adjustPage = () => {
+      const Math = window.Math;
+      if (typeof this.itemsPerPage === 'number' && this.itemsPerPage !== -1) {
+        const maxPage = Math.ceil(this.items.length / this.itemsPerPage) || 1;
+        if (this.currentPage > maxPage) this.currentPage = maxPage;
+      } else {
+        this.currentPage = 1;
+      }
+    };
+
+    if (this.bulkDeletePending) {
+      this.items = this.items.filter(i => !this.selectedItemIds.has(i.id));
+      this.selectedItemIds.clear();
+      this.bulkDeletePending = false;
+      adjustPage();
+    } else if (this.itemToDelete) {
       this.items = this.items.filter(i => i.id !== this.itemToDelete!.id);
       this.selectedItemIds.delete(this.itemToDelete.id);
       this.itemToDelete = null;
-      
-      const Math = window.Math;
-      if (typeof this.itemsPerPage === 'number' && this.itemsPerPage !== -1) {
-          const maxPage = Math.ceil(this.items.length / this.itemsPerPage) || 1;
-          if (this.currentPage > maxPage) {
-              this.currentPage = maxPage;
-          }
-      } else {
-          this.currentPage = 1;
-      }
+      adjustPage();
+    }
+  }
+
+  handleBulkAction(actionId: string): void {
+    if (actionId === 'delete') {
+      this.bulkDeletePending = true;
     }
   }
 }

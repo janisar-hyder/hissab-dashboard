@@ -8,6 +8,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { DeleteModalComponent } from '../../../shared/components/delete-modal/delete-modal.component';
 import { ActionMenu, MenuAction } from '../../../shared/components/action-menu/action-menu';
 import { Router, ActivatedRoute } from '@angular/router';
+import { BulkActionsComponent, BulkAction } from '../../../shared/components/bulk-actions/bulk-actions.component';
 
 interface Role {
   id: string;
@@ -25,7 +26,8 @@ interface Role {
     PaginationComponent,
     ManageColumnsComponent,
     ActionMenu,
-    DeleteModalComponent
+    DeleteModalComponent,
+    BulkActionsComponent
   ],
   templateUrl: './roles.html',
   styleUrl: './roles.scss',
@@ -45,6 +47,11 @@ export class RolesComponent {
   itemsPerPage = 15;
   isManageColumnsOpen = false;
   roleToDelete: Role | null = null;
+  bulkDeletePending = false;
+
+  bulkActions: BulkAction[] = [
+    { id: 'delete', label: 'Delete Roles', colorClass: 'text-danger' }
+  ];
 
   getRoleActions(role: Role): MenuAction[] {
     return [
@@ -119,19 +126,32 @@ export class RolesComponent {
     this.router.navigate(['new'], { relativeTo: this.route });
   }
 
-  closeDeleteModal() { this.roleToDelete = null; }
+  closeDeleteModal() {
+    this.roleToDelete = null;
+    this.bulkDeletePending = false;
+  }
 
   confirmDelete() {
-    if (this.roleToDelete) {
-      this.roles = this.roles.filter(r => r.id !== this.roleToDelete!.id);
-      this.selectedRoleIds.delete(this.roleToDelete.id);
-      this.roleToDelete = null;
+    const adjustPage = () => {
       if (this.itemsPerPage !== -1) {
         const maxPage = Math.ceil(this.roles.length / this.itemsPerPage) || 1;
         if (this.currentPage > maxPage) this.currentPage = maxPage;
-      } else {
-        this.currentPage = 1;
-      }
+      } else { this.currentPage = 1; }
+    };
+    if (this.bulkDeletePending) {
+      this.roles = this.roles.filter(r => !this.selectedRoleIds.has(r.id));
+      this.selectedRoleIds.clear();
+      this.bulkDeletePending = false;
+      adjustPage();
+    } else if (this.roleToDelete) {
+      this.roles = this.roles.filter(r => r.id !== this.roleToDelete!.id);
+      this.selectedRoleIds.delete(this.roleToDelete.id);
+      this.roleToDelete = null;
+      adjustPage();
     }
+  }
+
+  handleBulkAction(actionId: string): void {
+    if (actionId === 'delete') this.bulkDeletePending = true;
   }
 }

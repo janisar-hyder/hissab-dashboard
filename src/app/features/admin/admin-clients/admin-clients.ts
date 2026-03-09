@@ -10,6 +10,7 @@ import { CustomFilterComponent, FilterOption } from '../../../shared/components/
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ActionMenu, MenuAction } from '../../../shared/components/action-menu/action-menu';
 import { DeleteModalComponent } from '../../../shared/components/delete-modal/delete-modal.component';
+import { BulkActionsComponent, BulkAction } from '../../../shared/components/bulk-actions/bulk-actions.component';
 
 interface Client {
   id: string;
@@ -33,7 +34,8 @@ interface Client {
     ButtonComponent,
     CustomFilterComponent,
     ActionMenu,
-    DeleteModalComponent
+    DeleteModalComponent,
+    BulkActionsComponent
   ],
   templateUrl: './admin-clients.html',
   styleUrl: './admin-clients.scss'
@@ -41,6 +43,11 @@ interface Client {
 export class AdminClients {
   searchQuery = '';
   selectedFilter = 'All';
+  bulkDeletePending = false;
+
+  bulkActions: BulkAction[] = [
+    { id: 'delete', label: 'Delete Clients', colorClass: 'text-danger' }
+  ];
 
   clientFilterOptions: FilterOption[] = [
     { label: 'Active', value: 'Active', colorHex: '#10B981' },
@@ -208,23 +215,36 @@ export class AdminClients {
 
   closeDeleteModal() {
     this.clientToDelete = null;
+    this.bulkDeletePending = false;
   }
 
   confirmDelete() {
-    if (this.clientToDelete) {
+    const adjustPage = () => {
+      const Math = window.Math;
+      if (typeof this.itemsPerPage === 'number' && this.itemsPerPage !== -1) {
+        const maxPage = Math.ceil(this.clients.length / this.itemsPerPage) || 1;
+        if (this.currentPage > maxPage) this.currentPage = maxPage;
+      } else {
+        this.currentPage = 1;
+      }
+    };
+
+    if (this.bulkDeletePending) {
+      this.clients = this.clients.filter(c => !this.selectedClientIds.has(c.id));
+      this.selectedClientIds.clear();
+      this.bulkDeletePending = false;
+      adjustPage();
+    } else if (this.clientToDelete) {
       this.clients = this.clients.filter(c => c.id !== this.clientToDelete!.id);
       this.selectedClientIds.delete(this.clientToDelete.id);
       this.clientToDelete = null;
-      
-      const Math = window.Math;
-      if (typeof this.itemsPerPage === 'number' && this.itemsPerPage !== -1) {
-          const maxPage = Math.ceil(this.clients.length / this.itemsPerPage) || 1;
-          if (this.currentPage > maxPage) {
-              this.currentPage = maxPage;
-          }
-      } else {
-          this.currentPage = 1;
-      }
+      adjustPage();
+    }
+  }
+
+  handleBulkAction(actionId: string): void {
+    if (actionId === 'delete') {
+      this.bulkDeletePending = true;
     }
   }
 }

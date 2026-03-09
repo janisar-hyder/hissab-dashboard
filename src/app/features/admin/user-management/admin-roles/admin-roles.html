@@ -29,7 +29,7 @@
                             <input type="checkbox" [checked]="isAllSelected()" (change)="toggleAll()">
                         </th>
                         <ng-container *ngFor="let col of availableColumns">
-                            <th *ngIf="col.visible">{{ col.label }} <i class="las la-sort"></i></th>
+                            <th *ngIf="col.visible" [class.col-status]="col.id === 'status'">{{ col.label }} <i class="las la-sort"></i></th>
                         </ng-container>
                         <th class="col-actions"></th>
                     </tr>
@@ -40,7 +40,7 @@
                             <input type="checkbox" [checked]="selectedRoleIds.has(role.id)" (change)="toggleSelection(role.id)">
                         </td>
                         <ng-container *ngFor="let col of availableColumns">
-                            <td *ngIf="col.visible" [ngSwitch]="col.id">
+                            <td *ngIf="col.visible" [ngSwitch]="col.id" [class.col-status]="col.id === 'status'">
                                 <ng-container *ngSwitchCase="'name'"><span class="text-muted">{{ role.name }}</span></ng-container>
                                 <ng-container *ngSwitchCase="'status'">
                                     <span class="status-pill" [ngClass]="role.status.toLowerCase()">
@@ -90,9 +90,11 @@
 
 <!-- Delete Confirmation Modal -->
 <app-delete-modal 
-    [isOpen]="!!roleToDelete" 
-    title="Delete Role"
-    message="Are you sure you want to delete this role? This action cannot be undone." 
+    [isOpen]="!!roleToDelete || bulkDeletePending" 
+    [title]="bulkDeletePending ? 'Delete Roles' : 'Delete Role'"
+    [message]="bulkDeletePending 
+        ? 'Are you sure you want to delete ' + selectedRoleIds.size + ' selected role(s)? This action cannot be undone.'
+        : 'Are you sure you want to delete this role? This action cannot be undone.'" 
     (cancel)="closeDeleteModal()"
     (confirm)="confirmDelete()">
 </app-delete-modal>

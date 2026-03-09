@@ -8,6 +8,7 @@ import { PageHeaderComponent } from '../../../../shared/components/page-header/p
 import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
 import { ActionMenu, MenuAction } from '../../../../shared/components/action-menu/action-menu';
 import { Router, ActivatedRoute } from '@angular/router';
+import { BulkActionsComponent, BulkAction } from '../../../../shared/components/bulk-actions/bulk-actions.component';
 
 interface AdminRole {
   id: string;
@@ -25,7 +26,8 @@ interface AdminRole {
     PaginationComponent,
     ManageColumnsComponent,
     ActionMenu,
-    DeleteModalComponent
+    DeleteModalComponent,
+    BulkActionsComponent
   ],
   templateUrl: './admin-roles.html',
   styleUrl: './admin-roles.scss',
@@ -49,6 +51,11 @@ export class AdminRoles {
   // Modals & Action Menus
   isManageColumnsOpen = false;
   roleToDelete: AdminRole | null = null;
+  bulkDeletePending = false;
+
+  bulkActions: BulkAction[] = [
+    { id: 'delete', label: 'Delete Roles', colorClass: 'text-danger' }
+  ];
 
   getRoleActions(role: AdminRole): MenuAction[] {
     return [
@@ -146,23 +153,31 @@ export class AdminRoles {
 
   closeDeleteModal() {
     this.roleToDelete = null;
+    this.bulkDeletePending = false;
   }
 
   confirmDelete() {
-    if (this.roleToDelete) {
+    const adjustPage = () => {
+      const Math = window.Math;
+      if (this.itemsPerPage !== -1) {
+        const maxPage = Math.ceil(this.roles.length / this.itemsPerPage) || 1;
+        if (this.currentPage > maxPage) this.currentPage = maxPage;
+      } else { this.currentPage = 1; }
+    };
+    if (this.bulkDeletePending) {
+      this.roles = this.roles.filter(r => !this.selectedRoleIds.has(r.id));
+      this.selectedRoleIds.clear();
+      this.bulkDeletePending = false;
+      adjustPage();
+    } else if (this.roleToDelete) {
       this.roles = this.roles.filter(r => r.id !== this.roleToDelete!.id);
       this.selectedRoleIds.delete(this.roleToDelete.id);
       this.roleToDelete = null;
-      
-      const Math = window.Math;
-      if (this.itemsPerPage !== -1) {
-          const maxPage = Math.ceil(this.roles.length / this.itemsPerPage) || 1;
-          if (this.currentPage > maxPage) {
-              this.currentPage = maxPage;
-          }
-      } else {
-          this.currentPage = 1;
-      }
+      adjustPage();
     }
+  }
+
+  handleBulkAction(actionId: string): void {
+    if (actionId === 'delete') this.bulkDeletePending = true;
   }
 }
