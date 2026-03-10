@@ -279,7 +279,7 @@
     }
 
     td {
-        color: var(--text-dark);
+        color: var(--text-muted);
 
         &.text-muted {
             color: var(--text-muted);
@@ -390,8 +390,14 @@
         }
     }
 
-    tbody tr:hover {
+    tbody tr:hover, 
+    tbody tr.clickable-row:hover {
         background-color: var(--bg-main);
+    }
+
+    tbody tr.clickable-row {
+        cursor: pointer;
+        transition: background-color 0.2s ease;
     }
 }
 

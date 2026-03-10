@@ -14,6 +14,8 @@ export class PaginationComponent implements OnChanges {
     @Input() itemsPerPage: number | 'All' = 15;
     @Input() currentPage: number = 1;
     @Input() itemsPerPageOptions: (number | 'All')[] = ['All', 15, 25, 50, 100];
+    @Input() showEntriesInfo: boolean = true;
+    @Input() showPageSizeOptions: boolean = true;
 
     @Output() pageChange = new EventEmitter<number>();
     @Output() itemsPerPageChange = new EventEmitter<number | 'All'>();

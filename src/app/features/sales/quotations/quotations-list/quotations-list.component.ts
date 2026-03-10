@@ -157,6 +157,10 @@ export class QuotationsListComponent implements OnInit {
         console.log('Navigate to edit quotation', id);
     }
 
+    navigateToInfo(id: string): void {
+        this.router.navigate(['/sales/quotations/info', id]);
+    }
+
     closeDeleteModal(): void {
         this.quotationToDelete = null;
     }

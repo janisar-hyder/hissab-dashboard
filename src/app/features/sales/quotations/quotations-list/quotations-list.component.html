@@ -74,8 +74,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let quotation of paginatedQuotations">
-                        <td class="col-checkbox">
+                    <tr *ngFor="let quotation of paginatedQuotations" class="clickable-row" (click)="navigateToInfo(quotation.id)">
+                        <td class="col-checkbox" (click)="$event.stopPropagation()">
                             <input type="checkbox" [checked]="selectedQuotationIds.has(quotation.id)"
                                 (change)="toggleSelection(quotation.id)">
                         </td>

@@ -698,23 +698,25 @@ $col-grid: 36% 12% 8% 16% 12% 12% 4%;
     bottom: 0;
     left: 80px;
     right: 0;
-    background: white;
-    border-top: 1px solid var(--border-light);
-    padding: 16px 48px 16px 32px;
+    background: transparent;
+    padding: 24px 48px 24px 32px;
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
     z-index: 100;
 
     .footer-btn {
-        padding: 10px 24px;
+        padding: 12px 24px;
         font-size: 14px;
         font-family: inherit;
         font-weight: 500;
-        border-radius: var(--radius-sm);
+        border-radius: 6px;
         cursor: pointer;
         transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         min-width: 100px;
 
         &.btn-cancel {
@@ -723,7 +725,7 @@ $col-grid: 36% 12% 8% 16% 12% 12% 4%;
             color: var(--text-muted);
 
             &:hover {
-                background: var(--bg-body);
+                // background: var(--bg-body);
                 color: var(--text-dark);
             }
         }
@@ -739,7 +741,7 @@ $col-grid: 36% 12% 8% 16% 12% 12% 4%;
         }
 
         &.btn-save {
-            background: var(--primary);
+            background: var(--primary-hover);
             border: none;
             color: white;
 

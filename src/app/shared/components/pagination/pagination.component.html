@@ -1,5 +1,5 @@
 <div class="card-footer">
-    <div class="showing-text">
+    <div class="showing-text" *ngIf="showEntriesInfo">
         Showing <strong>{{ startIndex }}</strong> to <strong>{{ endIndex }}</strong> of <strong>{{ totalItems
             }}</strong> entries
     </div>
@@ -26,7 +26,7 @@
 
     <!-- Just showing the items per page dropdown regardless of how many items, 
          to match standard enterprise tables. -->
-    <div class="items-per-page">
+    <div class="items-per-page" *ngIf="showPageSizeOptions">
         <span class="text-muted">Entries per page:</span>
         <div class="select-wrapper">
             <select class="form-control select-control borderless-select" [ngModel]="itemsPerPage"
