@@ -55,22 +55,24 @@ export class QuotationsNew {
   ];
 
   dummyItems = [
-    {
-      name: 'Wordpress Website Development',
-      description: 'The project includes the design and development of a basic, responsive website consisting of up to four pages such as Home, About, Services, and Contact.',
-      rate: 100
-    },
-    {
-      name: 'Mobile App Support',
-      description: 'Annual maintenance and support for the mobile application, including bug fixes and security updates.',
-      rate: 250
-    },
-    {
-      name: 'SEO Optimization',
-      description: 'On-page and off-page SEO optimization to improve search engine rankings.',
-      rate: 150
-    }
+    { name: 'Wordpress Website Development', description: 'The project includes the design and development of a basic, responsive website.', rate: 100 },
+    { name: 'Mobile App Support', description: 'Annual maintenance and support for the mobile application.', rate: 250 },
+    { name: 'SEO Optimization', description: 'On-page and off-page SEO optimization.', rate: 150 },
+    { name: 'Dell Latitude 5440', description: 'Business Laptop (Intel Core i5, 16GB RAM, 512GB SSD)', rate: 450 },
+    { name: 'Samsung 32" 4K Monitor', description: 'Ultra HD LED Display with HDR support', rate: 120 },
+    { name: 'On Site Support', description: 'Professional on-site technical assistance', rate: 50 },
+    { name: 'Dell Latitude 5420', description: 'Standard Business Laptop (Intel Core i5, 8GB RAM)', rate: 380 },
+    { name: 'LG 27" 4K Monitor', description: '27-inch 4K UHD IPS Display', rate: 95 },
+    { name: 'Cisco C9200L Switch', description: 'Catalyst 9200L 24-port Data Switch', rate: 1200 },
+    { name: 'Logitech MX Master 3S', description: 'Performance Wireless Mouse', rate: 35 },
+    { name: 'Basic Web Development', description: 'Simple static website development', rate: 80 },
+    { name: 'Mobile App Dev', description: 'Cross-platform mobile application development', rate: 300 },
+    { name: 'E-commerce Website', description: 'Fully functional online store with payment integration', rate: 500 }
   ];
+
+  isBulkModalOpen = false;
+  bulkSearchTerm = '';
+  selectedBulkItems = new Set<string>();
 
   dummyBillingAddress = {
     name: 'Khalid Al-Jabri',
@@ -189,6 +191,102 @@ export class QuotationsNew {
 
   closeAttachmentsModal(): void {
     this.isAttachmentsModalOpen = false;
+  }
+
+  // --- Bulk Add Items ---
+  openBulkModal(): void {
+    this.isBulkModalOpen = true;
+    this.bulkSearchTerm = '';
+    // Sync selections with currently selected items in rows
+    this.selectedBulkItems.clear();
+    this.items.forEach(item => {
+      if (item.name) this.selectedBulkItems.add(item.name);
+    });
+  }
+
+  closeBulkModal(): void {
+    this.isBulkModalOpen = false;
+  }
+
+  get filteredBulkItems() {
+    if (!this.bulkSearchTerm) return this.dummyItems;
+    const term = this.bulkSearchTerm.toLowerCase();
+    return this.dummyItems.filter(item => 
+      item.name.toLowerCase().includes(term)
+    );
+  }
+
+  toggleBulkItem(name: string): void {
+    if (this.selectedBulkItems.has(name)) {
+      this.selectedBulkItems.delete(name);
+    } else {
+      this.selectedBulkItems.add(name);
+    }
+  }
+
+  toggleSelectAllBulk(event: any): void {
+    const isChecked = event.target.checked;
+    const filtered = this.filteredBulkItems;
+    if (isChecked) {
+      filtered.forEach(item => this.selectedBulkItems.add(item.name));
+    } else {
+      filtered.forEach(item => this.selectedBulkItems.delete(item.name));
+    }
+  }
+
+  isAllFilteredSelected(): boolean {
+    const filtered = this.filteredBulkItems;
+    if (filtered.length === 0) return false;
+    return filtered.every(item => this.selectedBulkItems.has(item.name));
+  }
+
+  addBulkItems(): void {
+    // 1. Remove rows for items that were unselected in the modal
+    this.items = this.items.filter(item => {
+      if (!item.name) return true; // Keep placeholder/empty rows
+      return this.selectedBulkItems.has(item.name);
+    });
+
+    // 2. Identify items selected in modal that are NOT in the table yet
+    const currentNames = new Set(this.items.map(i => i.name).filter(n => !!n));
+    const namesToAdd = Array.from(this.selectedBulkItems).filter(name => !currentNames.has(name));
+
+    // 3. Reuse empty row if available
+    let firstEmptyRow = this.items.find(i => !i.name);
+
+    namesToAdd.forEach((name, index) => {
+      const product = this.dummyItems.find(p => p.name === name);
+      if (!product) return;
+
+      if (index === 0 && firstEmptyRow) {
+        firstEmptyRow.name = product.name;
+        firstEmptyRow.description = product.description;
+        firstEmptyRow.rate = product.rate;
+        firstEmptyRow.qty = 1;
+        this.updateAmount(firstEmptyRow);
+      } else {
+        const newItem: QuotationItem = {
+          id: this.nextId++,
+          name: product.name,
+          description: product.description,
+          rate: product.rate,
+          qty: 1,
+          discount: 0,
+          discountType: '%',
+          vat: 0,
+          amount: 0
+        };
+        this.updateAmount(newItem);
+        this.items.push(newItem);
+      }
+    });
+
+    // 4. If everything was removed, ensure at least one blank row exists
+    if (this.items.length === 0) {
+      this.addRow();
+    }
+
+    this.closeBulkModal();
   }
 
   saveAsDraft(): void {
