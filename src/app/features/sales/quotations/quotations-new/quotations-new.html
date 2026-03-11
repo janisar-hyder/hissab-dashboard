@@ -101,8 +101,8 @@
                 </div>
             </div>
 
-            <!-- 2-col grid: Reference Number, Sales Person -->
-            <div class="form-grid form-grid-2">
+            <!-- 3-col grid: Reference Number, Sales Person, Discount At -->
+            <div class="form-grid form-grid-3">
                 <div class="form-group">
                     <label>Reference Number</label>
                     <input type="text" class="form-control" [(ngModel)]="quotationData.referenceNumber" placeholder="Enter Reference Number">
@@ -115,19 +115,26 @@
                         <option value="sp2">Sara Hassan</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label>Discount At</label>
+                    <select class="form-control custom-select" [(ngModel)]="quotationData.discountAt">
+                        <option value="Line Item Level">Line Item Level</option>
+                        <option value="Transaction Level">Transaction Level</option>
+                    </select>
+                </div>
             </div>
         </div>
 
         <!-- Items Table Card -->
         <div class="form-card items-card">
-            <div class="items-table">
+            <div class="items-table" [class.transaction-level]="quotationData.discountAt === 'Transaction Level'">
 
                 <!-- Table Header -->
                 <div class="items-thead">
                     <div class="th-item-desc">Item &amp; Description</div>
                     <div class="th-rate">Rate</div>
                     <div class="th-qty">Qty</div>
-                    <div class="th-discount">Discount</div>
+                    <div class="th-discount" *ngIf="quotationData.discountAt === 'Line Item Level'">Discount</div>
                     <div class="th-vat">VAT</div>
                     <div class="th-amount">Amount</div>
                     <div class="th-del"></div>
@@ -166,8 +173,8 @@
                                 placeholder="0.00">
                         </div>
 
-                        <!-- Discount: fused number + %/BHD select -->
-                        <div class="td-cell td-discount">
+                        <!-- Discount: fused number + %/BHD select (Conditional) -->
+                        <div class="td-cell td-discount" *ngIf="quotationData.discountAt === 'Line Item Level'">
                             <div class="discount-combo">
                                 <input type="number" class="discount-num"
                                     [(ngModel)]="item.discount"
@@ -223,10 +230,31 @@
                         <span class="total-label">Subtotal</span>
                         <span class="total-value">{{ subtotal.toFixed(3) }}</span>
                     </div>
+
+                    <!-- Discount Row (Conditional) -->
                     <div class="total-row">
                         <span class="total-label">Discount</span>
-                        <span class="total-value">-{{ totalDiscount.toFixed(3) }}</span>
+                        
+                        <!-- Line Item Level: just show the calculated value -->
+                        <span class="total-value" *ngIf="quotationData.discountAt === 'Line Item Level'">
+                            -{{ totalDiscount.toFixed(3) }}
+                        </span>
+
+                        <!-- Transaction Level: show input combo -->
+                        <div class="transaction-discount-wrapper" *ngIf="quotationData.discountAt === 'Transaction Level'">
+                            <div class="discount-combo">
+                                <input type="number" class="discount-num"
+                                    [(ngModel)]="quotationData.transactionDiscount"
+                                    placeholder="0">
+                                <div class="discount-sep"></div>
+                                <select class="discount-type" [(ngModel)]="quotationData.transactionDiscountType">
+                                    <option value="%">%</option>
+                                    <option value="flat">BHD</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
+
                     <div class="total-row" *ngIf="hasSelectedItems">
                         <span class="total-label">VAT</span>
                         <span class="total-value">{{ totalVat.toFixed(3) }}</span>

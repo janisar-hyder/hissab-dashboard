@@ -35,6 +35,9 @@ export class QuotationsNew {
     dueDate: '',
     referenceNumber: '',
     salesPerson: '',
+    discountAt: 'Line Item Level',
+    transactionDiscount: 0,
+    transactionDiscountType: '%' as '%' | 'flat',
   };
 
   note = '';
@@ -118,6 +121,14 @@ export class QuotationsNew {
   }
 
   get totalDiscount(): number {
+    if (this.quotationData.discountAt === 'Transaction Level') {
+      const discount = Number(this.quotationData.transactionDiscount) || 0;
+      if (this.quotationData.transactionDiscountType === '%') {
+        return (this.subtotal * discount / 100);
+      }
+      return discount;
+    }
+
     return this.items.reduce((sum, item) => {
       const rate = Number(item.rate) || 0;
       const qty = Number(item.qty) || 0;
@@ -135,6 +146,28 @@ export class QuotationsNew {
   }
 
   get totalVat(): number {
+    if (this.quotationData.discountAt === 'Transaction Level') {
+      // In transaction level, we apply VAT to the subtotal (each item's individual VAT)
+      // and THEN subtract a proportional discount, OR we apply individual line-item VAT
+      // to the price after a proportional split of the transaction discount.
+      // Typically, VAT is calculated per line item.
+      const totalDisc = this.totalDiscount;
+      const sub = this.subtotal;
+      
+      return this.items.reduce((sum, item) => {
+        const rate = Number(item.rate) || 0;
+        const qty = Number(item.qty) || 0;
+        const vat = Number(item.vat) || 0;
+        const base = rate * qty;
+        
+        // Calculate proportional discount for this line item
+        const proportionalDisc = sub > 0 ? (base / sub * totalDisc) : 0;
+        const discounted = base - proportionalDisc;
+        
+        return sum + (discounted * vat / 100);
+      }, 0);
+    }
+
     return this.items.reduce((sum, item) => {
       const rate = Number(item.rate) || 0;
       const qty = Number(item.qty) || 0;
@@ -154,7 +187,7 @@ export class QuotationsNew {
   updateAmount(item: QuotationItem): void {
     const rate = Number(item.rate) || 0;
     const qty = Number(item.qty) || 0;
-    const discount = Number(item.discount) || 0;
+    const discount = this.quotationData.discountAt === 'Line Item Level' ? (Number(item.discount) || 0) : 0;
     const vat = Number(item.vat) || 0;
 
     const base = rate * qty;

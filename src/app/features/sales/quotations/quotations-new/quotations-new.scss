@@ -250,15 +250,22 @@
     overflow-x: auto;
 }
 
+// Column grid definition (shared between header and rows)
+// Column grid definition (percentages for stability on zoom)
+$col-grid: 36% 12% 8% 16% 12% 12% 4%;
+$col-grid-no-discount: 48% 12% 10% 12% 14% 4%;
+
 .items-table {
     display: flex;
     flex-direction: column;
     min-width: 1000px;
-}
 
-// Column grid definition (shared between header and rows)
-// Column grid definition (percentages for stability on zoom)
-$col-grid: 36% 12% 8% 16% 12% 12% 4%;
+    &.transaction-level {
+        .items-thead, .items-row {
+            grid-template-columns: $col-grid-no-discount;
+        }
+    }
+}
 
 .items-thead {
     display: grid;
@@ -411,7 +418,7 @@ $col-grid: 36% 12% 8% 16% 12% 12% 4%;
 
     /* Hide spinners */
     &::-webkit-outer-spin-button,
-    &::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    &::-webkit-inner-spin-button { -webkit-appearance: none; appearance: none; margin: 0; }
     -moz-appearance: textfield;
 }
 
@@ -453,7 +460,7 @@ $col-grid: 36% 12% 8% 16% 12% 12% 4%;
         outline: none;
 
         &::-webkit-outer-spin-button,
-        &::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        &::-webkit-inner-spin-button { -webkit-appearance: none; appearance: none; margin: 0; }
         -moz-appearance: textfield;
     }
 
@@ -598,21 +605,30 @@ $col-grid: 36% 12% 8% 16% 12% 12% 4%;
     justify-content: flex-end;
     align-items: center;
     padding: 9px 0;
+    width: 420px;
+    margin-left: auto;
 
     .total-label {
         font-size: 13.5px;
         color: var(--text-muted);
-        min-width: 120px;
-        text-align: right;
-        margin-right: 80px;
+        flex: 1;
+        text-align: left;
     }
 
     .total-value {
         font-size: 13.5px;
         color: var(--text-dark);
         font-weight: 400;
-        min-width: 80px;
+        width: 240px;
         text-align: right;
+    }
+
+    .transaction-discount-wrapper {
+        width: 240px;
+        
+        .discount-combo {
+            width: 100%;
+        }
     }
 
     &.total-grand {
