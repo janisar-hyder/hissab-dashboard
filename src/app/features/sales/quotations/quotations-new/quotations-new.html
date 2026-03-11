@@ -270,11 +270,27 @@
                 <div class="note-section">
                     <div class="note-field">
                         <label class="note-label">Note</label>
-                        <input type="text" class="note-input" [(ngModel)]="note" placeholder="Enter Note">
+                        <textarea class="note-input" [(ngModel)]="note" placeholder="Enter Note" rows="2"></textarea>
+                        
+                        <div class="future-use-row" *ngIf="note">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" [(ngModel)]="saveNoteForFuture">
+                                <span class="checkmark"></span>
+                            </label>
+                            <span class="future-use-label">Use this in future for all quotations of all customers.</span>
+                        </div>
                     </div>
                     <div class="note-field">
                         <label class="note-label">Terms &amp; Conditions</label>
-                        <input type="text" class="note-input" [(ngModel)]="termsAndConditions" placeholder="Enter Terms &amp; Conditions">
+                        <textarea class="note-input" [(ngModel)]="termsAndConditions" placeholder="Enter Terms &amp; Conditions" rows="3"></textarea>
+                        
+                        <div class="future-use-row" *ngIf="termsAndConditions">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" [(ngModel)]="saveTermsForFuture">
+                                <span class="checkmark"></span>
+                            </label>
+                            <span class="future-use-label">Use this in future for all quotations of all customers.</span>
+                        </div>
                     </div>
                 </div>
 

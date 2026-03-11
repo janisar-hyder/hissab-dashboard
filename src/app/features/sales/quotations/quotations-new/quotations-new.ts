@@ -42,6 +42,8 @@ export class QuotationsNew {
 
   note = '';
   termsAndConditions = '';
+  saveNoteForFuture = false;
+  saveTermsForFuture = false;
 
   items: QuotationItem[] = [
     {
