@@ -399,6 +399,11 @@
                     height: 62px;
                     z-index: 10;
                     pointer-events: none;
+                    color: #94a3b8; // Default Draft grey
+
+                    &.sent { color: #11A9EF; }
+                    &.invoiced { color: #10B981; }
+                    &.draft { color: #94A3B8; }
 
                     .banner-main {
                         position: absolute;
@@ -503,36 +508,40 @@
 
                     .table-header {
                         display: grid;
-                        grid-template-columns: 40px 1fr 60px 80px 80px 60px 80px; // Reduced widths
+                        grid-template-columns: 40px 1fr 60px 85px 85px 95px; // 6-column layout
                         background: #2563eb;
                         color: #fff;
                         padding: 10px 14px;
                         border-radius: 4px;
-                        font-size: 11px;
+                        font-size: 13.5px; // Matching image size
                         font-weight: 500;
-                        text-transform: uppercase;
+                        text-transform: none; // Match Image 1 (Proper Case)
+
+                        .col-qty, .col-rate, .col-disc, .col-amt {
+                            text-align: right; // Ensure header is right-aligned
+                        }
                     }
 
                     .table-row {
                         display: grid;
-                        grid-template-columns: 40px 1fr 60px 80px 80px 60px 80px;
+                        grid-template-columns: 40px 1fr 60px 85px 85px 95px;
                         padding: 14px 14px;
                         border-bottom: 1px solid #f1f5f9;
-                        font-size: 12px;
+                        font-size: 12.5px;
                         color: #1e293b;
 
-                        .col-qty, .col-rate, .col-disc, .col-vat, .col-amt {
+                        .col-qty, .col-rate, .col-disc, .col-amt {
                             text-align: right;
                         }
 
                         .item-name {
                             display: block;
-                            font-weight: 600;
+                            font-weight: 500; // Slightly lighter weight for header
                             margin-bottom: 4px;
                         }
                         .item-desc {
                             color: #94a3b8;
-                            font-size: 10.5px;
+                            font-size: 11px;
                             line-height: 1.4;
                         }
                     }
@@ -540,16 +549,16 @@
 
                 .summary-section {
                     margin-left: auto;
-                    width: 260px; // Reduced from 300px
+                    width: 320px; // Slightly wider to match image proportions
                     display: flex;
                     flex-direction: column;
-                    gap: 10px;
+                    gap: 12px;
                     margin-bottom: 40px;
 
                     .summary-row {
                         display: flex;
                         justify-content: space-between;
-                        font-size: 12.5px;
+                        font-size: 14px;
                         color: #64748b;
 
                         &.danger { color: #ef4444; }
@@ -560,30 +569,32 @@
                         display: flex;
                         justify-content: space-between;
                         padding: 12px 16px;
-                        background: #f1f5f9; // Slightly darker grey for better contrast
+                        background: #f8fafc; // Match Image 1 subtle background
                         border-radius: 4px;
                         margin-top: 6px;
-                        font-size: 14.5px;
-                        font-weight: 600;
+                        font-size: 16px;
+                        font-weight: 500;
                         color: #1e293b;
 
-                        span:last-child { color: #1e293b; }
+                        span:last-child { color: #1e293b; font-weight: 500; }
                     }
                 }
 
                 .notes-section {
+                    margin-bottom: 24px;
                     label {
                         display: block;
-                        font-size: 12px;
-                        font-weight: 600;
-                        color: #1e293b;
-                        margin-bottom: 6px;
-                        text-transform: uppercase;
+                        font-size: 14px;
+                        font-weight: 500;
+                        color: #475569;
+                        margin-bottom: 8px;
+                        text-transform: none; // Match Image 1
                     }
                     p {
-                        font-size: 12.5px;
+                        font-size: 13.5px;
                         color: #64748b;
                         margin: 0;
+                        line-height: 1.5;
                     }
                 }
             }

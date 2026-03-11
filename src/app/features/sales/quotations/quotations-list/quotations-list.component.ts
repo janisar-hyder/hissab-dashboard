@@ -28,10 +28,10 @@ export interface Quotation {
 })
 export class QuotationsListComponent implements OnInit {
     quotations: Quotation[] = [
-        { id: '1', quotationNumber: 'Q-004', date: '01 Apr, 2026', customerName: 'Transpak Equipment', amount: 1267.000, status: 'Sent' },
-        { id: '2', quotationNumber: 'Q-003', date: '16 Mar, 2026', customerName: 'Sigler Wholesale', amount: 9847.000, status: 'Invoiced' },
-        { id: '3', quotationNumber: 'Q-002', date: '10 Mar, 2026', customerName: 'The Habegger Corp', amount: 550.000, status: 'Draft' },
-        { id: '4', quotationNumber: 'Q-001', date: '04 Mar, 2026', customerName: 'ABCO HVACR Supply', amount: 88.000, status: 'Sent' }
+        { id: '1', quotationNumber: 'QT-004', date: '01 Apr, 2026', customerName: 'Transpak Equipment', amount: 1267.000, status: 'Sent' },
+        { id: '2', quotationNumber: 'QT-003', date: '16 Mar, 2026', customerName: 'Sigler Wholesale', amount: 9847.000, status: 'Invoiced' },
+        { id: '3', quotationNumber: 'QT-002', date: '10 Mar, 2026', customerName: 'The Habegger Corp', amount: 550.000, status: 'Draft' },
+        { id: '4', quotationNumber: 'QT-001', date: '04 Mar, 2026', customerName: 'ABCO HVACR Supply', amount: 88.000, status: 'Sent' }
     ];
 
     selectedQuotationIds = new Set<string>();

@@ -72,7 +72,7 @@
             <div class="detail-actions">
                 <button class="action-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
                 <button class="action-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg></button>
-                <button class="action-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></button>
+                <button class="action-btn" (click)="downloadPdf()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></button>
                 <div class="dropdown-wrapper">
                     <button class="btn-dropdown">Actions <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></button>
                 </div>
@@ -81,12 +81,12 @@
         </div>
 
         <div class="document-container">
-            <div class="document-paper">
-                <div class="doc-status-banner sent" *ngIf="selectedQuotation?.status === 'Sent'">
+            <div class="document-paper" id="quotation-document">
+                <div class="doc-status-banner" *ngIf="selectedQuotation" [ngClass]="selectedQuotation.status.toLowerCase()">
                     <svg class="banner-main" xmlns="http://www.w3.org/2000/svg" width="78" height="62" viewBox="0 0 78 62" fill="none">
-                        <path d="M3.77763 34.8663L44.9095 2.17177C46.6786 0.765518 48.872 0 51.1319 0H77.8579L0.560613 62L0.00434329 42.987C-0.0878246 39.8367 1.31048 36.8274 3.77763 34.8663Z" fill="#11A9EF"/>
+                        <path d="M3.77763 34.8663L44.9095 2.17177C46.6786 0.765518 48.872 0 51.1319 0H77.8579L0.560613 62L0.00434329 42.987C-0.0878246 39.8367 1.31048 36.8274 3.77763 34.8663Z" fill="currentColor"/>
                     </svg>
-                    <span class="status-text">Sent</span>
+                    <span class="status-text">{{ selectedQuotation.status }}</span>
                 </div>
                 
                 <div class="doc-header">
@@ -101,79 +101,73 @@
                 </div>
 
                 <div class="doc-info-grid">
-                    <div class="customer-info">
+                    <div class="customer-info" *ngIf="selectedQuotation">
                         <label>Customer Info</label>
-                        <h4>{{ selectedQuotation?.customerName }}</h4>
-                        <div class="address-details" *ngIf="selectedQuotation?.customerName === 'ABCO HVACR Supply'">
-                            <p>Khalid Al-Jabri</p>
-                            <p>Shop No. 6, Building 5277, Road 1239,</p>
-                            <p>Block 812, Isa Town, Bahrain</p>
+                        <h4>{{ selectedQuotation.customerName }}</h4>
+                        <div class="address-details">
+                            <p>{{ selectedQuotation.customerContact }}</p>
+                            <p *ngFor="let line of selectedQuotation.customerAddress">{{ line }}</p>
                         </div>
                     </div>
-                    <div class="quote-meta">
+                    <div class="quote-meta" *ngIf="selectedQuotation">
                         <h2>Quote</h2>
-                        <p class="quote-num"># {{ selectedQuotation?.quotationNumber }}</p>
+                        <p class="quote-num"># {{ selectedQuotation.quotationNumber }}</p>
                         <div class="meta-row">
                             <span>Quote Date</span>
-                            <span>{{ selectedQuotation?.date }}</span>
+                            <span>{{ selectedQuotation.date }}</span>
                         </div>
                         <div class="meta-row">
                             <span>Due Date</span>
-                            <span>04 Apr, 2026</span>
+                            <span>{{ selectedQuotation.dueDate }}</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="items-table">
+                <div class="items-table" *ngIf="selectedQuotation">
                     <div class="table-header">
                         <div class="col-hash">#</div>
                         <div class="col-item">Item</div>
                         <div class="col-qty">Qty</div>
                         <div class="col-rate">Rate</div>
                         <div class="col-disc">Discount</div>
-                        <div class="col-vat">VAT</div>
                         <div class="col-amt">Amount</div>
                     </div>
-                    <div class="table-row">
-                        <div class="col-hash">1</div>
+                    <div class="table-row" *ngFor="let item of selectedQuotation.items; let i = index">
+                        <div class="col-hash">{{ i + 1 }}</div>
                         <div class="col-item">
-                            <span class="item-name">Website Development</span>
-                            <span class="item-desc">The project includes the design and development of a basic, responsive website consisting of up to four pages such as Home, About, Services, and Contact.</span>
+                            <span class="item-name">{{ item.name }}</span>
+                            <span class="item-desc">{{ item.description }}</span>
                         </div>
-                        <div class="col-qty">1.00</div>
-                        <div class="col-rate">100.000</div>
-                        <div class="col-disc">20.000</div>
-                        <div class="col-vat">10%</div>
-                        <div class="col-amt">80.000</div>
+                        <div class="col-qty">{{ item.qty | number:'1.2-2' }}</div>
+                        <div class="col-rate">{{ item.rate | number:'1.3-3' }}</div>
+                        <div class="col-disc">{{ item.discount | number:'1.3-3' }}</div>
+                        <div class="col-amt">{{ (item.qty * item.rate - item.discount) | number:'1.3-3' }}</div>
                     </div>
                 </div>
 
-                <div class="summary-section">
+                <div class="summary-section" *ngIf="selectedQuotation">
                     <div class="summary-row">
                         <span>Gross Amount</span>
-                        <span>100.000</span>
+                        <span>{{ selectedQuotation.grossAmount | number:'1.3-3' }}</span>
                     </div>
-                    <div class="summary-row danger">
+                    <div class="summary-row danger" *ngIf="selectedQuotation.totalDiscount > 0">
                         <span>Discount</span>
-                        <span>-20.000</span>
-                    </div>
-                    <div class="summary-row">
-                        <span>Sub Total</span>
-                        <span>80.000</span>
-                    </div>
-                    <div class="summary-row">
-                        <span>VAT (10%)</span>
-                        <span>8.000</span>
+                        <span>-{{ selectedQuotation.totalDiscount | number:'1.3-3' }}</span>
                     </div>
                     <div class="summary-total">
                         <span>Total (BHD)</span>
-                        <span>BHD 88.000</span>
+                        <span>BHD {{ selectedQuotation.grandTotal | number:'1.3-3' }}</span>
                     </div>
                 </div>
 
-                <div class="notes-section">
+                <div class="notes-section" *ngIf="selectedQuotation?.notes">
                     <label>Notes</label>
-                    <p>We look forward to a successful partnership.</p>
+                    <p>{{ selectedQuotation?.notes }}</p>
+                </div>
+
+                <div class="notes-section" *ngIf="selectedQuotation?.termsAndConditions">
+                    <label>Terms & Conditions</label>
+                    <p>{{ selectedQuotation?.termsAndConditions }}</p>
                 </div>
             </div>
         </div>
