@@ -91,7 +91,7 @@ import { filter } from 'rxjs/operators';
                 <div class="sub-menu-line"></div>
                 <a routerLink="/sales/customers" routerLinkActive="active" class="sub-item"><span class="dot"></span>Customers</a>
                 <a routerLink="/sales/quotations" routerLinkActive="active" class="sub-item"><span class="dot"></span>Quotations</a>
-                <a href="#" class="sub-item"><span class="dot"></span>Invoices</a>
+                <a routerLink="/sales/invoices" routerLinkActive="active" class="sub-item"><span class="dot"></span>Invoices</a>
                 <a href="#" class="sub-item"><span class="dot"></span>Recurring Invoices</a>
                 <a href="#" class="sub-item"><span class="dot"></span>Sales Orders</a>
                 <a href="#" class="sub-item"><span class="dot"></span>Receipts</a>

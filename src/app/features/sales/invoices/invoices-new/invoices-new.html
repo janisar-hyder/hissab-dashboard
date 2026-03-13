@@ -1,0 +1,370 @@
+<div class="page-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-titles">
+            <app-breadcrumbs [items]="[
+                { label: 'Invoices', url: '/sales/invoices' },
+                { label: 'Add New Invoice' }
+            ]"></app-breadcrumbs>
+            <h1 class="page-title">Add New Invoice</h1>
+        </div>
+        <div class="header-actions">
+            <app-button variant="outline" (clicked)="openAttachmentsModal()">
+                <svg style="margin-right: 8px;" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20" fill="none">
+                    <g clip-path="url(#clip0_attach)">
+                        <mask id="mask0_attach" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="20" height="20">
+                            <path d="M20 0H0V20H20V0Z" fill="white" />
+                        </mask>
+                        <g mask="url(#mask0_attach)">
+                            <path d="M10.2752 17.7837C9.36683 17.7837 8.4585 17.442 7.76686 16.7503C6.38353 15.367 6.38353 13.1253 7.76686 11.742L9.8335 9.68367C10.0752 9.442 10.4752 9.442 10.7168 9.68367C10.9585 9.92533 10.9585 10.3253 10.7168 10.567L8.65016 12.6253C7.75853 13.517 7.75853 14.9753 8.65016 15.867C9.54183 16.7587 11.0002 16.7587 11.8918 15.867L15.1335 12.6253C16.1168 11.642 16.6585 10.3337 16.6585 8.942C16.6585 7.55029 16.1168 6.24196 15.1335 5.25863C13.1002 3.22529 9.80016 3.22529 7.76686 5.25863L4.23353 8.792C3.40853 9.617 2.9502 10.717 2.9502 11.8837C2.9502 13.0503 3.40853 14.1503 4.23353 14.9753C4.4752 15.217 4.4752 15.617 4.23353 15.8587C3.99186 16.1003 3.59186 16.1003 3.3502 15.8587C2.29186 14.792 1.7002 13.3837 1.7002 11.8837C1.7002 10.3837 2.28353 8.967 3.3502 7.90863L6.88353 4.37529C9.40016 1.85863 13.5002 1.85863 16.0168 4.37529C17.2335 5.59196 17.9085 7.21696 17.9085 8.942C17.9085 10.667 17.2335 12.292 16.0168 13.5087L12.7752 16.7503C12.0835 17.442 11.1835 17.7837 10.2752 17.7837Z" fill="#646569" />
+                        </g>
+                    </g>
+                    <defs>
+                        <clipPath id="clip0_attach">
+                            <rect width="20" height="20" fill="white" />
+                        </clipPath>
+                    </defs>
+                </svg>
+                Attach Documents
+            </app-button>
+        </div>
+    </div>
+
+    <!-- Tabs Container -->
+    <div class="tabs-container">
+        <button class="tab-btn" [class.active]="activeTab === 'Invoice Information'" (click)="setActiveTab('Invoice Information')">Invoice Information</button>
+        <button class="tab-btn" [class.active]="activeTab === 'Commission'" (click)="setActiveTab('Commission')">Commission</button>
+    </div>
+
+    <!-- Form Container -->
+    <div class="form-container">
+
+        <!-- Invoice Information Card -->
+        <div class="form-card" [hidden]="activeTab !== 'Invoice Information'">
+            <h2 class="card-title">Invoice Information</h2>
+
+            <!-- Customer -->
+            <div class="form-group full-width" style="margin-bottom: 24px;">
+                <label>Customer <span class="required">*</span></label>
+                <select class="form-control custom-select" [(ngModel)]="invoiceData.customer">
+                    <option value="">Select Customer</option>
+                    <option value="ABCO HVACR Supply">ABCO HVACR Supply</option>
+                </select>
+            </div>
+
+            <!-- Conditional Addresses -->
+            <div class="address-row" *ngIf="invoiceData.customer" style="margin-bottom: 24px;">
+                <!-- Billing Address Box -->
+                <div class="address-box">
+                    <div class="address-header">
+                        <span class="address-title">Billing Address</span>
+                        <button class="address-edit-btn">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="address-content">
+                        <div class="address-name">{{ dummyBillingAddress.name }}</div>
+                        <div class="address-details">{{ dummyBillingAddress.details }}</div>
+                    </div>
+                </div>
+
+                <!-- Shipment Address Box -->
+                <div class="address-box">
+                    <div class="address-header">
+                        <span class="address-title">Shipment Address</span>
+                        <button class="address-edit-btn">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="address-content empty">
+                        <button class="add-address-link">
+                            <span class="plus-icon">+</span> Add Address
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2: Invoice Number, Invoice Date, Reference Number -->
+            <div class="form-grid form-grid-3" style="margin-bottom: 24px;">
+                <div class="form-group">
+                    <label>Invoice Number <span class="required">*</span></label>
+                    <input type="text" class="form-control" [value]="invoiceData.invoiceNumber" disabled readonly>
+                </div>
+                <div class="form-group">
+                    <label>Invoice Date <span class="required">*</span></label>
+                    <input type="date" class="form-control date-input" [(ngModel)]="invoiceData.invoiceDate">
+                </div>
+                <div class="form-group">
+                    <label>Reference Number</label>
+                    <input type="text" class="form-control" [(ngModel)]="invoiceData.referenceNumber" placeholder="Enter Reference Number">
+                </div>
+            </div>
+
+            <!-- Row 3: Payment Terms, Due Date, Sales Person -->
+            <div class="form-grid form-grid-3" style="margin-bottom: 24px;">
+                <div class="form-group">
+                    <label>Payment Terms</label>
+                    <select class="form-control custom-select" [(ngModel)]="invoiceData.paymentTerms">
+                        <option value="">Due on Receipt</option>
+                        <option *ngFor="let term of paymentTermsOptions" [value]="term">{{ term }}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Due Date</label>
+                    <input type="date" class="form-control date-input" [(ngModel)]="invoiceData.dueDate">
+                </div>
+                <div class="form-group">
+                    <label>Sales Person</label>
+                    <select class="form-control custom-select" [(ngModel)]="invoiceData.salesPerson">
+                        <option value="" disabled selected>Select Sales Person</option>
+                        <option value="sp1">Ahmed Ali</option>
+                        <option value="sp2">Sara Hassan</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Row 4: Discount At -->
+            <div class="form-grid form-grid-3">
+                <div class="form-group">
+                    <label>Discount At</label>
+                    <select class="form-control custom-select" [(ngModel)]="invoiceData.discountAt">
+                        <option value="Line Item Level">Line Item Level</option>
+                        <option value="Transaction Level">Transaction Level</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Commission Tab Content -->
+        <div class="form-card" [hidden]="activeTab !== 'Commission'">
+            <div class="form-grid form-grid-3">
+                <div class="form-group">
+                    <label>Sales Partner</label>
+                    <input type="text" class="form-control" [(ngModel)]="commissionData.salesPartner" placeholder="Enter Sales Partner">
+                </div>
+                <div class="form-group">
+                    <label>Commission Percentage</label>
+                    <input type="number" class="form-control" [(ngModel)]="commissionData.commissionPercentage" placeholder="0.000" step="0.001">
+                </div>
+                <div class="form-group">
+                    <label>Commission Amount</label>
+                    <input type="number" class="form-control" [(ngModel)]="commissionData.commissionAmount" placeholder="0.000" step="0.001">
+                </div>
+            </div>
+        </div>
+
+        <!-- Items Table Card (Always exists, logic handles visibility/tabs if needed, but per plan we keep it below info) -->
+        <div class="form-card items-card" [hidden]="activeTab !== 'Invoice Information'">
+            <div class="items-table" [class.transaction-level]="invoiceData.discountAt === 'Transaction Level'">
+
+                <!-- Table Header -->
+                <div class="items-thead">
+                    <div class="th-item-desc">Item &amp; Description</div>
+                    <div class="th-rate">Rate</div>
+                    <div class="th-qty">Qty</div>
+                    <div class="th-discount" *ngIf="invoiceData.discountAt === 'Line Item Level'">Discount</div>
+                    <div class="th-vat">VAT</div>
+                    <div class="th-amount">Amount</div>
+                    <div class="th-del"></div>
+                </div>
+
+                <!-- Table Rows -->
+                <div class="items-tbody">
+                    <div class="items-row" *ngFor="let item of items">
+                        <!-- Item & Description -->
+                        <div class="td-item-desc">
+                            <div class="item-select-wrapper">
+                                <select class="item-select" [(ngModel)]="item.name" (ngModelChange)="onItemSelect(item)">
+                                    <option value="">Select Item</option>
+                                    <option *ngFor="let di of getAvailableItems(item.name)" [value]="di.name">{{ di.name }}</option>
+                                </select>
+                            </div>
+                            <textarea class="desc-input" [(ngModel)]="item.description" placeholder="Enter Description" rows="2"></textarea>
+                        </div>
+
+                        <!-- Rate -->
+                        <div class="td-cell td-rate">
+                            <input type="number" class="cell-input" [(ngModel)]="item.rate" (ngModelChange)="updateAmount(item)" step="0.001" placeholder="0.000">
+                        </div>
+
+                        <!-- Qty -->
+                        <div class="td-cell td-qty">
+                            <input type="number" class="cell-input" [(ngModel)]="item.qty" (ngModelChange)="updateAmount(item)" step="0.01" placeholder="0.00">
+                        </div>
+
+                        <!-- Discount -->
+                        <div class="td-cell td-discount" *ngIf="invoiceData.discountAt === 'Line Item Level'">
+                            <div class="discount-combo">
+                                <input type="number" class="discount-num" [(ngModel)]="item.discount" (input)="updateAmount(item)" (ngModelChange)="updateAmount(item)" placeholder="0.000">
+                                <div class="discount-sep"></div>
+                                <select class="discount-type" [(ngModel)]="item.discountType" (ngModelChange)="updateAmount(item)">
+                                    <option value="%">%</option>
+                                    <option value="flat">BHD</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- VAT -->
+                        <div class="td-cell td-vat">
+                            <div class="vat-select-wrapper">
+                                <select class="vat-select" [(ngModel)]="item.vat" (ngModelChange)="updateAmount(item)">
+                                    <option [ngValue]="0">Select</option>
+                                    <option *ngFor="let v of vatOptions" [ngValue]="v">{{ v }}%</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Amount -->
+                        <div class="td-cell td-amount">
+                            <input type="text" class="cell-input amount-readonly" [value]="item.amount.toFixed(3)" readonly tabindex="-1">
+                        </div>
+
+                        <!-- Delete -->
+                        <div class="td-del">
+                            <button class="del-btn" (click)="removeRow(item.id)" [disabled]="items.length === 1" title="Remove row">
+                                <img src="icons/delete.svg" alt="Delete" style="width: 20px; height: 20px; opacity: 0.4;">
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Row Actions -->
+                <div class="add-row-actions">
+                    <button class="add-link-btn" (click)="addRow()">
+                        <span class="add-plus">+</span> Add New Row
+                    </button>
+                    <button class="add-link-btn" (click)="openBulkModal()">
+                        <span class="add-plus">+</span> Add Items in Bulk
+                    </button>
+                </div>
+
+                <!-- Totals -->
+                <div class="totals-section">
+                    <div class="total-row">
+                        <span class="total-label">Subtotal</span>
+                        <span class="total-value">{{ subtotal.toFixed(3) }}</span>
+                    </div>
+
+                    <div class="total-row">
+                        <span class="total-label">Discount</span>
+                        <span class="total-value" *ngIf="invoiceData.discountAt === 'Line Item Level'">-{{ totalDiscount.toFixed(3) }}</span>
+                        <div class="transaction-discount-wrapper" *ngIf="invoiceData.discountAt === 'Transaction Level'">
+                            <div class="discount-combo">
+                                <input type="number" class="discount-num" [(ngModel)]="invoiceData.transactionDiscount" placeholder="0">
+                                <div class="discount-sep"></div>
+                                <select class="discount-type" [(ngModel)]="invoiceData.transactionDiscountType">
+                                    <option value="%">%</option>
+                                    <option value="flat">BHD</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="total-row" *ngIf="hasSelectedItems">
+                        <span class="total-label">VAT</span>
+                        <span class="total-value">{{ totalVat.toFixed(3) }}</span>
+                    </div>
+
+                    <div class="total-row total-grand">
+                        <span class="total-label">Total ( BHD )</span>
+                        <span class="total-value">{{ grandTotal.toFixed(3) }}</span>
+                    </div>
+                </div>
+
+                <!-- Note & Terms -->
+                <div class="note-divider-line"></div>
+                <div class="note-section">
+                    <div class="note-field">
+                        <label class="note-label">Note</label>
+                        <textarea class="note-input" [(ngModel)]="note" placeholder="Enter Note" rows="2"
+                            (focus)="noteFocused = true" (blur)="noteFocused = false"></textarea>
+                        <div class="future-use-row" *ngIf="note || noteFocused">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" [(ngModel)]="saveNoteForFuture">
+                                <span class="checkmark"></span>
+                            </label>
+                            <span class="future-use-label">Use this in future for all invoices of all customers.</span>
+                        </div>
+                    </div>
+                    <div class="note-field">
+                        <label class="note-label">Terms &amp; Conditions</label>
+                        <textarea class="note-input" [(ngModel)]="termsAndConditions" placeholder="Enter Terms &amp; Conditions" rows="3"
+                            (focus)="termsFocused = true" (blur)="termsFocused = false"></textarea>
+                        <div class="future-use-row" *ngIf="termsAndConditions || termsFocused">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" [(ngModel)]="saveTermsForFuture">
+                                <span class="checkmark"></span>
+                            </label>
+                            <span class="future-use-label">Use this in future for all invoices of all customers.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Footer -->
+    <div class="page-footer">
+        <button class="footer-btn btn-cancel" (click)="cancel()">Cancel</button>
+        <button class="footer-btn btn-draft" (click)="saveAsDraft()">Save as Draft</button>
+        <button class="footer-btn btn-save" (click)="save()">Save</button>
+    </div>
+</div>
+
+<!-- Attachments Modal -->
+<app-attachments-modal
+    *ngIf="isAttachmentsModalOpen"
+    [isAttachmentsModalOpen]="isAttachmentsModalOpen"
+    [isEditMode]="false"
+    (closeModal)="closeAttachmentsModal()">
+</app-attachments-modal>
+
+<!-- Bulk Add Modal -->
+<div class="bulk-modal-backdrop" *ngIf="isBulkModalOpen" (click)="closeBulkModal()">
+    <div class="bulk-modal-drawer" (click)="$event.stopPropagation()">
+        <div class="bulk-header">
+            <h3>Add Items</h3>
+            <button class="close-btn" (click)="closeBulkModal()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="bulk-search-wrapper">
+            <div class="search-input-container">
+                <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" class="bulk-search-input" placeholder="Search for Items" [(ngModel)]="bulkSearchTerm">
+            </div>
+        </div>
+        <div class="bulk-items-list-wrapper">
+            <label class="bulk-item-row bulk-select-all">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" [checked]="isAllFilteredSelected()" (change)="toggleSelectAllBulk($event)">
+                    <span class="checkmark"></span>
+                </div>
+                <span class="item-name-label">Select All</span>
+            </label>
+            <label class="bulk-item-row" *ngFor="let item of filteredBulkItems">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" [checked]="selectedBulkItems.has(item.name)" (change)="toggleBulkItem(item.name)">
+                    <span class="checkmark"></span>
+                </div>
+                <span class="item-name-label">{{ item.name }}</span>
+            </label>
+        </div>
+        <div class="bulk-footer">
+            <button class="bulk-btn-secondary" (click)="closeBulkModal()">Cancel</button>
+            <button class="bulk-btn-primary" (click)="addBulkItems()">Add</button>
+        </div>
+    </div>
+</div>
