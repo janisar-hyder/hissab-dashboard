@@ -282,9 +282,8 @@
                 <div class="note-section">
                     <div class="note-field">
                         <label class="note-label">Note</label>
-                        <textarea class="note-input" [(ngModel)]="note" placeholder="Enter Note" rows="2"
-                            (focus)="noteFocused = true" (blur)="noteFocused = false"></textarea>
-                        <div class="future-use-row" *ngIf="note || noteFocused">
+                        <textarea class="note-input" [(ngModel)]="note" placeholder="Enter Note" rows="2"></textarea>
+                        <div class="future-use-row" *ngIf="note">
                             <label class="checkbox-wrapper">
                                 <input type="checkbox" [(ngModel)]="saveNoteForFuture">
                                 <span class="checkmark"></span>
@@ -294,9 +293,8 @@
                     </div>
                     <div class="note-field">
                         <label class="note-label">Terms &amp; Conditions</label>
-                        <textarea class="note-input" [(ngModel)]="termsAndConditions" placeholder="Enter Terms &amp; Conditions" rows="3"
-                            (focus)="termsFocused = true" (blur)="termsFocused = false"></textarea>
-                        <div class="future-use-row" *ngIf="termsAndConditions || termsFocused">
+                        <textarea class="note-input" [(ngModel)]="termsAndConditions" placeholder="Enter Terms &amp; Conditions" rows="3"></textarea>
+                        <div class="future-use-row" *ngIf="termsAndConditions">
                             <label class="checkbox-wrapper">
                                 <input type="checkbox" [(ngModel)]="saveTermsForFuture">
                                 <span class="checkmark"></span>

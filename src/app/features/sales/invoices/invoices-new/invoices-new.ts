@@ -52,17 +52,15 @@ export class InvoicesNew implements OnInit {
   termsAndConditions = '';
   saveNoteForFuture = false;
   saveTermsForFuture = false;
-  noteFocused = false;
-  termsFocused = false;
 
   items: InvoiceItem[] = [
     {
       id: 1,
       name: '',
       description: '',
-      rate: 0,
-      qty: 0,
-      discount: 0,
+      rate: null as any,
+      qty: null as any,
+      discount: null as any,
       discountType: '%',
       vat: 0,
       amount: 0,

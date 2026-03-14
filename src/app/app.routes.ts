@@ -35,6 +35,7 @@ export const routes: Routes = [
             { path: 'sales/invoices', component: InvoicesListComponent },
             { path: 'sales/invoices/new', component: InvoicesNew },
             { path: 'sales/quotations/info/:id', loadComponent: () => import('./features/sales/quotations/quotation-info/quotation-info').then(m => m.QuotationInfoComponent) },
+            { path: 'sales/invoices/info/:id', loadComponent: () => import('./features/sales/invoices/invoice-info/invoice-info').then(m => m.InvoiceInfoComponent) },
             { path: 'admin/dashboard', component: AdminDashboard },
             { path: 'admin/clients', component: AdminClients },
             { path: 'admin/clients/new', component: AdminClientsNewComponent },

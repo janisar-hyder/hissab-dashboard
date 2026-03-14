@@ -163,7 +163,7 @@ export class InvoicesListComponent implements OnInit {
     }
 
     navigateToInfo(id: string): void {
-        console.log('Navigate to info invoice', id);
+        this.router.navigate(['/sales/invoices/info', id]);
     }
 
     closeDeleteModal(): void {
