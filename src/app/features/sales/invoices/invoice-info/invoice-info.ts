@@ -3,6 +3,8 @@ import { CommonModule, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
+import { CustomFilterComponent } from '../../../../shared/components/custom-filter/custom-filter';
+import { RecordPaymentModalComponent } from './components/record-payment-modal/record-payment-modal.component';
 
 export interface InvoiceItem {
     name: string;
@@ -22,7 +24,7 @@ export interface Invoice {
     customerContact: string;
     customerAddress: string[];
     amount: number;
-    status: 'Paid' | 'Unpaid' | 'Overdue' | 'Draft';
+    status: 'Paid' | 'Partially Paid' | 'Overdue' | 'Due in 20 Days';
     items: InvoiceItem[];
     notes?: string;
     termsAndConditions?: string;
@@ -34,7 +36,7 @@ export interface Invoice {
 @Component({
     selector: 'app-invoice-info',
     standalone: true,
-    imports: [CommonModule, RouterModule, FormsModule, DecimalPipe, PaginationComponent],
+    imports: [CommonModule, RouterModule, FormsModule, DecimalPipe, PaginationComponent, CustomFilterComponent, RecordPaymentModalComponent],
     templateUrl: './invoice-info.html',
     styleUrls: ['./invoice-info.scss']
 })
@@ -49,7 +51,7 @@ export class InvoiceInfoComponent implements OnInit {
             customerContact: 'John Doe',
             customerAddress: ['Suite 200, Building 5', 'Al-Seef District, Bahrain'],
             amount: 1267.000, 
-            status: 'Unpaid',
+            status: 'Overdue',
             items: [
                 { name: 'Server Maintenance', description: 'Full monthly server maintenance and backup.', qty: 1, rate: 1200.000, discount: 50.000, vat: 10 },
                 { name: 'SSL Certificate', description: 'Annual SSL certificate renewal.', qty: 1, rate: 17.000, discount: 0, vat: 0 }
@@ -68,7 +70,7 @@ export class InvoiceInfoComponent implements OnInit {
             customerName: 'Sigler Wholesale', 
             customerContact: 'Sarah Smith',
             customerAddress: ['Office 42, Trade Tower', 'Manama, Bahrain'],
-            amount: 9847.000, 
+            amount: 2800.000, 
             status: 'Paid',
             items: [
                 { name: 'HVAC Units', description: 'Supply of industrial HVAC units.', qty: 5, rate: 1900.000, discount: 200.000, vat: 10 },
@@ -88,7 +90,7 @@ export class InvoiceInfoComponent implements OnInit {
             customerContact: 'Michael Brown',
             customerAddress: ['Unit 12, Industrial Area', 'Hidd, Bahrain'],
             amount: 550.000, 
-            status: 'Draft',
+            status: 'Partially Paid',
             items: [
                 { name: 'Consulting Services', description: 'Technical consulting for project phase 1.', qty: 5, rate: 100.000, discount: 0, vat: 10 }
             ],
@@ -107,7 +109,7 @@ export class InvoiceInfoComponent implements OnInit {
             customerContact: 'Khalid Al-Jabri',
             customerAddress: ['Shop No. 6, Building 5277, Road 1239,', 'Block 812, Isa Town, Bahrain'],
             amount: 88.000, 
-            status: 'Overdue',
+            status: 'Due in 20 Days',
             items: [
                 { name: 'Website Development', description: 'Basic, responsive website consisting of up to four pages.', qty: 1, rate: 100.000, discount: 20.000, vat: 10 }
             ],
@@ -120,6 +122,15 @@ export class InvoiceInfoComponent implements OnInit {
 
     selectedInvoice: Invoice | null = null;
     searchTerm: string = '';
+    selectedStatus: string = 'All';
+    isRecordPaymentModalOpen = false;
+
+    filterOptions = [
+        { label: 'Overdue', value: 'Overdue', colorHex: '#ef4444' },
+        { label: 'Paid', value: 'Paid', colorHex: '#10b981' },
+        { label: 'Partially Paid', value: 'Partially Paid', colorHex: '#f59e0b' },
+        { label: 'Due in 20 Days', value: 'Due in 20 Days', colorHex: '#0ea5e9' }
+    ];
 
     // Pagination properties
     currentPage = 1;
@@ -142,12 +153,26 @@ export class InvoiceInfoComponent implements OnInit {
     }
 
     get filteredInvoices(): Invoice[] {
-        if (!this.searchTerm) return this.invoices;
-        const term = this.searchTerm.toLowerCase();
-        return this.invoices.filter(i => 
-            i.customerName.toLowerCase().includes(term) || 
-            i.invoiceNumber.toLowerCase().includes(term)
-        );
+        let filtered = this.invoices;
+        
+        if (this.searchTerm) {
+            const term = this.searchTerm.toLowerCase();
+            filtered = filtered.filter(i => 
+                i.customerName.toLowerCase().includes(term) || 
+                i.invoiceNumber.toLowerCase().includes(term)
+            );
+        }
+
+        if (this.selectedStatus !== 'All') {
+            filtered = filtered.filter(i => i.status === this.selectedStatus);
+        }
+
+        return filtered;
+    }
+
+    onFilterChange(status: string): void {
+        this.selectedStatus = status;
+        this.currentPage = 1;
     }
 
     get paginatedInvoices(): Invoice[] {
@@ -206,5 +231,22 @@ export class InvoiceInfoComponent implements OnInit {
         
         pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
         pdf.save(`Invoice-${this.selectedInvoice.invoiceNumber}.pdf`);
+    }
+
+    openRecordPaymentModal() {
+        this.isRecordPaymentModalOpen = true;
+    }
+
+    closeRecordPaymentModal() {
+        this.isRecordPaymentModalOpen = false;
+    }
+
+    onRecordPaymentSave(data: any) {
+        console.log('Payment recorded:', data);
+        this.isRecordPaymentModalOpen = false;
+        // logic to update local mock data status to 'Paid' if full amount received
+        if (this.selectedInvoice && data.amountReceived >= this.selectedInvoice.grandTotal) {
+            this.selectedInvoice.status = 'Paid';
+        }
     }
 }

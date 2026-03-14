@@ -3,6 +3,7 @@ import { CommonModule, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
+import { CustomFilterComponent } from '../../../../shared/components/custom-filter/custom-filter';
 
 export interface QuotationItem {
     name: string;
@@ -34,7 +35,7 @@ export interface Quotation {
 @Component({
     selector: 'app-quotation-info',
     standalone: true,
-    imports: [CommonModule, RouterModule, FormsModule, DecimalPipe, PaginationComponent],
+    imports: [CommonModule, RouterModule, FormsModule, DecimalPipe, PaginationComponent, CustomFilterComponent],
     templateUrl: './quotation-info.html',
     styleUrls: ['./quotation-info.scss']
 })
@@ -120,6 +121,13 @@ export class QuotationInfoComponent implements OnInit {
 
     selectedQuotation: Quotation | null = null;
     searchTerm: string = '';
+    selectedStatus: string = 'All';
+
+    filterOptions = [
+        { label: 'Sent', value: 'Sent', colorHex: '#11A9EF' },
+        { label: 'Invoiced', value: 'Invoiced', colorHex: '#10B981' },
+        { label: 'Draft', value: 'Draft', colorHex: '#94A3B8' }
+    ];
 
     // Pagination properties
     currentPage = 1;
@@ -142,12 +150,26 @@ export class QuotationInfoComponent implements OnInit {
     }
 
     get filteredQuotations(): Quotation[] {
-        if (!this.searchTerm) return this.quotations;
-        const term = this.searchTerm.toLowerCase();
-        return this.quotations.filter(q => 
-            q.customerName.toLowerCase().includes(term) || 
-            q.quotationNumber.toLowerCase().includes(term)
-        );
+        let filtered = this.quotations;
+
+        if (this.searchTerm) {
+            const term = this.searchTerm.toLowerCase();
+            filtered = filtered.filter(q => 
+                q.customerName.toLowerCase().includes(term) || 
+                q.quotationNumber.toLowerCase().includes(term)
+            );
+        }
+
+        if (this.selectedStatus !== 'All') {
+            filtered = filtered.filter(q => q.status === this.selectedStatus);
+        }
+
+        return filtered;
+    }
+
+    onFilterChange(status: string): void {
+        this.selectedStatus = status;
+        this.currentPage = 1;
     }
 
     get paginatedQuotations(): Quotation[] {

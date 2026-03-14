@@ -272,28 +272,43 @@
             }
         }
 
-        &:hover {
+        &:hover,
+        &.expanded {
+            background: var(--bg-muted); // Default grey for expanded/hover
             color: var(--primary);
-            background: var(--bg-muted);
 
             .nav-chevron {
                 color: var(--primary);
             }
         }
 
-        &.active {
-            color: white;
-            background: var(--primary); // Vibrant exact blue
+        &.active-module {
+            color: white !important;
+            background: var(--primary) !important; // Sticky vibrant blue for active module
             border-radius: 8px;
             box-shadow: none;
             position: relative;
 
             .svg-icon {
-                background-color: white;
+                background-color: white !important;
             }
 
             .nav-chevron {
-                color: white;
+                color: white !important;
+            }
+
+            .nav-text {
+                color: white !important;
+            }
+        }
+
+        &.active-link {
+            color: white;
+            background: var(--primary);
+            border-radius: 8px;
+
+            .svg-icon {
+                background-color: white;
             }
         }
 
@@ -321,7 +336,7 @@
         .sub-menu {
             display: flex;
             flex-direction: column;
-            margin-top: 4px;
+            margin-top: 0; // Removed margin to bridge gap
             position: relative;
 
             // Vertical connecting line
@@ -329,7 +344,7 @@
                 content: '';
                 position: absolute;
                 left: 20px; // align directly under icon
-                top: 0;
+                top: -12px; // Extended further up to center of parent icon
                 bottom: 16px;
                 width: 1px;
                 background-color: var(--border-light);

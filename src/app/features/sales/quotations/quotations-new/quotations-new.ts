@@ -36,7 +36,7 @@ export class QuotationsNew {
     referenceNumber: '',
     salesPerson: '',
     discountAt: 'Line Item Level',
-    transactionDiscount: 0,
+    transactionDiscount: null as any,
     transactionDiscountType: '%' as '%' | 'flat',
   };
 
@@ -112,10 +112,7 @@ export class QuotationsNew {
   }
 
   getAvailableItems(currentItemName: string): any[] {
-    const selectedNames = this.items
-      .map(item => item.name)
-      .filter(name => name && name !== '' && name !== currentItemName);
-    return this.dummyItems.filter(item => !selectedNames.includes(item.name));
+    return this.dummyItems; // Allow all items to be selected multiple times
   }
 
   get subtotal(): number {
@@ -232,11 +229,7 @@ export class QuotationsNew {
   openBulkModal(): void {
     this.isBulkModalOpen = true;
     this.bulkSearchTerm = '';
-    // Sync selections with currently selected items in rows
-    this.selectedBulkItems.clear();
-    this.items.forEach(item => {
-      if (item.name) this.selectedBulkItems.add(item.name);
-    });
+    this.selectedBulkItems.clear(); // Start fresh to allow duplicates
   }
 
   closeBulkModal(): void {
@@ -276,47 +269,30 @@ export class QuotationsNew {
   }
 
   addBulkItems(): void {
-    // 1. Remove rows for items that were unselected in the modal
-    this.items = this.items.filter(item => {
-      if (!item.name) return true; // Keep placeholder/empty rows
-      return this.selectedBulkItems.has(item.name);
-    });
+    // 1. Delete empty rows (those without a name)
+    this.items = this.items.filter(item => !!item.name);
 
-    // 2. Identify items selected in modal that are NOT in the table yet
-    const currentNames = new Set(this.items.map(i => i.name).filter(n => !!n));
-    const namesToAdd = Array.from(this.selectedBulkItems).filter(name => !currentNames.has(name));
-
-    // 3. Reuse empty row if available
-    let firstEmptyRow = this.items.find(i => !i.name);
-
-    namesToAdd.forEach((name, index) => {
+    // 2. Add all selected items from the bulk menu
+    this.selectedBulkItems.forEach(name => {
       const product = this.dummyItems.find(p => p.name === name);
       if (!product) return;
 
-      if (index === 0 && firstEmptyRow) {
-        firstEmptyRow.name = product.name;
-        firstEmptyRow.description = product.description;
-        firstEmptyRow.rate = product.rate;
-        firstEmptyRow.qty = 1;
-        this.updateAmount(firstEmptyRow);
-      } else {
-        const newItem: QuotationItem = {
-          id: this.nextId++,
-          name: product.name,
-          description: product.description,
-          rate: product.rate,
-          qty: 1,
-          discount: 0,
-          discountType: '%',
-          vat: 0,
-          amount: 0
-        };
-        this.updateAmount(newItem);
-        this.items.push(newItem);
-      }
+      const newItem: QuotationItem = {
+        id: this.nextId++,
+        name: product.name,
+        description: product.description,
+        rate: product.rate,
+        qty: 1,
+        discount: null as any, // Consistent with refinement
+        discountType: '%',
+        vat: 0,
+        amount: 0
+      };
+      this.updateAmount(newItem);
+      this.items.push(newItem);
     });
 
-    // 4. If everything was removed, ensure at least one blank row exists
+    // 3. Ensure at least one row exists
     if (this.items.length === 0) {
       this.addRow();
     }

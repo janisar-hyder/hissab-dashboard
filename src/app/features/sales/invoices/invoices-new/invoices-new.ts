@@ -38,14 +38,14 @@ export class InvoicesNew implements OnInit {
     dueDate: '',
     salesPerson: '',
     discountAt: 'Line Item Level',
-    transactionDiscount: 0,
+    transactionDiscount: null as any,
     transactionDiscountType: '%' as '%' | 'flat',
   };
 
   commissionData = {
     salesPartner: '',
-    commissionPercentage: 0,
-    commissionAmount: 0,
+    commissionPercentage: null as any,
+    commissionAmount: null as any,
   };
 
   note = '';
@@ -122,10 +122,7 @@ export class InvoicesNew implements OnInit {
   }
 
   getAvailableItems(currentItemName: string): any[] {
-    const selectedNames = this.items
-      .map(item => item.name)
-      .filter(name => name && name !== '' && name !== currentItemName);
-    return this.dummyItems.filter(item => !selectedNames.includes(item.name));
+    return this.dummyItems; // Allow all items to be selected multiple times
   }
 
   get subtotal(): number {
@@ -230,10 +227,7 @@ export class InvoicesNew implements OnInit {
   openBulkModal(): void {
     this.isBulkModalOpen = true;
     this.bulkSearchTerm = '';
-    this.selectedBulkItems.clear();
-    this.items.forEach(item => {
-      if (item.name) this.selectedBulkItems.add(item.name);
-    });
+    this.selectedBulkItems.clear(); // Start fresh to allow adding same items again
   }
   closeBulkModal(): void { this.isBulkModalOpen = false; }
 
@@ -262,39 +256,32 @@ export class InvoicesNew implements OnInit {
   }
 
   addBulkItems(): void {
-    this.items = this.items.filter(item => !item.name || this.selectedBulkItems.has(item.name));
-    const currentNames = new Set(this.items.map(i => i.name).filter(n => !!n));
-    const namesToAdd = Array.from(this.selectedBulkItems).filter(name => !currentNames.has(name));
-    let firstEmptyRow = this.items.find(i => !i.name);
+    // 1. Delete empty rows (those without a name)
+    this.items = this.items.filter(item => !!item.name);
 
-    namesToAdd.forEach((name, index) => {
+    // 2. Add all selected items from the bulk menu
+    this.selectedBulkItems.forEach(name => {
       const product = this.dummyItems.find(p => p.name === name);
       if (!product) return;
 
-      if (index === 0 && firstEmptyRow) {
-        firstEmptyRow.name = product.name;
-        firstEmptyRow.description = product.description;
-        firstEmptyRow.rate = product.rate;
-        firstEmptyRow.qty = 1;
-        this.updateAmount(firstEmptyRow);
-      } else {
-        const newItem: InvoiceItem = {
-          id: this.nextId++,
-          name: product.name,
-          description: product.description,
-          rate: product.rate,
-          qty: 1,
-          discount: 0,
-          discountType: '%',
-          vat: 0,
-          amount: 0
-        };
-        this.updateAmount(newItem);
-        this.items.push(newItem);
-      }
+      const newItem: InvoiceItem = {
+        id: this.nextId++,
+        name: product.name,
+        description: product.description,
+        rate: product.rate,
+        qty: 1,
+        discount: null as any, // Consistent with previous refinement
+        discountType: '%',
+        vat: 0,
+        amount: 0
+      };
+      this.updateAmount(newItem);
+      this.items.push(newItem);
     });
 
+    // 3. Ensure at least one row exists
     if (this.items.length === 0) this.addRow();
+
     this.closeBulkModal();
   }
 

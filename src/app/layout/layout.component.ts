@@ -34,25 +34,28 @@ import { filter } from 'rxjs/operators';
       <div class="app-body">
         <aside class="sidebar" [class.expanded]="isSidebarExpanded" (mouseenter)="isHovered = true" (mouseleave)="isHovered = false">
           
-          <!-- ADMIN SIDEBAR -->
+            <!-- ADMIN SIDEBAR -->
           <nav class="nav-menu" *ngIf="isAdminPage">
-            <a routerLink="/admin/dashboard" class="nav-item" [class.active]="expandedMenu === 'dashboard'" (click)="toggleSubMenu('dashboard', $event)">
+            <a routerLink="/admin/dashboard" class="nav-item" [class.active-link]="isActive('/admin/dashboard')" (click)="toggleSubMenu('dashboard', $event)">
               <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('dashboard', 0)" [style.mask-image]="getIconUrl('dashboard', 0)"></div>
               <span class="nav-text">Dashboard</span>
             </a>
             
-            <a routerLink="/admin/clients" class="nav-item" [class.active]="expandedMenu === 'clients'" (click)="toggleSubMenu('clients', $event)">
+            <a routerLink="/admin/clients" class="nav-item" [class.active-link]="isActive('/admin/clients')" (click)="toggleSubMenu('clients', $event)">
               <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('clients', 'clients')" [style.mask-image]="getIconUrl('clients', 'clients')"></div>
               <span class="nav-text">Clients</span>
             </a>
 
             <div class="nav-item-group">
-              <a href="#" class="nav-item" [class.active]="expandedMenu === 'users'" (click)="toggleSubMenu('users', $event)">
+              <a href="#" class="nav-item" 
+                 [class.active-module]="isActiveModule('users')" 
+                 [class.expanded]="isExpanded('users')"
+                 (click)="toggleSubMenu('users', $event)">
                 <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('users', 'user-management')" [style.mask-image]="getIconUrl('users', 'user-management')"></div>
                 <span class="nav-text">User Management</span>
-                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'users'"></i>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('users')"></i>
               </a>
-              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'users'">
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('users')">
                 <div class="sub-menu-line"></div>
                 <a routerLink="/admin/user-management/users" routerLinkActive="active" class="sub-item"><span class="dot"></span>Users</a>
                 <a routerLink="/admin/user-management/roles" routerLinkActive="active" class="sub-item"><span class="dot"></span>Roles</a>
@@ -63,12 +66,15 @@ import { filter } from 'rxjs/operators';
             <div class="sidebar-label">Preferences</div>
 
             <div class="nav-item-group">
-              <a href="#" class="nav-item" [class.active]="expandedMenu === 'settings'" (click)="toggleSubMenu('settings', $event)">
+              <a href="#" class="nav-item" 
+                 [class.active-module]="isActiveModule('settings')" 
+                 [class.expanded]="isExpanded('settings')"
+                 (click)="toggleSubMenu('settings', $event)">
                 <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('settings', 9)" [style.mask-image]="getIconUrl('settings', 9)"></div>
                 <span class="nav-text">Settings</span>
-                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'settings'"></i>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('settings')"></i>
               </a>
-              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'settings'">
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('settings')">
                 <div class="sub-menu-line"></div>
                 <a href="#" class="sub-item"><span class="dot"></span>General</a>
               </div>
@@ -82,12 +88,15 @@ import { filter } from 'rxjs/operators';
               <span class="nav-text">Dashboard</span>
             </a>
             <div class="nav-item-group">
-              <a href="#" class="nav-item" [class.active]="expandedMenu === 'sales' || !expandedMenu" (click)="toggleSubMenu('sales', $event)">
+              <a href="#" class="nav-item" 
+                 [class.active-module]="isActiveModule('sales')" 
+                 [class.expanded]="isExpanded('sales')"
+                 (click)="toggleSubMenu('sales', $event)">
                 <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('sales', 1, true)" [style.mask-image]="getIconUrl('sales', 1, true)"></div>
                 <span class="nav-text">Sales</span>
-                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'sales'"></i>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('sales')"></i>
               </a>
-              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'sales'">
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('sales')">
                 <div class="sub-menu-line"></div>
                 <a routerLink="/sales/customers" routerLinkActive="active" class="sub-item"><span class="dot"></span>Customers</a>
                 <a routerLink="/sales/quotations" routerLinkActive="active" class="sub-item"><span class="dot"></span>Quotations</a>
@@ -99,12 +108,15 @@ import { filter } from 'rxjs/operators';
               </div>
             </div>
             <div class="nav-item-group">
-              <a href="#" class="nav-item" [class.active]="expandedMenu === 'purchases'" (click)="toggleSubMenu('purchases', $event)">
+              <a href="#" class="nav-item" 
+                 [class.active-module]="isActiveModule('purchases')" 
+                 [class.expanded]="isExpanded('purchases')"
+                 (click)="toggleSubMenu('purchases', $event)">
                 <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('purchases', 2)" [style.mask-image]="getIconUrl('purchases', 2)"></div>
                 <span class="nav-text">Purchases</span>
-                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'purchases'"></i>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('purchases')"></i>
               </a>
-              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'purchases'">
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('purchases')">
                 <div class="sub-menu-line"></div>
                 <a href="#" class="sub-item"><span class="dot"></span>Purchase Orders</a>
                 <a href="#" class="sub-item"><span class="dot"></span>Bills</a>
@@ -113,12 +125,15 @@ import { filter } from 'rxjs/operators';
             </div>
             
             <div class="nav-item-group">
-              <a href="#" class="nav-item" [class.active]="expandedMenu === 'inventory'" (click)="toggleSubMenu('inventory', $event)">
+              <a href="#" class="nav-item" 
+                 [class.active-module]="isActiveModule('inventory')" 
+                 [class.expanded]="isExpanded('inventory')"
+                 (click)="toggleSubMenu('inventory', $event)">
                 <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('inventory', 3)" [style.mask-image]="getIconUrl('inventory', 3)"></div>
                 <span class="nav-text">Inventory</span>
-                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'inventory'"></i>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('inventory')"></i>
               </a>
-              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'inventory'">
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('inventory')">
                 <div class="sub-menu-line"></div>
                 <a routerLink="/inventory/items" routerLinkActive="active" class="sub-item"><span class="dot"></span>Items</a>
                 <a href="#" class="sub-item"><span class="dot"></span>Adjustments</a>
@@ -126,12 +141,15 @@ import { filter } from 'rxjs/operators';
             </div>
 
             <div class="nav-item-group">
-              <a href="#" class="nav-item" [class.active]="expandedMenu === 'accounts'" (click)="toggleSubMenu('accounts', $event)">
+              <a href="#" class="nav-item" 
+                 [class.active-module]="isActiveModule('accounts')" 
+                 [class.expanded]="isExpanded('accounts')"
+                 (click)="toggleSubMenu('accounts', $event)">
                 <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('accounts', 4)" [style.mask-image]="getIconUrl('accounts', 4)"></div>
                 <span class="nav-text">Accounts</span>
-                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'accounts'"></i>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('accounts')"></i>
               </a>
-              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'accounts'">
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('accounts')">
                 <div class="sub-menu-line"></div>
                 <a href="#" class="sub-item"><span class="dot"></span>Chart of Accounts</a>
                 <a href="#" class="sub-item"><span class="dot"></span>Journals</a>
@@ -139,12 +157,15 @@ import { filter } from 'rxjs/operators';
             </div>
 
             <div class="nav-item-group">
-              <a href="#" class="nav-item" [class.active]="expandedMenu === 'hr'" (click)="toggleSubMenu('hr', $event)">
+              <a href="#" class="nav-item" 
+                 [class.active-module]="isActiveModule('hr')" 
+                 [class.expanded]="isExpanded('hr')"
+                 (click)="toggleSubMenu('hr', $event)">
                 <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('hr', 5)" [style.mask-image]="getIconUrl('hr', 5)"></div>
                 <span class="nav-text">HR & Payroll</span>
-                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'hr'"></i>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('hr')"></i>
               </a>
-              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'hr'">
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('hr')">
                 <div class="sub-menu-line"></div>
                 <a href="#" class="sub-item"><span class="dot"></span>Employees</a>
                 <a href="#" class="sub-item"><span class="dot"></span>Payrolls</a>
@@ -152,12 +173,15 @@ import { filter } from 'rxjs/operators';
             </div>
 
             <div class="nav-item-group">
-              <a href="#" class="nav-item" [class.active]="expandedMenu === 'production'" (click)="toggleSubMenu('production', $event)">
+              <a href="#" class="nav-item" 
+                 [class.active-module]="isActiveModule('production')" 
+                 [class.expanded]="isExpanded('production')"
+                 (click)="toggleSubMenu('production', $event)">
                 <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('production', 6)" [style.mask-image]="getIconUrl('production', 6)"></div>
                 <span class="nav-text">Production</span>
-                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'production'"></i>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('production')"></i>
               </a>
-              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'production'">
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('production')">
                 <div class="sub-menu-line"></div>
                 <a href="#" class="sub-item"><span class="dot"></span>Work Orders</a>
                 <a href="#" class="sub-item"><span class="dot"></span>BOM</a>
@@ -165,12 +189,15 @@ import { filter } from 'rxjs/operators';
             </div>
 
             <div class="nav-item-group">
-              <a href="#" class="nav-item" [class.active]="expandedMenu === 'projects'" (click)="toggleSubMenu('projects', $event)">
+              <a href="#" class="nav-item" 
+                 [class.active-module]="isActiveModule('projects')" 
+                 [class.expanded]="isExpanded('projects')"
+                 (click)="toggleSubMenu('projects', $event)">
                 <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('projects', 7)" [style.mask-image]="getIconUrl('projects', 7)"></div>
                 <span class="nav-text">Projects</span>
-                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'projects'"></i>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('projects')"></i>
               </a>
-              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'projects'">
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('projects')">
                 <div class="sub-menu-line"></div>
                 <a href="#" class="sub-item"><span class="dot"></span>All Projects</a>
                 <a href="#" class="sub-item"><span class="dot"></span>Timesheets</a>
@@ -178,19 +205,22 @@ import { filter } from 'rxjs/operators';
             </div>
 
             <div class="nav-item-group">
-              <a href="#" class="nav-item" [class.active]="expandedMenu === 'user-management'" (click)="toggleSubMenu('user-management', $event)">
+              <a href="#" class="nav-item" 
+                 [class.active-module]="isActiveModule('user-management')" 
+                 [class.expanded]="isExpanded('user-management')"
+                 (click)="toggleSubMenu('user-management', $event)">
                 <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('user-management', 'user-management')" [style.mask-image]="getIconUrl('user-management', 'user-management')"></div>
                 <span class="nav-text">User Management</span>
-                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'user-management'"></i>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('user-management')"></i>
               </a>
-              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'user-management'">
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('user-management')">
                 <div class="sub-menu-line"></div>
                 <a routerLink="/user-management/users" routerLinkActive="active" class="sub-item"><span class="dot"></span>Users</a>
                 <a routerLink="/user-management/roles" routerLinkActive="active" class="sub-item"><span class="dot"></span>Roles</a>
               </div>
             </div>
 
-            <a href="#" class="nav-item" [class.active]="expandedMenu === 'reports'" (click)="toggleSubMenu('reports', $event)">
+            <a href="#" class="nav-item" [class.active-module]="isActiveModule('reports')" (click)="toggleSubMenu('reports', $event)">
               <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('reports', 8)" [style.mask-image]="getIconUrl('reports', 8)"></div>
               <span class="nav-text">Reports</span>
             </a>
@@ -198,12 +228,15 @@ import { filter } from 'rxjs/operators';
             <div class="sidebar-label">Preferences</div>
 
             <div class="nav-item-group">
-              <a href="#" class="nav-item" [class.active]="expandedMenu === 'settings'" (click)="toggleSubMenu('settings', $event)">
+              <a href="#" class="nav-item" 
+                 [class.active-module]="isActiveModule('settings')" 
+                 [class.expanded]="isExpanded('settings')"
+                 (click)="toggleSubMenu('settings', $event)">
                 <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('settings', 9)" [style.mask-image]="getIconUrl('settings', 9)"></div>
                 <span class="nav-text">Settings</span>
-                <i class="las la-angle-down nav-chevron" [class.rotated]="expandedMenu === 'settings'"></i>
+                <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('settings')"></i>
               </a>
-              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && expandedMenu === 'settings'">
+              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('settings')">
                 <div class="sub-menu-line"></div>
                 <a href="#" class="sub-item"><span class="dot"></span>General</a>
                 <a href="#" class="sub-item"><span class="dot"></span>Users</a>
@@ -243,7 +276,7 @@ import { filter } from 'rxjs/operators';
 export class LayoutComponent implements OnInit {
   isSidebarExpanded = false;
   isHovered = false;
-  expandedMenu: string | null = null;
+  expandedMenu: string | null = null; // Stores the currently expanded INACTIVE menu
 
   constructor(private router: Router) { }
 
@@ -257,17 +290,24 @@ export class LayoutComponent implements OnInit {
     if (url.startsWith('/sales')) return 'sales';
     if (url.startsWith('/inventory')) return 'inventory';
     if (url.startsWith('/user-management')) return 'user-management';
-    if (url.startsWith('/accounting')) return 'accounting';
+    if (url.startsWith('/accounting')) return 'accounts';
     if (url.startsWith('/hr')) return 'hr';
+    if (url.startsWith('/production')) return 'production';
+    if (url.startsWith('/projects')) return 'projects';
     return null;
   }
 
   ngOnInit(): void {
-    this.expandedMenu = this.getMenuFromUrl(this.router.url);
+    const initialActive = this.getMenuFromUrl(this.router.url);
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
-      this.expandedMenu = this.getMenuFromUrl(event.urlAfterRedirects);
+      const currentActive = this.getMenuFromUrl(event.urlAfterRedirects);
+      // If we navigate to a page that's inside a module, we clear the 'accordion' state
+      // because that module is now the 'sticky' active one.
+      if (currentActive === this.expandedMenu) {
+        this.expandedMenu = null;
+      }
     });
   }
 
@@ -275,8 +315,21 @@ export class LayoutComponent implements OnInit {
     return this.router.url.startsWith('/admin');
   }
 
+  isExpanded(menu: string): boolean {
+      // Expanded if it's the active one OR if it's the one we manually opened (accordion)
+      return this.isActiveModule(menu) || this.expandedMenu === menu;
+  }
+
+  isActiveModule(menu: string): boolean {
+      return this.getMenuFromUrl(this.router.url) === menu;
+  }
+
+  isActive(route: string): boolean {
+      return this.router.url === route;
+  }
+
   getIconUrl(menu: string, index: number | string, isDefaultActive = false): string {
-    const isActive = this.expandedMenu === menu || (isDefaultActive && !this.expandedMenu);
+    const isActive = this.isActiveModule(menu);
     const baseName = typeof index === 'number' ? `Frame (${index})` : index;
     return `url('/icons/${baseName}${isActive ? '-active' : ''}.svg')`;
   }
@@ -288,12 +341,14 @@ export class LayoutComponent implements OnInit {
 
   toggleSubMenu(menu: string, event: Event) {
     event.preventDefault();
-    // If this menu is already active because we're on its sub-page, only allow expanding, not collapsing
-    const activeFromUrl = this.getMenuFromUrl(this.router.url);
-    if (activeFromUrl === menu) {
-      this.expandedMenu = menu; // keep open
+    
+    // If it's the active module, stay open
+    if (this.isActiveModule(menu)) return;
+
+    if (this.expandedMenu === menu) {
+        this.expandedMenu = null;
     } else {
-      this.expandedMenu = this.expandedMenu === menu ? null : menu;
+        this.expandedMenu = menu;
     }
   }
   getToggleIconUrl(): string {
