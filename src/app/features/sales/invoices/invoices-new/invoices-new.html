@@ -200,10 +200,10 @@
 
                         <!-- Discount -->
                         <div class="td-cell td-discount" *ngIf="invoiceData.discountAt === 'Line Item Level'">
-                            <div class="discount-combo">
-                                <input type="number" class="discount-num" [(ngModel)]="item.discount" (input)="updateAmount(item)" (ngModelChange)="updateAmount(item)" placeholder="0.000">
-                                <div class="discount-sep"></div>
-                                <select class="discount-type" [(ngModel)]="item.discountType" (ngModelChange)="updateAmount(item)">
+                            <div class="discount-input-group">
+                                <input type="number" class="discount-control-num" [(ngModel)]="item.discount" (input)="updateAmount(item)" (ngModelChange)="updateAmount(item)" placeholder="0.000">
+                                <div class="discount-divider"></div>
+                                <select class="discount-control-type" [(ngModel)]="item.discountType" (ngModelChange)="updateAmount(item)">
                                     <option value="%">%</option>
                                     <option value="flat">BHD</option>
                                 </select>
@@ -255,10 +255,10 @@
                         <span class="total-label">Discount</span>
                         <span class="total-value" *ngIf="invoiceData.discountAt === 'Line Item Level'">-{{ totalDiscount.toFixed(3) }}</span>
                         <div class="transaction-discount-wrapper" *ngIf="invoiceData.discountAt === 'Transaction Level'">
-                            <div class="discount-combo">
-                                <input type="number" class="discount-num" [(ngModel)]="invoiceData.transactionDiscount" placeholder="0">
-                                <div class="discount-sep"></div>
-                                <select class="discount-type" [(ngModel)]="invoiceData.transactionDiscountType">
+                            <div class="discount-input-group">
+                                <input type="number" class="discount-control-num" [(ngModel)]="invoiceData.transactionDiscount" placeholder="0">
+                                <div class="discount-divider"></div>
+                                <select class="discount-control-type" [(ngModel)]="invoiceData.transactionDiscountType">
                                     <option value="%">%</option>
                                     <option value="flat">BHD</option>
                                 </select>

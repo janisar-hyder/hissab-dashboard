@@ -175,14 +175,14 @@
 
                         <!-- Discount: fused number + %/BHD select (Conditional) -->
                         <div class="td-cell td-discount" *ngIf="quotationData.discountAt === 'Line Item Level'">
-                            <div class="discount-combo">
-                                <input type="number" class="discount-num"
+                            <div class="discount-input-group">
+                                <input type="number" class="discount-control-num"
                                     [(ngModel)]="item.discount"
                                     (input)="updateAmount(item)"
                                     (ngModelChange)="updateAmount(item)"
                                     placeholder="0">
-                                <div class="discount-sep"></div>
-                                <select class="discount-type" [(ngModel)]="item.discountType" (ngModelChange)="updateAmount(item)">
+                                <div class="discount-divider"></div>
+                                <select class="discount-control-type" [(ngModel)]="item.discountType" (ngModelChange)="updateAmount(item)">
                                     <option value="%">%</option>
                                     <option value="flat">BHD</option>
                                 </select>
@@ -242,12 +242,12 @@
 
                         <!-- Transaction Level: show input combo -->
                         <div class="transaction-discount-wrapper" *ngIf="quotationData.discountAt === 'Transaction Level'">
-                            <div class="discount-combo">
-                                <input type="number" class="discount-num"
+                            <div class="discount-input-group">
+                                <input type="number" class="discount-control-num"
                                     [(ngModel)]="quotationData.transactionDiscount"
                                     placeholder="0">
-                                <div class="discount-sep"></div>
-                                <select class="discount-type" [(ngModel)]="quotationData.transactionDiscountType">
+                                <div class="discount-divider"></div>
+                                <select class="discount-control-type" [(ngModel)]="quotationData.transactionDiscountType">
                                     <option value="%">%</option>
                                     <option value="flat">BHD</option>
                                 </select>
