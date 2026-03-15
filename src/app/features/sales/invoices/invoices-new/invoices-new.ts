@@ -5,6 +5,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { BreadcrumbsComponent } from '../../../../shared/components/breadcrumbs/breadcrumbs.component';
 import { AttachmentsModal } from '../../../../shared/components/attachments-modal/attachments-modal';
+import { CustomSelectComponent, SelectOption } from '../../../../shared/components/custom-select/custom-select.component';
 
 interface InvoiceItem {
   id: number;
@@ -21,7 +22,7 @@ interface InvoiceItem {
 @Component({
   selector: 'app-invoices-new',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonComponent, BreadcrumbsComponent, AttachmentsModal],
+  imports: [CommonModule, FormsModule, ButtonComponent, BreadcrumbsComponent, AttachmentsModal, CustomSelectComponent],
   templateUrl: './invoices-new.html',
   styleUrl: './invoices-new.scss',
 })
@@ -76,10 +77,48 @@ export class InvoicesNew implements OnInit {
     { name: 'On Site Support', description: 'Professional on-site technical assistance', rate: 50 }
   ];
 
+  itemSelectOptions: SelectOption[] = this.dummyItems.map(item => ({
+    label: item.name,
+    value: item.name
+  }));
+
   paymentTermsOptions = [
     'Net 15', 'Net 30', 'Net 45', 'Net 60', 
     'Due end of the month', 'due end of next month', 
     'Due on Receipt', 'Custom'
+  ];
+
+  customerOptions: SelectOption[] = [
+    { label: 'ABCO HVACR Supply', value: 'ABCO HVACR Supply' }
+  ];
+
+  paymentTermsSelectOptions: SelectOption[] = [
+    { label: 'Due on Receipt', value: '' },
+    { label: 'Net 15', value: 'Net 15' },
+    { label: 'Net 30', value: 'Net 30' },
+    { label: 'Net 45', value: 'Net 45' },
+    { label: 'Net 60', value: 'Net 60' },
+    { label: 'Due end of the month', value: 'Due end of the month' },
+    { label: 'due end of next month', value: 'due end of next month' },
+    { label: 'Custom', value: 'Custom' }
+  ];
+
+  salesPersonOptions: SelectOption[] = [
+    { label: 'Ahmed Ali', value: 'sp1' },
+    { label: 'Sara Hassan', value: 'sp2' }
+  ];
+
+  discountAtOptions: SelectOption[] = [
+    { label: 'Line Item Level', value: 'Line Item Level' },
+    { label: 'Transaction Level', value: 'Transaction Level' }
+  ];
+
+  vatSelectOptions: SelectOption[] = [
+    { label: 'Select', value: 0 },
+    { label: '5%', value: 5 },
+    { label: '10%', value: 10 },
+    { label: '15%', value: 15 },
+    { label: '0%', value: 0 }
   ];
 
   isBulkModalOpen = false;

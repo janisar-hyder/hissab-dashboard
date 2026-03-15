@@ -40,10 +40,11 @@
             <!-- Customer -->
             <div class="form-group full-width" style="margin-bottom: 24px;">
                 <label>Customer <span class="required">*</span></label>
-                <select class="form-control custom-select" [(ngModel)]="quotationData.customer">
-                    <option value="">Select Customer Type</option>
-                    <option value="ABCO HVACR Supply">ABCO HVACR Supply</option>
-                </select>
+                <app-custom-select 
+                    [(ngModel)]="quotationData.customer" 
+                    [options]="customerOptions" 
+                    placeholder="Select Customer">
+                </app-custom-select>
             </div>
 
             <!-- Conditional Addresses (only shown when customer is selected) -->
@@ -109,18 +110,18 @@
                 </div>
                 <div class="form-group">
                     <label>Sales Person</label>
-                    <select class="form-control custom-select" [(ngModel)]="quotationData.salesPerson">
-                        <option value="" disabled selected>Select Sales Person</option>
-                        <option value="sp1">Ahmed Ali</option>
-                        <option value="sp2">Sara Hassan</option>
-                    </select>
+                    <app-custom-select 
+                        [(ngModel)]="quotationData.salesPerson" 
+                        [options]="salesPersonOptions" 
+                        placeholder="Select Sales Person">
+                    </app-custom-select>
                 </div>
                 <div class="form-group">
                     <label>Discount At</label>
-                    <select class="form-control custom-select" [(ngModel)]="quotationData.discountAt">
-                        <option value="Line Item Level">Line Item Level</option>
-                        <option value="Transaction Level">Transaction Level</option>
-                    </select>
+                    <app-custom-select 
+                        [(ngModel)]="quotationData.discountAt" 
+                        [options]="discountAtOptions">
+                    </app-custom-select>
                 </div>
             </div>
         </div>
@@ -147,10 +148,12 @@
                         <!-- Item & Description -->
                         <div class="td-item-desc">
                             <div class="item-select-wrapper">
-                                <select class="item-select" [(ngModel)]="item.name" (ngModelChange)="onItemSelect(item)">
-                                    <option value="">Select Item</option>
-                                    <option *ngFor="let di of getAvailableItems(item.name)" [value]="di.name">{{ di.name }}</option>
-                                </select>
+                                <app-custom-select 
+                                    [(ngModel)]="item.name" 
+                                    [options]="itemSelectOptions" 
+                                    placeholder="Select Item"
+                                    (ngModelChange)="onItemSelect(item)">
+                                </app-custom-select>
                             </div>
                             <textarea class="desc-input" [(ngModel)]="item.description" placeholder="Enter Description" rows="2"></textarea>
                         </div>
@@ -192,10 +195,12 @@
                         <!-- VAT -->
                         <div class="td-cell td-vat">
                             <div class="vat-select-wrapper">
-                                <select class="vat-select" [(ngModel)]="item.vat" (ngModelChange)="updateAmount(item)">
-                                    <option [ngValue]="0">Select</option>
-                                    <option *ngFor="let v of vatOptions" [ngValue]="v">{{ v }}%</option>
-                                </select>
+                                <app-custom-select 
+                                    [(ngModel)]="item.vat" 
+                                    [options]="vatSelectOptions" 
+                                    placeholder="Select"
+                                    (ngModelChange)="updateAmount(item)">
+                                </app-custom-select>
                             </div>
                         </div>
 

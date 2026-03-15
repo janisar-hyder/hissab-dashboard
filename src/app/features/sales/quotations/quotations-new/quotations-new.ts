@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { BreadcrumbsComponent } from '../../../../shared/components/breadcrumbs/breadcrumbs.component';
+import { CustomSelectComponent, SelectOption } from '../../../../shared/components/custom-select/custom-select.component';
 import { AttachmentsModal } from '../../../../shared/components/attachments-modal/attachments-modal';
 
 interface QuotationItem {
@@ -21,7 +22,7 @@ interface QuotationItem {
 @Component({
   selector: 'app-quotations-new',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonComponent, BreadcrumbsComponent, AttachmentsModal],
+  imports: [CommonModule, FormsModule, ButtonComponent, BreadcrumbsComponent, CustomSelectComponent, AttachmentsModal],
   templateUrl: './quotations-new.html',
   styleUrl: './quotations-new.scss',
 })
@@ -75,6 +76,11 @@ export class QuotationsNew {
     { name: 'E-commerce Website', description: 'Fully functional online store with payment integration', rate: 500 }
   ];
 
+  itemSelectOptions: SelectOption[] = this.dummyItems.map(item => ({
+    label: item.name,
+    value: item.name
+  }));
+
   isBulkModalOpen = false;
   bulkSearchTerm = '';
   selectedBulkItems = new Set<string>();
@@ -92,6 +98,45 @@ export class QuotationsNew {
   nextId = 2;
 
   vatOptions = [5, 10, 15, 0];
+
+  paymentTermsOptions = [
+    'Net 15', 'Net 30', 'Net 45', 'Net 60',
+    'Due end of the month', 'due end of next month',
+    'Due on Receipt', 'Custom'
+  ];
+
+  customerOptions: SelectOption[] = [
+    { label: 'ABCO HVACR Supply', value: 'ABCO HVACR Supply' }
+  ];
+
+  paymentTermsSelectOptions: SelectOption[] = [
+    { label: 'Due on Receipt', value: '' },
+    { label: 'Net 15', value: 'Net 15' },
+    { label: 'Net 30', value: 'Net 30' },
+    { label: 'Net 45', value: 'Net 45' },
+    { label: 'Net 60', value: 'Net 60' },
+    { label: 'Due end of the month', value: 'Due end of the month' },
+    { label: 'due end of next month', value: 'due end of next month' },
+    { label: 'Custom', value: 'Custom' }
+  ];
+
+  salesPersonOptions: SelectOption[] = [
+    { label: 'Ahmed Ali', value: 'sp1' },
+    { label: 'Sara Hassan', value: 'sp2' }
+  ];
+
+  discountAtOptions: SelectOption[] = [
+    { label: 'Line Item Level', value: 'Line Item Level' },
+    { label: 'Transaction Level', value: 'Transaction Level' }
+  ];
+
+  vatSelectOptions: SelectOption[] = [
+    { label: 'Select', value: 0 },
+    { label: '5%', value: 5 },
+    { label: '10%', value: 10 },
+    { label: '15%', value: 15 },
+    { label: '0%', value: 0 }
+  ];
 
   constructor(private router: Router, private route: ActivatedRoute) {}
 
@@ -152,17 +197,17 @@ export class QuotationsNew {
       // Typically, VAT is calculated per line item.
       const totalDisc = this.totalDiscount;
       const sub = this.subtotal;
-      
+
       return this.items.reduce((sum, item) => {
         const rate = Number(item.rate) || 0;
         const qty = Number(item.qty) || 0;
         const vat = Number(item.vat) || 0;
         const base = rate * qty;
-        
+
         // Calculate proportional discount for this line item
         const proportionalDisc = sub > 0 ? (base / sub * totalDisc) : 0;
         const discounted = base - proportionalDisc;
-        
+
         return sum + (discounted * vat / 100);
       }, 0);
     }

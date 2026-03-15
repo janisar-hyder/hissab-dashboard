@@ -173,14 +173,7 @@
         }
     }
 
-    .custom-select {
-        appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 12px center;
-        background-size: 16px;
-        padding-right: 40px;
-    }
+    /* Custom Select - Replaced by app-custom-select component */
 }
 
 /* Address Row & Boxes */
@@ -373,38 +366,6 @@ $col-grid-no-discount: 48% 12% 10% 12% 14% 4%;
 
     .item-select-wrapper {
         position: relative;
-
-        &::after {
-            content: '';
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 0;
-            height: 0;
-            border-left: 4px solid transparent;
-            border-right: 4px solid transparent;
-            border-top: 5px solid #6B7280;
-            pointer-events: none;
-        }
-    }
-
-    .item-select {
-        appearance: none;
-        width: 100%;
-        padding: 7px 28px 7px 10px;
-        border: 1px solid var(--border-light);
-        border-radius: var(--radius-sm);
-        font-size: 13.5px;
-        color: var(--text-dark);
-        background-color: var(--bg-card);
-        font-family: inherit;
-        outline: none;
-        cursor: pointer;
-
-        &:focus {
-            border-color: var(--primary);
-        }
     }
 
     .desc-input {
@@ -562,42 +523,10 @@ input[type="number"] {
     }
 }
 
-/* VAT select */
+/* VAT select - Wrapper height adjustments for custom component */
 .vat-select-wrapper {
     position: relative;
     width: 100%;
-
-    &::after {
-        content: '';
-        position: absolute;
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 0;
-        height: 0;
-        border-left: 4px solid transparent;
-        border-right: 4px solid transparent;
-        border-top: 5px solid #6B7280;
-        pointer-events: none;
-    }
-
-    .vat-select {
-        appearance: none;
-        width: 100%;
-        padding: 8px 28px 8px 10px;
-        border: 1px solid var(--border-light);
-        border-radius: var(--radius-sm);
-        font-size: 13.5px;
-        font-family: inherit;
-        color: var(--text-dark);
-        background: var(--bg-card);
-        outline: none;
-        cursor: pointer;
-
-        &:focus {
-            border-color: var(--primary);
-        }
-    }
 }
 
 /* Delete cell */
