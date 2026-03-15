@@ -744,6 +744,19 @@ input[type="number"] {
     gap: 16px;
     z-index: 100;
 
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(8px);
+        z-index: -1;
+        border-top: 1px solid var(--border-light);
+    }
+
     .footer-btn {
         padding: 12px 24px;
         font-size: 14px;
@@ -763,8 +776,8 @@ input[type="number"] {
             color: var(--text-muted);
 
             &:hover {
-                // background: var(--bg-body);
                 color: var(--text-dark);
+                background-color: var(--bg-light);
             }
         }
 
@@ -779,7 +792,7 @@ input[type="number"] {
         }
 
         &.btn-save {
-            background: var(--primary-hover);
+            background: var(--primary);
             border: none;
             color: white;
 

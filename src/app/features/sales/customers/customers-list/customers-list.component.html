@@ -59,11 +59,13 @@
                             </label>
                         </th>
                         <ng-container *ngFor="let col of availableColumns">
-                            <th *ngIf="col.visible" (click)="sort(col.id)" style="cursor: pointer;">
+                            <th *ngIf="col.visible">
                                 {{ col.label }}
                                 <i [class]="sortColumn === col.id 
                                     ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down')
-                                    : 'las la-sort'"></i>
+                                    : 'las la-sort'"
+                                   (click)="sort(col.id, $event)"
+                                   style="cursor: pointer; margin-left: 4px;"></i>
                             </th>
                         </ng-container>
                         <th class="col-actions"></th>

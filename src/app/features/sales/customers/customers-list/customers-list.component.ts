@@ -102,7 +102,8 @@ export class CustomersListComponent implements OnInit {
         this.router.navigate(['/sales/customers/new']);
     }
 
-    sort(columnId: string): void {
+    sort(columnId: string, event: Event): void {
+        event.stopPropagation();
         if (this.sortColumn === columnId) {
             this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
         } else {

@@ -13,8 +13,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 var(--space-lg);
-    z-index: 101;
-    /* Must sit above sidebar */
+    z-index: 1001; /* Must sit above sidebar and footer */
     border-bottom: 1px solid var(--border-light);
     box-shadow: var(--shadow-sm);
     flex-shrink: 0;
@@ -146,7 +145,7 @@
     flex-direction: column;
     padding: var(--space-md) 20px;
     flex-shrink: 0;
-    z-index: 100;
+    z-index: 1000; /* Above page footer (100) */
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
     overflow-y: auto;
