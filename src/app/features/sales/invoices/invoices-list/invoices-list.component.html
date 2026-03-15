@@ -34,14 +34,14 @@
     </div>
 
     <!-- Data Card -->
-    <div class="data-card" *ngIf="invoices.length > 0">
+    <div class="data-card" *ngIf="invoices.length > 0 || searchQuery">
 
         <!-- Toolbar -->
         <div class="card-toolbar">
             <div class="search-box">
                 <i class="las la-search search-icon"></i>
-                <input type="text" placeholder="Search for something.." class="search-input">
-                <i class="las la-times clear-icon"></i>
+                <input type="text" placeholder="Search for something.." class="search-input" [(ngModel)]="searchQuery" (ngModelChange)="currentPage = 1">
+                <i class="las la-times clear-icon" *ngIf="searchQuery" (click)="clearSearch()"></i>
             </div>
 
             <div class="toolbar-right">
@@ -62,11 +62,19 @@
                 <thead>
                     <tr>
                         <th class="col-checkbox">
-                            <input type="checkbox" [checked]="isAllSelected()" (change)="toggleAll()">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" [checked]="isAllSelected()" [indeterminate]="isPartiallySelected()" (change)="toggleAll($event)">
+                                <span class="checkmark"></span>
+                            </label>
                         </th>
                         <ng-container *ngFor="let col of availableColumns">
-                            <th *ngIf="col.visible" [ngSwitch]="col.id" [class.text-right]="col.id === 'amount' || col.id === 'balanceDue'">
-                                <ng-container *ngSwitchDefault>{{ col.label }}</ng-container>
+                            <th *ngIf="col.visible" [class.text-right]="col.id === 'amount' || col.id === 'balanceDue'">
+                                {{ col.label }}
+                                <i [class]="sortColumn === col.id 
+                                    ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down')
+                                    : 'las la-sort'"
+                                   (click)="sort(col.id, $event)"
+                                   style="cursor: pointer; margin-left: 4px;"></i>
                             </th>
                         </ng-container>
                         <th class="col-actions"></th>
@@ -75,8 +83,11 @@
                 <tbody>
                     <tr *ngFor="let invoice of paginatedInvoices" class="clickable-row" (click)="navigateToInfo(invoice.id)">
                         <td class="col-checkbox" (click)="$event.stopPropagation()">
-                            <input type="checkbox" [checked]="selectedInvoiceIds.has(invoice.id)"
-                                (change)="toggleSelection(invoice.id)">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" [checked]="selectedInvoiceIds.has(invoice.id)"
+                                    (change)="toggleSelection(invoice.id)">
+                                <span class="checkmark"></span>
+                            </label>
                         </td>
                         <ng-container *ngFor="let col of availableColumns">
                             <td *ngIf="col.visible" [ngSwitch]="col.id" [class.text-right]="col.id === 'amount' || col.id === 'balanceDue'">
@@ -124,6 +135,18 @@
                             </div>
                         </td>
                     </tr>
+                    <!-- Empty State -->
+                    <tr *ngIf="paginatedInvoices.length === 0">
+                        <td [attr.colspan]="availableColumns.length + 2" style="padding: 0;">
+                            <app-empty-state 
+                                [title]="searchQuery ? 'No Invoices Found.' : 'No Invoices Found.'"
+                                [subtitle]="searchQuery ? 'We couldn\'t find any invoices matching \'' + searchQuery + '\'' : 'It looks like you haven\'t added any invoices matching this filter yet.'"
+                                [actionLabel]="searchQuery ? '' : 'Add New Invoice'" 
+                                [actionIconClass]="searchQuery ? '' : 'las la-plus'" 
+                                (actionClick)="navigateToNew()">
+                            </app-empty-state>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -135,8 +158,8 @@
         </app-pagination>
     </div>
 
-    <app-empty-state *ngIf="filteredInvoices.length === 0" title="No Invoices Found."
-        subtitle="It looks like you haven't added any invoices matching this filter yet."
+    <app-empty-state *ngIf="invoices.length === 0 && !searchQuery" title="No Invoices Found."
+        subtitle="It looks like you haven't added any invoices yet."
         actionLabel="Add New Invoice" actionIconClass="las la-plus" (actionClick)="navigateToNew()">
     </app-empty-state>
 

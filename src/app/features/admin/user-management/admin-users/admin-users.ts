@@ -9,6 +9,7 @@ import { ActionMenu, MenuAction } from '../../../../shared/components/action-men
 import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
 import { AddUserModalComponent } from './components/add-user-modal/add-user-modal.component';
 import { BulkActionsComponent, BulkAction } from '../../../../shared/components/bulk-actions/bulk-actions.component';
+import { FormsModule } from '@angular/forms';
 
 interface AdminUser {
   id: string;
@@ -31,7 +32,8 @@ interface AdminUser {
     AddUserModalComponent,
     ActionMenu,
     DeleteModalComponent,
-    BulkActionsComponent
+    BulkActionsComponent,
+    FormsModule
   ],
   templateUrl: './admin-users.html',
   styleUrl: './admin-users.scss',
@@ -60,6 +62,11 @@ export class AdminUsers {
   userToDelete: AdminUser | null = null;
   bulkDeletePending = false;
 
+  // Sorting and Filter properties
+  sortColumn: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+  searchQuery: string = '';
+
   bulkActions: BulkAction[] = [
     { id: 'delete', label: 'Delete Users', colorClass: 'text-danger' }
   ];
@@ -82,9 +89,19 @@ export class AdminUsers {
     { id: 'status', label: 'Status', visible: true },
   ];
 
+  get filteredUsers(): AdminUser[] {
+    if (!this.searchQuery) return this.users;
+    const query = this.searchQuery.toLowerCase();
+    return this.users.filter(u => 
+      u.name.toLowerCase().includes(query) || 
+      u.email.toLowerCase().includes(query) ||
+      u.role.toLowerCase().includes(query)
+    );
+  }
+
   get paginatedUsers(): AdminUser[] {
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    return this.users.slice(startIndex, startIndex + this.itemsPerPage);
+    return this.filteredUsers.slice(startIndex, startIndex + this.itemsPerPage);
   }
 
   isColumnVisible(columnId: string): boolean {
@@ -114,7 +131,12 @@ export class AdminUsers {
     this.currentPage = 1;
   }
 
-  toggleAll() {
+  clearSearch() {
+    this.searchQuery = '';
+    this.currentPage = 1;
+  }
+
+  toggleAll(event?: any) {
     if (this.isAllSelected()) {
       this.selectedUserIds.clear();
     } else {
@@ -133,6 +155,11 @@ export class AdminUsers {
   isAllSelected(): boolean {
     return this.paginatedUsers.length > 0 && 
            this.paginatedUsers.every(u => this.selectedUserIds.has(u.id));
+  }
+
+  isPartiallySelected(): boolean {
+    const selectedCount = this.paginatedUsers.filter(u => this.selectedUserIds.has(u.id)).length;
+    return selectedCount > 0 && selectedCount < this.paginatedUsers.length;
   }
 
   handleUserAction(event: { action: string, data: any }) {
@@ -163,6 +190,34 @@ export class AdminUsers {
     };
     // Prepend new user
     this.users = [newUser, ...this.users];
+  }
+
+  sort(columnId: string, event: Event): void {
+    event.stopPropagation();
+    if (this.sortColumn === columnId) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = columnId;
+      this.sortDirection = 'asc';
+    }
+
+    this.users.sort((a, b) => {
+      const valA = (a as any)[columnId];
+      const valB = (b as any)[columnId];
+
+      if (valA === null || valA === undefined) return 1;
+      if (valB === null || valB === undefined) return -1;
+
+      if (typeof valA === 'string' && typeof valB === 'string') {
+        return this.sortDirection === 'asc'
+          ? valA.localeCompare(valB)
+          : valB.localeCompare(valA);
+      } else {
+        return this.sortDirection === 'asc'
+          ? (valA > valB ? 1 : -1)
+          : (valA < valB ? 1 : -1);
+      }
+    });
   }
 
   closeDeleteModal() {

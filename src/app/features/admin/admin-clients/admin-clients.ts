@@ -45,6 +45,10 @@ export class AdminClients {
   selectedFilter = 'All';
   bulkDeletePending = false;
 
+  // Sorting properties
+  sortColumn: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+
   bulkActions: BulkAction[] = [
     { id: 'delete', label: 'Delete Clients', colorClass: 'text-danger' }
   ];
@@ -62,7 +66,7 @@ export class AdminClients {
     { id: '5', companyName: 'ABCO HVACR Supply', email: 'lline@gmail.com', primaryContact: 'Khalid Al-Jabri', phoneNumber: '+973 3567 4368', status: 'Inactive' },
     { id: '6', companyName: 'American Refrigeration', email: 'danten@gmail.com', primaryContact: 'Maya Al-Sabah', phoneNumber: '+973 6632 7333', status: 'Active' },
     { id: '7', companyName: 'Mingledorff\'s', email: 'rrian@gmail.com', primaryContact: 'Zainab Al-Khalifa', phoneNumber: '+973 3623 8944', status: 'Active' },
-    { id: '8', companyName: 'Sigler Wholesale', email: 'cido@gmail.com', primaryContact: 'Tariq Al-Mahmood', phoneNumber: '+973 3589 8940', status: 'Active' },
+    // { id: '8', companyName: 'Sigler Wholesale', email: 'cido@gmail.com', primaryContact: 'Tariq Al-Mahmood', phoneNumber: '+973 3589 8940', status: 'Active' },
     
     
   ];
@@ -75,6 +79,34 @@ export class AdminClients {
 
   navigateToNew() {
     this.router.navigate(['new'], { relativeTo: this.route });
+  }
+
+  sort(columnId: string, event: Event): void {
+    event.stopPropagation();
+    if (this.sortColumn === columnId) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = columnId;
+      this.sortDirection = 'asc';
+    }
+
+    this.clients.sort((a, b) => {
+      const valA = (a as any)[columnId];
+      const valB = (b as any)[columnId];
+
+      if (valA === null || valA === undefined) return 1;
+      if (valB === null || valB === undefined) return -1;
+
+      if (typeof valA === 'string' && typeof valB === 'string') {
+        return this.sortDirection === 'asc'
+          ? valA.localeCompare(valB)
+          : valB.localeCompare(valA);
+      } else {
+        return this.sortDirection === 'asc'
+          ? (valA > valB ? 1 : -1)
+          : (valA < valB ? 1 : -1);
+      }
+    });
   }
   
   get totalEntries() {
@@ -199,6 +231,11 @@ export class AdminClients {
   onFilterChange(newFilter: string) {
     this.selectedFilter = newFilter;
     this.currentPage = 1; // Reset page on filter change
+  }
+
+  clearSearch() {
+    this.searchQuery = '';
+    this.currentPage = 1;
   }
 
   toggleManageColumns() {

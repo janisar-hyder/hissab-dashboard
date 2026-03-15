@@ -34,14 +34,14 @@
     </div>
 
     <!-- Data Card -->
-    <div class="data-card" *ngIf="customers.length > 0">
+    <div class="data-card" *ngIf="customers.length > 0 || searchQuery">
 
         <!-- Toolbar -->
         <div class="card-toolbar">
             <div class="search-box">
                 <i class="las la-search search-icon"></i>
-                <input type="text" placeholder="Search for something.." class="search-input">
-                <i class="las la-times clear-icon"></i>
+                <input type="text" placeholder="Search for something.." class="search-input" [(ngModel)]="searchQuery" (ngModelChange)="currentPage = 1">
+                <i class="las la-times clear-icon" *ngIf="searchQuery" (click)="clearSearch()"></i>
             </div>
             <app-button variant="outline" iconPrefix="las la-sliders-h" (clicked)="toggleManageColumns()">Manage
                 Columns</app-button>
@@ -53,11 +53,17 @@
                 <thead>
                     <tr>
                         <th class="col-checkbox">
-                            <input type="checkbox" [checked]="isAllSelected()" (change)="toggleAll()">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" [checked]="isAllSelected()" [indeterminate]="isPartiallySelected()" (change)="toggleAll($event)">
+                                <span class="checkmark"></span>
+                            </label>
                         </th>
                         <ng-container *ngFor="let col of availableColumns">
-                            <th *ngIf="col.visible" [ngSwitch]="col.id">
-                                <ng-container *ngSwitchDefault>{{ col.label }} <i class="las la-sort"></i></ng-container>
+                            <th *ngIf="col.visible" (click)="sort(col.id)" style="cursor: pointer;">
+                                {{ col.label }}
+                                <i [class]="sortColumn === col.id 
+                                    ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down')
+                                    : 'las la-sort'"></i>
                             </th>
                         </ng-container>
                         <th class="col-actions"></th>
@@ -66,8 +72,11 @@
                 <tbody>
                     <tr *ngFor="let customer of paginatedCustomers">
                         <td class="col-checkbox">
-                            <input type="checkbox" [checked]="selectedCustomerIds.has(customer.id)"
-                                (change)="toggleSelection(customer.id)">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" [checked]="selectedCustomerIds.has(customer.id)"
+                                    (change)="toggleSelection(customer.id)">
+                                <span class="checkmark"></span>
+                            </label>
                         </td>
                         <ng-container *ngFor="let col of availableColumns">
                             <td class="text-muted" *ngIf="col.visible" [ngSwitch]="col.id">
@@ -97,18 +106,30 @@
                             </div>
                         </td>
                     </tr>
+                    <!-- Empty State -->
+                    <tr *ngIf="paginatedCustomers.length === 0">
+                        <td colspan="8" style="padding: 0;">
+                            <app-empty-state 
+                                [title]="searchQuery ? 'No Customers Found.' : 'No Customers Found.'"
+                                [subtitle]="searchQuery ? 'We couldn\'t find any customers matching \'' + searchQuery + '\'' : 'It looks like you haven\'t added any customers yet.'"
+                                [actionLabel]="searchQuery ? '' : 'Add New Customer'" 
+                                [actionIconClass]="searchQuery ? '' : 'las la-plus'" 
+                                (actionClick)="navigateToNew()">
+                            </app-empty-state>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
 
 
         <!-- Footer Pagination -->
-        <app-pagination [totalItems]="customers.length" [itemsPerPage]="itemsPerPage" [currentPage]="currentPage"
+        <app-pagination [totalItems]="filteredCustomers.length" [itemsPerPage]="itemsPerPage" [currentPage]="currentPage"
             (pageChange)="onPageChange($event)" (itemsPerPageChange)="onItemsPerPageChange($event)">
         </app-pagination>
     </div>
 
-    <app-empty-state *ngIf="customers.length === 0" title="No Customers Found."
+    <app-empty-state *ngIf="customers.length === 0 && !searchQuery" title="No Customers Found."
         subtitle="It looks like you haven't added any customers yet." actionLabel="Add New Customer"
         actionIconClass="las la-plus" (actionClick)="navigateToNew()">
     </app-empty-state>

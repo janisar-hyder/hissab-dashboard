@@ -9,6 +9,7 @@ import { DeleteModalComponent } from '../../../../shared/components/delete-modal
 import { ActionMenu, MenuAction } from '../../../../shared/components/action-menu/action-menu';
 import { Router, ActivatedRoute } from '@angular/router';
 import { BulkActionsComponent, BulkAction } from '../../../../shared/components/bulk-actions/bulk-actions.component';
+import { FormsModule } from '@angular/forms';
 
 interface AdminRole {
   id: string;
@@ -27,7 +28,8 @@ interface AdminRole {
     ManageColumnsComponent,
     ActionMenu,
     DeleteModalComponent,
-    BulkActionsComponent
+    BulkActionsComponent,
+    FormsModule
   ],
   templateUrl: './admin-roles.html',
   styleUrl: './admin-roles.scss',
@@ -53,6 +55,11 @@ export class AdminRoles {
   roleToDelete: AdminRole | null = null;
   bulkDeletePending = false;
 
+  // Sorting and Filter properties
+  sortColumn: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+  searchQuery: string = '';
+
   bulkActions: BulkAction[] = [
     { id: 'delete', label: 'Delete Roles', colorClass: 'text-danger' }
   ];
@@ -73,12 +80,18 @@ export class AdminRoles {
     { id: 'status', label: 'Status', visible: true }
   ];
 
+  get filteredRoles(): AdminRole[] {
+    if (!this.searchQuery) return this.roles;
+    const query = this.searchQuery.toLowerCase();
+    return this.roles.filter(r => r.name.toLowerCase().includes(query));
+  }
+
   get paginatedRoles() {
     if (this.itemsPerPage === -1) { // Handling 'All'
-      return this.roles;
+      return this.filteredRoles;
     }
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    return this.roles.slice(startIndex, startIndex + this.itemsPerPage);
+    return this.filteredRoles.slice(startIndex, startIndex + this.itemsPerPage);
   }
 
   isColumnVisible(columnId: string): boolean {
@@ -110,7 +123,12 @@ export class AdminRoles {
     this.currentPage = 1;
   }
 
-  toggleAll() {
+  clearSearch() {
+    this.searchQuery = '';
+    this.currentPage = 1;
+  }
+
+  toggleAll(event?: any) {
     if (this.isAllSelected()) {
       this.selectedRoleIds.clear();
     } else {
@@ -131,6 +149,11 @@ export class AdminRoles {
            this.paginatedRoles.every(role => this.selectedRoleIds.has(role.id));
   }
 
+  isPartiallySelected(): boolean {
+    const selectedCount = this.paginatedRoles.filter(role => this.selectedRoleIds.has(role.id)).length;
+    return selectedCount > 0 && selectedCount < this.paginatedRoles.length;
+  }
+
   handleRoleAction(event: { action: string, data: any }) {
     console.log(`Executing ${event.action} on role ID: ${event.data.id}`);
     
@@ -149,6 +172,34 @@ export class AdminRoles {
 
   navigateToNew() {
     this.router.navigate(['new'], { relativeTo: this.route });
+  }
+
+  sort(columnId: string, event: Event): void {
+    event.stopPropagation();
+    if (this.sortColumn === columnId) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = columnId;
+      this.sortDirection = 'asc';
+    }
+
+    this.roles.sort((a, b) => {
+      const valA = (a as any)[columnId];
+      const valB = (b as any)[columnId];
+
+      if (valA === null || valA === undefined) return 1;
+      if (valB === null || valB === undefined) return -1;
+
+      if (typeof valA === 'string' && typeof valB === 'string') {
+        return this.sortDirection === 'asc'
+          ? valA.localeCompare(valB)
+          : valB.localeCompare(valA);
+      } else {
+        return this.sortDirection === 'asc'
+          ? (valA > valB ? 1 : -1)
+          : (valA < valB ? 1 : -1);
+      }
+    });
   }
 
   closeDeleteModal() {

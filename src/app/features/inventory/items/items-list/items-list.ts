@@ -71,6 +71,10 @@ export class ItemsList {
   itemToDelete: Item | null = null;
   bulkDeletePending = false;
 
+  // Sorting properties
+  sortColumn: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+
   bulkActions: BulkAction[] = [
     { id: 'delete', label: 'Delete Items', colorClass: 'text-danger' }
   ];
@@ -156,8 +160,13 @@ export class ItemsList {
     if (event.target.checked) {
       this.displayedItems.forEach(i => this.selectedItemIds.add(i.id));
     } else {
-      this.selectedItemIds.clear();
+      this.displayedItems.forEach(i => this.selectedItemIds.delete(i.id));
     }
+  }
+
+  clearSearch() {
+    this.searchQuery = '';
+    this.currentPage = 1;
   }
 
   toggleSelection(itemId: string) {
@@ -170,6 +179,34 @@ export class ItemsList {
 
   navigateToNew() {
     this.router.navigate(['new'], { relativeTo: this.route });
+  }
+
+  sort(columnId: string, event: Event): void {
+    event.stopPropagation();
+    if (this.sortColumn === columnId) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = columnId;
+      this.sortDirection = 'asc';
+    }
+
+    this.items.sort((a, b) => {
+      const valA = (a as any)[columnId];
+      const valB = (b as any)[columnId];
+
+      if (valA === null || valA === undefined) return 1;
+      if (valB === null || valB === undefined) return -1;
+
+      if (typeof valA === 'string' && typeof valB === 'string') {
+        return this.sortDirection === 'asc'
+          ? valA.localeCompare(valB)
+          : valB.localeCompare(valA);
+      } else {
+        return this.sortDirection === 'asc'
+          ? (valA > valB ? 1 : -1)
+          : (valA < valB ? 1 : -1);
+      }
+    });
   }
 
   onPageChange(page: number) {

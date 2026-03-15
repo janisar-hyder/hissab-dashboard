@@ -52,6 +52,11 @@ export class InvoicesListComponent implements OnInit {
     invoiceToDelete: Invoice | null = null;
     currentFilter: 'All' | 'Overdue' | 'Paid' | 'Partially Paid' | string = 'All';
 
+    // Sorting and Filter properties
+    sortColumn: string = '';
+    sortDirection: 'asc' | 'desc' = 'asc';
+    searchQuery: string = '';
+
     invoiceFilterOptions: FilterOption[] = [
         { label: 'Overdue', value: 'Overdue', colorHex: '#ef4444' },
         { label: 'Paid', value: 'Paid', colorHex: '#10b981' },
@@ -70,10 +75,21 @@ export class InvoicesListComponent implements OnInit {
     ];
 
     get filteredInvoices(): Invoice[] {
-        if (this.currentFilter === 'All') {
-            return this.invoices;
+        let filtered = this.invoices;
+
+        if (this.currentFilter !== 'All') {
+            filtered = filtered.filter(i => i.status === this.currentFilter);
         }
-        return this.invoices.filter(i => i.status === this.currentFilter);
+
+        if (this.searchQuery) {
+            const query = this.searchQuery.toLowerCase();
+            filtered = filtered.filter(i => 
+                i.invoiceNumber.toLowerCase().includes(query) ||
+                i.customerName.toLowerCase().includes(query)
+            );
+        }
+
+        return filtered;
     }
 
     get paginatedInvoices(): Invoice[] {
@@ -89,6 +105,31 @@ export class InvoicesListComponent implements OnInit {
 
     navigateToNew(): void {
         this.router.navigate(['/sales/invoices/new']);
+    }
+
+    sort(columnId: string, event: Event): void {
+        event.stopPropagation();
+        if (this.sortColumn === columnId) {
+            this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            this.sortColumn = columnId;
+            this.sortDirection = 'asc';
+        }
+
+        this.invoices.sort((a, b) => {
+            const valA = (a as any)[columnId];
+            const valB = (b as any)[columnId];
+
+            if (typeof valA === 'string' && typeof valB === 'string') {
+                return this.sortDirection === 'asc'
+                    ? valA.localeCompare(valB)
+                    : valB.localeCompare(valA);
+            } else {
+                return this.sortDirection === 'asc'
+                    ? (valA > valB ? 1 : -1)
+                    : (valA < valB ? 1 : -1);
+            }
+        });
     }
 
     @HostListener('document:click', ['$event'])
@@ -107,15 +148,28 @@ export class InvoicesListComponent implements OnInit {
     }
 
     isAllSelected(): boolean {
-        return this.selectedInvoiceIds.size === this.invoices.length && this.invoices.length > 0;
+        const currentList = this.paginatedInvoices;
+        return currentList.length > 0 && currentList.every(i => this.selectedInvoiceIds.has(i.id));
     }
 
-    toggleAll(): void {
+    isPartiallySelected(): boolean {
+        const currentList = this.paginatedInvoices;
+        const selectedInCurrent = currentList.filter(i => this.selectedInvoiceIds.has(i.id)).length;
+        return selectedInCurrent > 0 && selectedInCurrent < currentList.length;
+    }
+
+    toggleAll(event?: any): void {
+        const currentList = this.paginatedInvoices;
         if (this.isAllSelected()) {
-            this.selectedInvoiceIds.clear();
+            currentList.forEach(i => this.selectedInvoiceIds.delete(i.id));
         } else {
-            this.invoices.forEach(i => this.selectedInvoiceIds.add(i.id));
+            currentList.forEach(i => this.selectedInvoiceIds.add(i.id));
         }
+    }
+
+    clearSearch() {
+        this.searchQuery = '';
+        this.currentPage = 1;
     }
 
     isColumnVisible(columnId: string): boolean {

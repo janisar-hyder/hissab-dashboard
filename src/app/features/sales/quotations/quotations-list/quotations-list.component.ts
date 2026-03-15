@@ -50,6 +50,11 @@ export class QuotationsListComponent implements OnInit {
     quotationToDelete: Quotation | null = null;
     currentFilter: 'All' | 'Sent' | 'Invoiced' | 'Draft' = 'All';
 
+    // Sorting and Filter properties
+    sortColumn: string = '';
+    sortDirection: 'asc' | 'desc' = 'asc';
+    searchQuery: string = '';
+
     quotationFilterOptions: FilterOption[] = [
         { label: 'Sent', value: 'Sent', colorHex: '#0ea5e9' },
         { label: 'Invoiced', value: 'Invoiced', colorHex: '#10b981' },
@@ -65,10 +70,21 @@ export class QuotationsListComponent implements OnInit {
     ];
 
     get filteredQuotations(): Quotation[] {
-        if (this.currentFilter === 'All') {
-            return this.quotations;
+        let filtered = this.quotations;
+        
+        if (this.currentFilter !== 'All') {
+            filtered = filtered.filter(q => q.status === this.currentFilter);
         }
-        return this.quotations.filter(q => q.status === this.currentFilter);
+
+        if (this.searchQuery) {
+            const query = this.searchQuery.toLowerCase();
+            filtered = filtered.filter(q => 
+                q.quotationNumber.toLowerCase().includes(query) ||
+                q.customerName.toLowerCase().includes(query)
+            );
+        }
+
+        return filtered;
     }
 
     get paginatedQuotations(): Quotation[] {
@@ -84,6 +100,31 @@ export class QuotationsListComponent implements OnInit {
 
     navigateToNew(): void {
         this.router.navigate(['/sales/quotations/new']);
+    }
+
+    sort(columnId: string, event: Event): void {
+        event.stopPropagation();
+        if (this.sortColumn === columnId) {
+            this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            this.sortColumn = columnId;
+            this.sortDirection = 'asc';
+        }
+
+        this.quotations.sort((a, b) => {
+            const valA = (a as any)[columnId];
+            const valB = (b as any)[columnId];
+
+            if (typeof valA === 'string' && typeof valB === 'string') {
+                return this.sortDirection === 'asc'
+                    ? valA.localeCompare(valB)
+                    : valB.localeCompare(valA);
+            } else {
+                return this.sortDirection === 'asc'
+                    ? (valA > valB ? 1 : -1)
+                    : (valA < valB ? 1 : -1);
+            }
+        });
     }
 
     @HostListener('document:click', ['$event'])
@@ -102,15 +143,28 @@ export class QuotationsListComponent implements OnInit {
     }
 
     isAllSelected(): boolean {
-        return this.selectedQuotationIds.size === this.quotations.length && this.quotations.length > 0;
+        const currentList = this.paginatedQuotations;
+        return currentList.length > 0 && currentList.every(q => this.selectedQuotationIds.has(q.id));
     }
 
-    toggleAll(): void {
+    isPartiallySelected(): boolean {
+        const currentList = this.paginatedQuotations;
+        const selectedInCurrent = currentList.filter(q => this.selectedQuotationIds.has(q.id)).length;
+        return selectedInCurrent > 0 && selectedInCurrent < currentList.length;
+    }
+
+    toggleAll(event?: any): void {
+        const currentList = this.paginatedQuotations;
         if (this.isAllSelected()) {
-            this.selectedQuotationIds.clear();
+            currentList.forEach(q => this.selectedQuotationIds.delete(q.id));
         } else {
-            this.quotations.forEach(q => this.selectedQuotationIds.add(q.id));
+            currentList.forEach(q => this.selectedQuotationIds.add(q.id));
         }
+    }
+
+    clearSearch() {
+        this.searchQuery = '';
+        this.currentPage = 1;
     }
 
     isColumnVisible(columnId: string): boolean {

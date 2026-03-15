@@ -17,7 +17,8 @@
         <div class="toolbar">
             <div class="search-box">
                 <i class="las la-search search-icon"></i>
-                <input type="text" placeholder="Search for something.." [(ngModel)]="searchQuery" class="search-input">
+                <input type="text" placeholder="Search for something.." [(ngModel)]="searchQuery" class="search-input" (ngModelChange)="currentPage = 1">
+                <i class="las la-times clear-icon" *ngIf="searchQuery" (click)="clearSearch()"></i>
             </div>
 
             <div class="toolbar-actions" style="display: flex; gap: var(--space-sm); align-items: center;">
@@ -46,13 +47,13 @@
                 </div>
                 <ng-container *ngFor="let col of availableColumns">
                     <ng-container *ngIf="col.visible" [ngSwitch]="col.id">
-                        <div *ngSwitchCase="'name'"        class="col-name header-cell">{{ col.label }} <i class="las la-sort"></i></div>
-                        <div *ngSwitchCase="'stockInHand'" class="col-stock header-cell">{{ col.label }} <i class="las la-sort"></i></div>
-                        <div *ngSwitchCase="'unit'"        class="col-unit header-cell">{{ col.label }} <i class="las la-sort"></i></div>
-                        <div *ngSwitchCase="'sellingPrice'" class="col-price header-cell">{{ col.label }} <i class="las la-sort"></i></div>
-                        <div *ngSwitchCase="'costPrice'"   class="col-price header-cell">{{ col.label }} <i class="las la-sort"></i></div>
-                        <div *ngSwitchCase="'stockValue'"  class="col-price header-cell">{{ col.label }} <i class="las la-sort"></i></div>
-                        <div *ngSwitchCase="'status'"      class="col-status header-cell">{{ col.label }} <i class="las la-sort"></i></div>
+                        <div *ngSwitchCase="'name'"        class="col-name header-cell">{{ col.label }} <i [class]="sortColumn === 'name' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('name', $event)"></i></div>
+                        <div *ngSwitchCase="'stockInHand'" class="col-stock header-cell">{{ col.label }} <i [class]="sortColumn === 'stockInHand' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('stockInHand', $event)"></i></div>
+                        <div *ngSwitchCase="'unit'"        class="col-unit header-cell">{{ col.label }} <i [class]="sortColumn === 'unit' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('unit', $event)"></i></div>
+                        <div *ngSwitchCase="'sellingPrice'" class="col-price header-cell">{{ col.label }} <i [class]="sortColumn === 'sellingPrice' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('sellingPrice', $event)"></i></div>
+                        <div *ngSwitchCase="'costPrice'"   class="col-price header-cell">{{ col.label }} <i [class]="sortColumn === 'costPrice' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('costPrice', $event)"></i></div>
+                        <div *ngSwitchCase="'stockValue'"  class="col-price header-cell">{{ col.label }} <i [class]="sortColumn === 'stockValue' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('stockValue', $event)"></i></div>
+                        <div *ngSwitchCase="'status'"      class="col-status header-cell">{{ col.label }} <i [class]="sortColumn === 'status' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('status', $event)"></i></div>
                     </ng-container>
                 </ng-container>
                 <div class="col-actions"></div>
@@ -96,15 +97,18 @@
                         </app-action-menu>
                     </div>
                 </div>
-            </div>
 
-            <app-empty-state *ngIf="filteredItems.length === 0"
-                title="No Items Found"
-                subtitle="We couldn't find any items matching your criteria."
-                actionLabel="Add New Item"
-                actionIconClass="las la-plus"
-                (actionClick)="navigateToNew()">
-            </app-empty-state>
+                <!-- Empty State -->
+                <div *ngIf="displayedItems.length === 0" class="empty-state-row">
+                    <app-empty-state
+                        [title]="searchQuery ? 'No Items Found.' : 'No Items Found.'"
+                        [subtitle]="searchQuery ? 'We couldn\'t find any items matching \'' + searchQuery + '\'' : 'It looks like you haven\'t added any items yet.'"
+                        [actionLabel]="searchQuery ? '' : 'Add New Item'"
+                        [actionIconClass]="searchQuery ? '' : 'las la-plus'"
+                        (actionClick)="navigateToNew()">
+                    </app-empty-state>
+                </div>
+            </div>
         </div>
 
 

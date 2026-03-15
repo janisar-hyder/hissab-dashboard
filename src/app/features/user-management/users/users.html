@@ -1,11 +1,11 @@
 <!-- Data Card -->
-<div class="data-card" style="margin: 0; display: flex; flex-direction: column;" *ngIf="users.length > 0">
+<div class="data-card" style="margin: 0; display: flex; flex-direction: column;" *ngIf="users.length > 0 || searchQuery">
         <!-- Toolbar -->
         <div class="card-toolbar">
             <div class="search-box">
                 <i class="las la-search search-icon"></i>
-                <input type="text" placeholder="Search for something.." class="search-input">
-                <i class="las la-times clear-icon"></i>
+                <input type="text" placeholder="Search for something.." [(ngModel)]="searchQuery" class="search-input">
+                <i class="las la-times clear-icon" *ngIf="searchQuery" (click)="clearSearch()"></i>
             </div>
             
             <div class="toolbar-actions" style="display: flex; gap: var(--space-sm); align-items: center;">
@@ -26,10 +26,21 @@
                 <thead>
                     <tr>
                         <th class="col-checkbox">
-                            <input type="checkbox" [checked]="isAllSelected()" (change)="toggleAll()">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" 
+                                       [checked]="isAllSelected()" 
+                                       [indeterminate]="isPartiallySelected()"
+                                       (change)="toggleAll($event)">
+                                <span class="checkmark"></span>
+                            </label>
                         </th>
                         <ng-container *ngFor="let col of availableColumns">
-                            <th *ngIf="col.visible" [class.col-status]="col.id === 'status'">{{ col.label }} <i class="las la-sort"></i></th>
+                            <th *ngIf="col.visible" [class.col-status]="col.id === 'status'">
+                                {{ col.label }} 
+                                <i [class]="sortColumn === col.id ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" 
+                                   (click)="sort(col.id, $event)"
+                                   style="cursor: pointer; margin-left: 4px;"></i>
+                            </th>
                         </ng-container>
                         <th class="col-actions"></th>
                     </tr>
@@ -37,13 +48,18 @@
                 <tbody>
                     <tr *ngFor="let user of paginatedUsers">
                         <td class="col-checkbox">
-                            <input type="checkbox" [checked]="selectedUserIds.has(user.id)" (change)="toggleSelection(user.id)">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" 
+                                       [checked]="selectedUserIds.has(user.id)" 
+                                       (change)="toggleSelection(user.id)">
+                                <span class="checkmark"></span>
+                            </label>
                         </td>
                         <ng-container *ngFor="let col of availableColumns">
-                            <td *ngIf="col.visible" [ngSwitch]="col.id" [class.col-status]="col.id === 'status'">
-                                <ng-container *ngSwitchCase="'name'"><span class="text-muted">{{ user.name }}</span></ng-container>
-                                <ng-container *ngSwitchCase="'role'"><span class="text-muted">{{ user.role }}</span></ng-container>
-                                <ng-container *ngSwitchCase="'email'"><span class="text-muted">{{ user.email }}</span></ng-container>
+                            <td *ngIf="col.visible" [ngSwitch]="col.id" [class.col-status]="col.id === 'status'" class="text-muted">
+                                <ng-container *ngSwitchCase="'name'">{{ user.name }}</ng-container>
+                                <ng-container *ngSwitchCase="'role'">{{ user.role }}</ng-container>
+                                <ng-container *ngSwitchCase="'email'">{{ user.email }}</ng-container>
                                 <ng-container *ngSwitchCase="'status'">
                                     <span class="status-pill" [ngClass]="user.status.toLowerCase()">
                                         <span class="dot"></span> {{ user.status }}
@@ -59,6 +75,18 @@
                             </app-action-menu>
                         </td>
                     </tr>
+                    <!-- Internal Empty State (No Results found inside table) -->
+                    <tr *ngIf="filteredUsers.length === 0">
+                        <td [attr.colspan]="availableColumns.length + 2" style="padding: 0;">
+                            <app-empty-state 
+                                [title]="searchQuery ? 'No Users Found.' : 'No Users Found.'"
+                                [subtitle]="searchQuery ? 'We couldn\'t find any users matching \'' + searchQuery + '\'' : 'It looks like you haven\'t added any users yet.'" 
+                                [actionLabel]="searchQuery ? '' : 'Add New User'"
+                                [actionIconClass]="searchQuery ? '' : 'las la-plus'" 
+                                (actionClick)="navigateToNew()">
+                            </app-empty-state>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -66,7 +94,7 @@
 
         <!-- Footer Pagination -->
         <app-pagination 
-            [totalItems]="users.length" 
+            [totalItems]="filteredUsers.length" 
             [itemsPerPage]="itemsPerPage" 
             [currentPage]="currentPage"
             (pageChange)="onPageChange($event)" 
@@ -74,7 +102,7 @@
         </app-pagination>
     </div>
 
-    <app-empty-state *ngIf="users.length === 0" 
+    <app-empty-state *ngIf="users.length === 0 && !searchQuery" 
         title="No Users Found."
         subtitle="It looks like you haven't added any users yet." 
         actionLabel="Add New User"

@@ -17,6 +17,7 @@
             <div class="search-box">
                 <i class="las la-search search-icon"></i>
                 <input type="text" placeholder="Search for something.." [(ngModel)]="searchQuery" class="search-input">
+                <i class="las la-times clear-icon" *ngIf="searchQuery" (click)="clearSearch()"></i>
             </div>
 
             <div class="toolbar-actions" style="display: flex; gap: var(--space-sm); align-items: center;">
@@ -45,19 +46,19 @@
                 </div>
                 <ng-container *ngFor="let col of availableColumns">
                     <ng-container *ngIf="col.visible" [ngSwitch]="col.id">
-                        <div *ngSwitchCase="'companyName'"    class="col-name header-cell">{{ col.label }} <i class="las la-sort"></i></div>
-                        <div *ngSwitchCase="'crNumber'"       class="col-cr header-cell">{{ col.label }} <i class="las la-sort"></i></div>
-                        <div *ngSwitchCase="'email'"          class="col-email header-cell">{{ col.label }} <i class="las la-sort"></i></div>
-                        <div *ngSwitchCase="'primaryContact'" class="col-contact header-cell">{{ col.label }} <i class="las la-sort"></i></div>
-                        <div *ngSwitchCase="'phoneNumber'"    class="col-phone header-cell">{{ col.label }} <i class="las la-sort"></i></div>
-                        <div *ngSwitchCase="'status'"         class="col-status header-cell">{{ col.label }} <i class="las la-sort"></i></div>
-                        <div *ngSwitchCase="'accountManager'"         class="col-manager header-cell">{{ col.label }} <i class="las la-sort"></i></div>
-                        <div *ngSwitchCase="'billingCycle'"           class="col-billing header-cell">{{ col.label }} <i class="las la-sort"></i></div>
-                        <div *ngSwitchCase="'subscriptionStartDate'"  class="col-substart header-cell">{{ col.label }} <i class="las la-sort"></i></div>
-                        <div *ngSwitchCase="'subscriptionEndDate'"    class="col-subend header-cell">{{ col.label }} <i class="las la-sort"></i></div>
-                        <div *ngSwitchCase="'annualMaintenanceCost'"  class="col-maint header-cell">{{ col.label }} <i class="las la-sort"></i></div>
-                        <div *ngSwitchCase="'cloudCharges'"           class="col-cloud header-cell">{{ col.label }} <i class="las la-sort"></i></div>
-                        <div *ngSwitchCase="'baseCurrency'"           class="col-currency header-cell">{{ col.label }} <i class="las la-sort"></i></div>
+                        <div *ngSwitchCase="'companyName'"    class="col-name header-cell">{{ col.label }} <i [class]="sortColumn === 'companyName' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('companyName', $event)"></i></div>
+                        <div *ngSwitchCase="'crNumber'"       class="col-cr header-cell">{{ col.label }} <i [class]="sortColumn === 'crNumber' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('crNumber', $event)"></i></div>
+                        <div *ngSwitchCase="'email'"          class="col-email header-cell">{{ col.label }} <i [class]="sortColumn === 'email' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('email', $event)"></i></div>
+                        <div *ngSwitchCase="'primaryContact'" class="col-contact header-cell">{{ col.label }} <i [class]="sortColumn === 'primaryContact' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('primaryContact', $event)"></i></div>
+                        <div *ngSwitchCase="'phoneNumber'"    class="col-phone header-cell">{{ col.label }} <i [class]="sortColumn === 'phoneNumber' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('phoneNumber', $event)"></i></div>
+                        <div *ngSwitchCase="'status'"         class="col-status header-cell">{{ col.label }} <i [class]="sortColumn === 'status' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('status', $event)"></i></div>
+                        <div *ngSwitchCase="'accountManager'"         class="col-manager header-cell">{{ col.label }} <i [class]="sortColumn === 'accountManager' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('accountManager', $event)"></i></div>
+                        <div *ngSwitchCase="'billingCycle'"           class="col-billing header-cell">{{ col.label }} <i [class]="sortColumn === 'billingCycle' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('billingCycle', $event)"></i></div>
+                        <div *ngSwitchCase="'subscriptionStartDate'"  class="col-substart header-cell">{{ col.label }} <i [class]="sortColumn === 'subscriptionStartDate' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('subscriptionStartDate', $event)"></i></div>
+                        <div *ngSwitchCase="'subscriptionEndDate'"    class="col-subend header-cell">{{ col.label }} <i [class]="sortColumn === 'subscriptionEndDate' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('subscriptionEndDate', $event)"></i></div>
+                        <div *ngSwitchCase="'annualMaintenanceCost'"  class="col-maint header-cell">{{ col.label }} <i [class]="sortColumn === 'annualMaintenanceCost' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('annualMaintenanceCost', $event)"></i></div>
+                        <div *ngSwitchCase="'cloudCharges'"           class="col-cloud header-cell">{{ col.label }} <i [class]="sortColumn === 'cloudCharges' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('cloudCharges', $event)"></i></div>
+                        <div *ngSwitchCase="'baseCurrency'"           class="col-currency header-cell">{{ col.label }} <i [class]="sortColumn === 'baseCurrency' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('baseCurrency', $event)"></i></div>
                     </ng-container>
                 </ng-container>
                 <div class="col-actions"></div>
@@ -107,7 +108,10 @@
                 </ng-container>
                 
                 <ng-template #emptyState>
-                    <app-empty-state></app-empty-state>
+                    <app-empty-state
+                        [title]="searchQuery ? 'No Clients Found.' : 'No Items Found.'"
+                        [subtitle]="searchQuery ? 'We couldn\'t find any clients matching \'' + searchQuery + '\'' : 'It looks like you haven\'t added any items yet.'">
+                    </app-empty-state>
                 </ng-template>
             </div>
         </div>

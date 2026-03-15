@@ -42,6 +42,19 @@
             font-size: 18px;
         }
 
+        .clear-icon {
+            position: absolute;
+            right: 14px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 14px;
+            transition: color 0.2s;
+
+            &:hover {
+                color: var(--text-dark);
+            }
+        }
+
         .search-input {
             width: 100%;
             padding: 10px 36px;
@@ -95,7 +108,9 @@
         align-items: center;
         gap: 6px;
 
-        i.la-sort {
+        i.la-sort,
+        i.la-sort-up,
+        i.la-sort-down {
             font-size: 12px;
             color: var(--text-muted);
             cursor: pointer;
@@ -122,7 +137,7 @@
         gap: 4px;
 
         .item-name {
-            color: var(--text-dark);
+            color: var(--text-muted);
             font-weight: 500;
             font-size: 14px;
         }
@@ -232,4 +247,12 @@
             background-color: #6B7280;
         }
     }
+}
+
+.empty-state-row {
+    padding: var(--space-xl) 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
 }

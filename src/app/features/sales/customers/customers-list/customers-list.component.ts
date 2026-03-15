@@ -58,6 +58,11 @@ export class CustomersListComponent implements OnInit {
     customerToDelete: Customer | null = null;
     bulkDeletePending = false;
 
+    // Sorting and Filter properties
+    sortColumn: string = '';
+    sortDirection: 'asc' | 'desc' = 'asc';
+    searchQuery: string = '';
+
     availableColumns: ColumnDef[] = [
         { id: 'displayName', label: 'Display Name', visible: true },
         { id: 'companyName', label: 'Company Name (English)', visible: true },
@@ -67,10 +72,26 @@ export class CustomersListComponent implements OnInit {
         { id: 'creditNote', label: 'Credit Note', visible: true },
     ];
 
+    get filteredCustomers(): Customer[] {
+        let filtered = this.customers;
+
+        if (this.searchQuery) {
+            const query = this.searchQuery.toLowerCase();
+            filtered = filtered.filter(c => 
+                c.displayName.toLowerCase().includes(query) ||
+                c.companyName.toLowerCase().includes(query) ||
+                c.email.toLowerCase().includes(query)
+            );
+        }
+
+        return filtered;
+    }
+
     get paginatedCustomers(): Customer[] {
-        if (this.itemsPerPage === 'All') return this.customers;
+        const filtered = this.filteredCustomers;
+        if (this.itemsPerPage === 'All') return filtered;
         const start = (this.currentPage - 1) * this.itemsPerPage;
-        return this.customers.slice(start, start + this.itemsPerPage);
+        return filtered.slice(start, start + this.itemsPerPage);
     }
 
     constructor(private eRef: ElementRef, private router: Router) { }
@@ -79,6 +100,30 @@ export class CustomersListComponent implements OnInit {
 
     navigateToNew(): void {
         this.router.navigate(['/sales/customers/new']);
+    }
+
+    sort(columnId: string): void {
+        if (this.sortColumn === columnId) {
+            this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            this.sortColumn = columnId;
+            this.sortDirection = 'asc';
+        }
+
+        this.customers.sort((a, b) => {
+            const valA = (a as any)[columnId];
+            const valB = (b as any)[columnId];
+
+            if (typeof valA === 'string' && typeof valB === 'string') {
+                return this.sortDirection === 'asc'
+                    ? valA.localeCompare(valB)
+                    : valB.localeCompare(valA);
+            } else {
+                return this.sortDirection === 'asc'
+                    ? (valA > valB ? 1 : -1)
+                    : (valA < valB ? 1 : -1);
+            }
+        });
     }
 
     @HostListener('document:click', ['$event'])
@@ -97,15 +142,28 @@ export class CustomersListComponent implements OnInit {
     }
 
     isAllSelected(): boolean {
-        return this.selectedCustomerIds.size === this.customers.length && this.customers.length > 0;
+        const currentList = this.paginatedCustomers;
+        return currentList.length > 0 && currentList.every(c => this.selectedCustomerIds.has(c.id));
     }
 
-    toggleAll(): void {
+    isPartiallySelected(): boolean {
+        const currentList = this.paginatedCustomers;
+        const selectedInCurrent = currentList.filter(c => this.selectedCustomerIds.has(c.id)).length;
+        return selectedInCurrent > 0 && selectedInCurrent < currentList.length;
+    }
+
+    toggleAll(event?: any): void {
+        const currentList = this.paginatedCustomers;
         if (this.isAllSelected()) {
-            this.selectedCustomerIds.clear();
+            currentList.forEach(c => this.selectedCustomerIds.delete(c.id));
         } else {
-            this.customers.forEach(c => this.selectedCustomerIds.add(c.id));
+            currentList.forEach(c => this.selectedCustomerIds.add(c.id));
         }
+    }
+
+    clearSearch() {
+        this.searchQuery = '';
+        this.currentPage = 1;
     }
 
     isColumnVisible(columnId: string): boolean {

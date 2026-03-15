@@ -47,6 +47,11 @@
             color: var(--text-muted);
             cursor: pointer;
             font-size: 14px;
+            transition: color 0.2s;
+
+            &:hover {
+                color: var(--text-dark);
+            }
         }
 
         .search-input {
@@ -109,13 +114,59 @@
         width: 40px;
         padding-right: 0;
 
-        input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
-            border: 1px solid var(--text-muted);
+        .custom-checkbox {
+            display: flex;
+            align-items: center;
             cursor: pointer;
-            accent-color: var(--primary);
+            position: relative;
+            
+            input {
+                display: none;
+            }
+
+            .checkmark {
+                width: 18px;
+                height: 18px;
+                border: 1.5px solid var(--border-light);
+                border-radius: 4px;
+                background: white;
+                transition: all 0.2s;
+                position: relative;
+
+                &:after {
+                    content: "";
+                    position: absolute;
+                    display: none;
+                    left: 5px;
+                    top: 2px;
+                    width: 4px;
+                    height: 8px;
+                    border: solid white;
+                    border-width: 0 2px 2px 0;
+                    transform: rotate(45deg);
+                }
+            }
+
+            input:checked ~ .checkmark {
+                background-color: var(--primary);
+                border-color: var(--primary);
+                &:after { display: block; }
+            }
+
+            input:indeterminate ~ .checkmark {
+                background-color: var(--primary);
+                border-color: var(--primary);
+                &:after {
+                    display: block;
+                    left: 4px;
+                    top: 7px;
+                    width: 8px;
+                    height: 2px;
+                    border: none;
+                    background-color: white;
+                    transform: none;
+                }
+            }
         }
     }
 

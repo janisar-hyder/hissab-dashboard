@@ -71,6 +71,11 @@
             color: var(--text-muted);
             cursor: pointer;
             font-size: 14px;
+            transition: color 0.2s;
+
+            &:hover {
+                color: var(--text-dark);
+            }
         }
 
         .search-input {
@@ -276,7 +281,27 @@
         background-color: var(--bg-light);
         height: 48px;
         text-transform: capitalize;
+
+        i.la-sort, 
+        i.la-sort-up, 
+        i.la-sort-down {
+            font-size: 12px;
+            margin-left: 4px;
+            cursor: pointer;
+        }
     }
+
+    /* Column Widths & Alignments */
+    th:nth-child(1), td:nth-child(1) { width: 48px; } // Checkbox
+    th:nth-child(2), td:nth-child(2) { width: 13%; } // Quotation Number
+    th:nth-child(3), td:nth-child(3) { width: 13%; } // Date
+    th:nth-child(4), td:nth-child(4) { width: auto; } // Customer Name (fluid)
+    th:nth-child(5), td:nth-child(5) { 
+        width: 15%; 
+        text-align: right; 
+    } // Amount
+    th:nth-child(6), td:nth-child(6) { width: 15%; } // Status
+    th:nth-child(7), td:nth-child(7) { width: 64px; text-align: center; } // Actions
 
     td {
         color: var(--text-muted);
@@ -294,13 +319,59 @@
         width: 40px;
         padding-right: 0;
 
-        input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
-            border: 1px solid var(--text-muted);
+        .custom-checkbox {
+            display: flex;
+            align-items: center;
             cursor: pointer;
-            accent-color: var(--primary);
+            position: relative;
+            
+            input {
+                display: none;
+            }
+
+            .checkmark {
+                width: 18px;
+                height: 18px;
+                border: 1.5px solid var(--border-light);
+                border-radius: 4px;
+                background: white;
+                transition: all 0.2s;
+                position: relative;
+
+                &:after {
+                    content: "";
+                    position: absolute;
+                    display: none;
+                    left: 5px;
+                    top: 2px;
+                    width: 4px;
+                    height: 8px;
+                    border: solid white;
+                    border-width: 0 2px 2px 0;
+                    transform: rotate(45deg);
+                }
+            }
+
+            input:checked ~ .checkmark {
+                background-color: var(--primary);
+                border-color: var(--primary);
+                &:after { display: block; }
+            }
+
+            input:indeterminate ~ .checkmark {
+                background-color: var(--primary);
+                border-color: var(--primary);
+                &:after {
+                    display: block;
+                    left: 4px;
+                    top: 7px;
+                    width: 8px;
+                    height: 2px;
+                    border: none;
+                    background-color: white;
+                    transform: none;
+                }
+            }
         }
     }
 

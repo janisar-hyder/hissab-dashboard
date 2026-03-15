@@ -39,6 +39,11 @@
             color: var(--text-muted);
             cursor: pointer;
             font-size: 14px;
+            transition: color 0.2s;
+
+            &:hover {
+                color: var(--text-dark);
+            }
         }
 
         .search-input {
