@@ -103,7 +103,7 @@ import { filter } from 'rxjs/operators';
                 <a routerLink="/sales/invoices" routerLinkActive="active" class="sub-item"><span class="dot"></span>Invoices</a>
                 <a href="#" class="sub-item"><span class="dot"></span>Recurring Invoices</a>
                 <a href="#" class="sub-item"><span class="dot"></span>Sales Orders</a>
-                <a href="#" class="sub-item"><span class="dot"></span>Receipts</a>
+                <a routerLink="/sales/receipts" routerLinkActive="active" class="sub-item"><span class="dot"></span>Receipts</a>
                 <a href="#" class="sub-item"><span class="dot"></span>Credit Notes</a>
               </div>
             </div>
@@ -287,6 +287,7 @@ export class LayoutComponent implements OnInit {
     if (url.startsWith('/admin/dashboard')) return 'dashboard';
     if (url.startsWith('/admin/settings')) return 'settings';
     // Main sidebar sections
+    if (url.startsWith('/sales/receipts')) return 'sales';
     if (url.startsWith('/sales')) return 'sales';
     if (url.startsWith('/inventory')) return 'inventory';
     if (url.startsWith('/user-management')) return 'user-management';

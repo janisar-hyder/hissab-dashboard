@@ -1,6 +1,8 @@
-import { Component, Input, Output, EventEmitter, ElementRef, HostListener, forwardRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ElementRef, HostListener, forwardRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { DropdownService } from '../../services/dropdown.service';
+import { Subscription } from 'rxjs';
 
 export interface SelectOption {
   label: string;
@@ -164,18 +166,25 @@ export interface SelectOption {
     }
   ]
 })
-export class CustomSelectComponent implements ControlValueAccessor {
+export class CustomSelectComponent implements ControlValueAccessor, OnDestroy {
   @Input() options: SelectOption[] = [];
   @Input() placeholder: string = 'Select an option';
   @Input() disabled = false;
+  @Input() id: string = 'select-' + Math.random().toString(36).substr(2, 9);
 
   value: any;
   isOpen = false;
-
   onChange: any = () => {};
   onTouched: any = () => {};
+  private dropdownSub: Subscription;
 
-  constructor(private eRef: ElementRef) {}
+  constructor(private eRef: ElementRef, private dropdownService: DropdownService) {
+    this.dropdownSub = this.dropdownService.openDropdown$.subscribe(openedId => {
+      if (openedId !== this.id) {
+        this.isOpen = false;
+      }
+    });
+  }
 
   get selectedLabel(): string | undefined {
     const selected = this.options.find(opt => opt.value === this.value);
@@ -186,6 +195,9 @@ export class CustomSelectComponent implements ControlValueAccessor {
     if (this.disabled) return;
     event.stopPropagation();
     this.isOpen = !this.isOpen;
+    if (this.isOpen) {
+      this.dropdownService.notifyOpen(this.id);
+    }
   }
 
   selectOption(option: SelectOption, event: Event) {
@@ -200,6 +212,12 @@ export class CustomSelectComponent implements ControlValueAccessor {
   clickout(event: Event) {
     if (!this.eRef.nativeElement.contains(event.target)) {
       this.isOpen = false;
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.dropdownSub) {
+      this.dropdownSub.unsubscribe();
     }
   }
 

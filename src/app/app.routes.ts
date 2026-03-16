@@ -20,6 +20,9 @@ import { RolesComponent } from './features/user-management/roles/roles';
 import { AddRolesComponent } from './features/user-management/roles/add-roles/add-roles';
 import { InvoicesListComponent } from './features/sales/invoices/invoices-list/invoices-list.component';
 import { InvoicesNew } from './features/sales/invoices/invoices-new/invoices-new';
+import { ReceiptsListComponent } from './features/sales/receipts/receipts-list/receipts-list.component';
+import { ReceiptsNew } from './features/sales/receipts/receipts-new/receipts-new';
+import { ReceiptsInfoComponent } from './features/sales/receipts/receipts-info/receipts-info';
 
 export const routes: Routes = [
     {
@@ -34,6 +37,9 @@ export const routes: Routes = [
             { path: 'sales/quotations/new', component: QuotationsNew },
             { path: 'sales/invoices', component: InvoicesListComponent },
             { path: 'sales/invoices/new', component: InvoicesNew },
+            { path: 'sales/receipts', component: ReceiptsListComponent },
+            { path: 'sales/receipts/new', component: ReceiptsNew },
+            { path: 'sales/receipts/info/:id', component: ReceiptsInfoComponent },
             { path: 'sales/quotations/info/:id', loadComponent: () => import('./features/sales/quotations/quotation-info/quotation-info').then(m => m.QuotationInfoComponent) },
             { path: 'sales/invoices/info/:id', loadComponent: () => import('./features/sales/invoices/invoice-info/invoice-info').then(m => m.InvoiceInfoComponent) },
             { path: 'admin/dashboard', component: AdminDashboard },

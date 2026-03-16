@@ -1,0 +1,194 @@
+<div class="page-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-titles">
+            <app-breadcrumbs [items]="[
+                { label: 'Receipts', url: '/sales/receipts' },
+                { label: 'Add New Receipt' }
+            ]"></app-breadcrumbs>
+            <h1 class="page-title">Add New Receipt</h1>
+        </div>
+        <div class="header-actions">
+            <app-button variant="outline" (clicked)="openAttachmentsModal()">
+                <svg svg-icon style="margin-right: 8px;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <g clip-path="url(#clip0_attach)">
+                        <mask id="mask0_attach" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="20" height="20">
+                            <path d="M20 0H0V20H20V0Z" fill="white" />
+                        </mask>
+                        <g mask="url(#mask0_attach)">
+                            <path d="M10.2752 17.7837C9.36683 17.7837 8.4585 17.442 7.76686 16.7503C6.38353 15.367 6.38353 13.1253 7.76686 11.742L9.8335 9.68367C10.0752 9.442 10.4752 9.442 10.7168 9.68367C10.9585 9.92533 10.9585 10.3253 10.7168 10.567L8.65016 12.6253C7.75853 13.517 7.75853 14.9753 8.65016 15.867C9.54183 16.7587 11.0002 16.7587 11.8918 15.867L15.1335 12.6253C16.1168 11.642 16.6585 10.3337 16.6585 8.942C16.6585 7.55029 16.1168 6.24196 15.1335 5.25863C13.1002 3.22529 9.80016 3.22529 7.76686 5.25863L4.23353 8.792C3.40853 9.617 2.9502 10.717 2.9502 11.8837C2.9502 13.0503 3.40853 14.1503 4.23353 14.9753C4.4752 15.217 4.4752 15.617 4.23353 15.8587C3.99186 16.1003 3.59186 16.1003 3.3502 15.8587C2.29186 14.792 1.7002 13.3837 1.7002 11.8837C1.7002 10.3837 2.28353 8.967 3.3502 7.90863L6.88353 4.37529C9.40016 1.85863 13.5002 1.85863 16.0168 4.37529C17.2335 5.59196 17.9085 7.21696 17.9085 8.942C17.9085 10.667 17.2335 12.292 16.0168 13.5087L12.7752 16.7503C12.0835 17.442 11.1835 17.7837 10.2752 17.7837Z" fill="#646569" />
+                        </g>
+                    </g>
+                    <defs>
+                        <clipPath id="clip0_attach">
+                            <rect width="20" height="20" fill="white" />
+                        </clipPath>
+                    </defs>
+                </svg>
+                Attach Documents
+            </app-button>
+        </div>
+    </div>
+
+    <!-- Form Container -->
+    <div class="form-container">
+
+        <!-- Form Card -->
+        <div class="form-card">
+            
+            <!-- Row 1: Receipt Number, Customer, Reference Number -->
+            <div class="form-grid form-grid-3" style="margin-bottom: 24px;">
+                <div class="form-group">
+                    <label>Receipt Number <span class="required">*</span></label>
+                    <input type="text" class="form-control" [value]="receiptData.receiptNumber" disabled readonly>
+                </div>
+                <div class="form-group">
+                    <label>Customer <span class="required">*</span></label>
+                    <app-custom-select 
+                        [(ngModel)]="receiptData.customer" 
+                        [options]="customerOptions" 
+                        placeholder="Select Customer"
+                        (ngModelChange)="onCustomerChange()">
+                    </app-custom-select>
+                </div>
+                <div class="form-group">
+                    <label>Reference Number</label>
+                    <input type="text" class="form-control" [(ngModel)]="receiptData.referenceNumber" placeholder="Enter Reference Number">
+                </div>
+            </div>
+
+            <!-- Row 2: Amount Received, Payment Date, Payment Mode -->
+            <div class="form-grid form-grid-3" style="margin-bottom: 24px;">
+                <div class="form-group">
+                    <label>Amount Received <span class="required">*</span></label>
+                    <input type="number" class="form-control" [(ngModel)]="receiptData.amountReceived" placeholder="0.000" step="0.001">
+                </div>
+                <div class="form-group">
+                    <label>Payment Date <span class="required">*</span></label>
+                    <input type="date" class="form-control date-input" [(ngModel)]="receiptData.paymentDate">
+                </div>
+                <div class="form-group">
+                    <label>Payment Mode</label>
+                    <app-custom-select 
+                        [(ngModel)]="receiptData.paymentMode" 
+                        [options]="paymentModeOptions" 
+                        placeholder="Select Payment Mode">
+                    </app-custom-select>
+                </div>
+            </div>
+
+            <!-- Row 3: Deposit To, Bank Charges -->
+            <div class="form-grid form-grid-3">
+                <div class="form-group">
+                    <label>Deposit To <span class="required">*</span></label>
+                    <app-custom-select 
+                        [(ngModel)]="receiptData.depositTo" 
+                        [options]="depositToOptions" 
+                        placeholder="Select Account">
+                    </app-custom-select>
+                </div>
+                <div class="form-group">
+                    <label>Bank Charges (If any)</label>
+                    <input type="number" class="form-control" [(ngModel)]="receiptData.bankCharges" placeholder="0.000" step="0.001">
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- Unpaid Invoices Section -->
+        <div class="form-card" *ngIf="receiptData.customer">
+            <div class="card-header-with-action">
+                <h2 class="card-title">Unpaid Invoices</h2>
+                <button class="action-link" (click)="clearAppliedAmount()">Clear Applied Amount</button>
+            </div>
+
+            <div class="receipt-table-wrapper">
+                <div class="receipt-table">
+                    <!-- Table Header -->
+                    <div class="receipt-thead">
+                        <div class="th-date">Date</div>
+                        <div class="th-inv-num">Invoice Number</div>
+                        <div class="th-inv-amt">Invoice Amount</div>
+                        <div class="th-amt-due">Amount Due</div>
+                        <div class="th-amt-paid">Amount Paid</div>
+                        <div class="th-full-pmt">Received in Full</div>
+                    </div>
+
+                    <!-- Table Rows -->
+                    <div class="receipt-tbody">
+                        <div class="receipt-row" *ngFor="let invoice of unpaidInvoices">
+                            <div class="td-cell td-date">
+                                {{ invoice.date }}
+                            </div>
+                            <div class="td-cell td-inv-num invoice-number">
+                                {{ invoice.number }}
+                            </div>
+                            <div class="td-cell td-inv-amt text-right">
+                                {{ invoice.amount | number:'1.3-3' }}
+                            </div>
+                            <div class="td-cell td-amt-due text-right">
+                                {{ invoice.due | number:'1.3-3' }}
+                            </div>
+                            <div class="td-cell td-amt-paid">
+                                <div class="cell-input-wrapper">
+                                    <input type="number" 
+                                           class="cell-input" 
+                                           [(ngModel)]="invoice.paid" 
+                                           (ngModelChange)="onPaidAmountChange(invoice)"
+                                           placeholder="0.000">
+                                </div>
+                            </div>
+                            <div class="td-cell td-full-pmt text-center">
+                                <label class="custom-checkbox no-label">
+                                    <input type="checkbox" [(ngModel)]="invoice.isFull" (change)="toggleFullPayment(invoice)">
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Section (Matching image precisely) -->
+            <div class="receipt-summary">
+                <div class="summary-line">
+                    <span class="summary-label">Total</span>
+                    <span class="summary-value">{{ totalApplied | number:'1.3-3' }}</span>
+                </div>
+                <div class="summary-divider"></div>
+                <div class="summary-line">
+                    <span class="summary-label">Amount Received</span>
+                    <span class="summary-value">{{ amountReceived | number:'1.3-3' }}</span>
+                </div>
+                <div class="summary-line">
+                    <span class="summary-label">Amount used for Payments</span>
+                    <span class="summary-value">{{ amountUsedForPayments | number:'1.3-3' }}</span>
+                </div>
+                <div class="summary-line highlight-excess">
+                    <span class="summary-label">Amount in Excess</span>
+                    <span class="summary-value">{{ amountInExcess | number:'1.3-3' }}</span>
+                </div>
+            </div>
+
+            <!-- Notes Section -->
+            <div class="notes-container">
+                <label class="notes-label">Notes (For Internal Use)</label>
+                <textarea class="notes-textarea" [(ngModel)]="receiptData.notes" placeholder="Enter Note"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Footer -->
+    <div class="page-footer">
+        <button class="footer-btn btn-cancel" (click)="cancel()">Cancel</button>
+        <button class="footer-btn btn-save" (click)="save()">Save</button>
+    </div>
+</div>
+
+<!-- Attachments Modal -->
+<app-attachments-modal
+    *ngIf="isAttachmentsModalOpen"
+    [isAttachmentsModalOpen]="isAttachmentsModalOpen"
+    [isEditMode]="false"
+    (closeModal)="closeAttachmentsModal()">
+</app-attachments-modal>

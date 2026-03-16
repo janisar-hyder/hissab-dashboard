@@ -273,26 +273,14 @@
     bottom: 0;
     left: 80px; // Starts precisely after the 80px sidebar
     right: 0;
-    background: transparent;
+    background: white;
     padding: 24px 48px 24px 32px; // 48px right padding accounts for 32px container padding + 16px Windows scrollbar
     display: flex;
     justify-content: flex-end;
     align-items: center;
     gap: 16px;
     z-index: 100;
-
-    &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 100%;
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(8px);
-        z-index: -1;
-        border-top: 1px solid var(--border-light);
-    }
+    border-top: 1px solid var(--border-light);
 
     .footer-btn {
         padding: 12px 24px;
