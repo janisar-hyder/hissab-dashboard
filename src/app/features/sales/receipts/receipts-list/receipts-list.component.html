@@ -71,8 +71,7 @@
                                 <i [class]="sortColumn === col.id 
                                     ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down')
                                     : 'las la-sort'"
-                                   (click)="sort(col.id, $event)"
-                                   style="cursor: pointer; margin-left: 4px;"></i>
+                                   (click)="sort(col.id, $event)"></i>
                             </th>
                         </ng-container>
                         <th class="col-actions"></th>
@@ -90,7 +89,7 @@
                         <ng-container *ngFor="let col of availableColumns">
                             <td *ngIf="col.visible" [ngSwitch]="col.id" [class.text-right]="col.id === 'amount'">
                                 <ng-container *ngSwitchCase="'receiptNumber'">
-                                    <span class="text-muted">{{ receipt.receiptNumber }}</span>
+                                    <span class="font-medium" style="color: var(--text-dark);">{{ receipt.receiptNumber }}</span>
                                 </ng-container>
                                 <ng-container *ngSwitchCase="'date'">
                                     <span class="text-muted">{{ receipt.date }}</span>
@@ -138,7 +137,7 @@
                         <td [attr.colspan]="availableColumns.length + 2" style="padding: 0;">
                             <app-empty-state 
                                 [title]="searchQuery ? 'No Receipts Found.' : 'No Receipts Found.'"
-                                [subtitle]="searchQuery ? 'We couldn\'t find any receipts matching \'' + searchQuery + '\'' : 'It looks like you haven\'t added any receipts matching this filter yet.'"
+                                [subtitle]="searchQuery ? 'We couldn\'t find any receipts matching \'' + searchQuery + '\'' : 'It looks like you haven\'t added any receipts yet.'"
                                 [actionLabel]="searchQuery ? '' : 'Add New Receipt'" 
                                 [actionIconClass]="searchQuery ? '' : 'las la-plus'" 
                                 (actionClick)="navigateToNew()">

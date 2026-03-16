@@ -1,0 +1,183 @@
+<div class="invoice-info-page">
+    
+    <!-- Left Sidebar: Receipt List -->
+    <div class="sidebar-list">
+        <div class="sidebar-header">
+            <h1 class="page-title">Receipts</h1>
+            <div class="header-actions">
+                <button class="header-btn primary" routerLink="/sales/receipts/new"><span class="plus-icon">+</span></button>
+                <button class="header-btn outline">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                </button>
+                <button class="header-btn outline">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="sidebar-main-card">
+            <div class="search-section">
+                <div class="search-input-wrapper">
+                    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" [(ngModel)]="searchTerm" placeholder="Search for something..">
+                </div>
+                <app-custom-filter
+                    [options]="filterOptions"
+                    [currentFilter]="selectedStatus"
+                    activeLabelPrefix="All"
+                    (filterChange)="onFilterChange($event)">
+                </app-custom-filter>
+            </div>
+
+            <div class="list-container">
+                <div class="list-row" 
+                     *ngFor="let r of paginatedReceipts" 
+                     [class.selected]="selectedReceipt?.id === r.id"
+                     (click)="onReceiptClick(r.id)">
+                    <div class="checkbox-col" (click)="$event.stopPropagation()">
+                        <label class="custom-checkbox">
+                            <input type="checkbox" [checked]="selectedReceipt?.id === r.id">
+                            <span class="checkmark"></span>
+                        </label>
+                    </div>
+                    <div class="details-col">
+                        <div class="row-top">
+                            <span class="client-name">{{ r.customerName }}</span>
+                            <div class="status-indicator" [ngClass]="r.status.toLowerCase()">
+                                <span class="dot"></span> {{ r.status }}
+                            </div>
+                        </div>
+                        <div class="row-bottom">
+                            <span class="date-text">{{ r.date }}</span>
+                            <span class="amount-text">BHD {{ r.amountReceived | number:'1.3-3' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Pagination -->
+            <app-pagination 
+                [totalItems]="filteredReceipts.length" 
+                [itemsPerPage]="itemsPerPage"
+                [currentPage]="currentPage" 
+                [showEntriesInfo]="false"
+                [showPageSizeOptions]="false"
+                (pageChange)="onPageChange($event)"
+                (itemsPerPageChange)="onItemsPerPageChange($event)">
+            </app-pagination>
+        </div>
+    </div>
+
+    <!-- Right Sidebar: Receipt Detail -->
+    <div class="detail-view">
+        <div class="detail-header">
+            <h3>{{ selectedReceipt ? selectedReceipt.receiptNumber : 'Receipt Info' }}</h3>
+            <div class="detail-actions">
+                <button class="action-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <g clip-path="url(#clip0_receipt_edit)">
+                            <mask id="mask0_receipt_edit" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="20" height="20">
+                                <path d="M20 0H0V20H20V0Z" fill="white"/>
+                            </mask>
+                            <g mask="url(#mask0_receipt_edit)">
+                                <path d="M4.61666 16.2663C4.10832 16.2663 3.63332 16.0913 3.29166 15.7663C2.85832 15.358 2.64999 14.7413 2.72499 14.0747L3.03332 11.3747C3.09166 10.8663 3.39999 10.1913 3.75832 9.82466L10.6 2.58296C12.3083 0.774632 14.0917 0.724632 15.9 2.43296C17.7083 4.1413 17.7583 5.92463 16.05 7.73296L9.20833 14.9747C8.85833 15.3497 8.20832 15.6997 7.69999 15.783L5.01666 16.2413C4.87499 16.2497 4.74999 16.2663 4.61666 16.2663ZM13.275 2.42463C12.6333 2.42463 12.075 2.82463 11.5083 3.42463L4.66666 10.6747C4.49999 10.8497 4.30832 11.2663 4.27499 11.508L3.96666 14.208C3.93332 14.483 3.99999 14.708 4.14999 14.8497C4.29999 14.9913 4.52499 15.0413 4.79999 14.9997L7.48332 14.5413C7.72499 14.4997 8.12499 14.283 8.29166 14.108L15.1333 6.8663C16.1667 5.7663 16.5417 4.74963 15.0333 3.33296C14.3667 2.6913 13.7917 2.42463 13.275 2.42463Z" fill="#646569"/>
+                            </g>
+                        </g>
+                    </svg>
+                </button>
+                <button class="action-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <g clip-path="url(#clip0_receipt_print)">
+                            <mask id="mask0_receipt_print" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="20" height="20">
+                                <path d="M20 0H0V20H20V0Z" fill="white"/>
+                            </mask>
+                            <g mask="url(#mask0_receipt_print)">
+                                <path d="M6.0415 5.83333H13.9582V4.16666C13.9582 2.5 13.3332 1.66666 11.4582 1.66666H8.5415C6.6665 1.66666 6.0415 2.5 6.0415 4.16666V5.83333Z" stroke="#646569" stroke-width="1.25" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M13.3332 12.5V15.8333C13.3332 17.5 12.4998 18.3333 10.8332 18.3333H9.1665C7.49984 18.3333 6.6665 17.5 6.6665 15.8333V12.5H13.3332Z" stroke="#646569" stroke-width="1.25" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M17.5 8.33334V12.5C17.5 14.1667 16.6667 15 15 15H13.3333V12.5H6.66667V15H5C3.33333 15 2.5 14.1667 2.5 12.5V8.33334C2.5 6.66667 3.33333 5.83334 5 5.83334H15C16.6667 5.83334 17.5 6.66667 17.5 8.33334Z" stroke="#646569" stroke-width="1.25" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+                            </g>
+                        </g>
+                    </svg>
+                </button>
+                <button class="action-btn" (click)="downloadPdf()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M15.058 12.0247L9.99971 17.0831L4.94141 12.0247" stroke="#646569" stroke-width="1.25" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M10 2.91666V16.9417" stroke="#646569" stroke-width="1.25" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button class="action-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></button>
+                <button class="close-x-btn" (click)="closeInfo()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+            </div>
+        </div>
+
+        <div class="document-container">
+            <div class="document-paper" id="receipt-document">
+                <div class="doc-status-banner" *ngIf="selectedReceipt" [ngClass]="selectedReceipt.status.toLowerCase()">
+                    <svg class="banner-main" xmlns="http://www.w3.org/2000/svg" width="78" height="62" viewBox="0 0 78 62" fill="none">
+                        <path d="M3.77763 34.8663L44.9095 2.17177C46.6786 0.765518 48.872 0 51.1319 0H77.8579L0.560613 62L0.00434329 42.987C-0.0878246 39.8367 1.31048 36.8274 3.77763 34.8663Z" fill="currentColor"/>
+                    </svg>
+                    <span class="status-text">{{ selectedReceipt.status }}</span>
+                </div>
+                
+                <div class="doc-header">
+                    <div class="company-logo">
+                        <img src="/icons/tamezy-logo.svg" alt="Logo" class="main-logo">
+                    </div>
+                    <div class="company-address">
+                        <p>Flat 10, Building 1234 Road 123, Block 123</p>
+                        <p>Manama North Sehla, Bahrain</p>
+                        <p>TRN: 235334556400002</p>
+                    </div>
+                </div>
+
+                <div class="doc-info-grid">
+                    <div class="customer-info" *ngIf="selectedReceipt">
+                        <label>Customer Info</label>
+                        <h4>{{ selectedReceipt.customerName }}</h4>
+                    </div>
+                    <div class="invoice-meta" *ngIf="selectedReceipt">
+                        <h2 style="color: #2563eb;">RECEIPT</h2>
+                        <p class="invoice-num"># {{ selectedReceipt.receiptNumber }}</p>
+                    </div>
+                </div>
+
+                <!-- Receipt Specific Meta Row -->
+                <div class="receipt-meta-details" *ngIf="selectedReceipt">
+                    <div class="meta-item">
+                        <span class="label">Payment Mode</span>
+                        <span class="value">{{ selectedReceipt.paymentMode }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="label">Payment Date</span>
+                        <span class="value">{{ selectedReceipt.date }}</span>
+                    </div>
+                </div>
+
+                <div class="items-table receipt-table" *ngIf="selectedReceipt">
+                    <div class="table-header">
+                        <div class="col-inv">Invoice Number</div>
+                        <div class="col-date">Invoice Date</div>
+                        <div class="col-amt">Invoice Amount</div>
+                        <div class="col-pay">Payment Amount</div>
+                        <div class="col-bal">Balance</div>
+                    </div>
+                    <div class="table-row" *ngFor="let item of selectedReceipt.items">
+                        <div class="col-inv">{{ item.invoiceNumber }}</div>
+                        <div class="col-date">{{ item.invoiceDate }}</div>
+                        <div class="col-amt">{{ item.invoiceAmount | number:'1.3-3' }}</div>
+                        <div class="col-pay">{{ item.paymentAmount | number:'1.3-3' }}</div>
+                        <div class="col-bal">{{ item.balance | number:'1.3-3' }}</div>
+                    </div>
+                </div>
+
+                <div class="receipt-summary" *ngIf="selectedReceipt">
+                    <div class="summary-box">
+                        <span class="label">Amount Received</span>
+                        <span class="value">BHD {{ selectedReceipt.amountReceived | number:'1.3-3' }}</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

@@ -22,7 +22,7 @@ import { InvoicesListComponent } from './features/sales/invoices/invoices-list/i
 import { InvoicesNew } from './features/sales/invoices/invoices-new/invoices-new';
 import { ReceiptsListComponent } from './features/sales/receipts/receipts-list/receipts-list.component';
 import { ReceiptsNew } from './features/sales/receipts/receipts-new/receipts-new';
-import { ReceiptsInfoComponent } from './features/sales/receipts/receipts-info/receipts-info';
+import { ReceiptsInfoComponent } from './features/sales/receipts/receipts-info/receipts-info.component';
 
 export const routes: Routes = [
     {
