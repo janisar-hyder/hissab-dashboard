@@ -104,7 +104,7 @@ import { filter } from 'rxjs/operators';
                 <a href="#" class="sub-item"><span class="dot"></span>Recurring Invoices</a>
                 <a href="#" class="sub-item"><span class="dot"></span>Sales Orders</a>
                 <a routerLink="/sales/receipts" routerLinkActive="active" class="sub-item"><span class="dot"></span>Receipts</a>
-                <a href="#" class="sub-item"><span class="dot"></span>Credit Notes</a>
+                <a routerLink="/sales/credit-notes" routerLinkActive="active" class="sub-item"><span class="dot"></span>Credit Notes</a>
               </div>
             </div>
             <div class="nav-item-group">
