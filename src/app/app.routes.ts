@@ -49,6 +49,8 @@ export const routes: Routes = [
             { path: 'sales/recurring-invoices/edit/:id', loadComponent: () => import('./features/sales/recurring-invoices/recurring-invoices-new/recurring-invoices-new.component').then(m => m.RecurringInvoicesNewComponent) },
             { path: 'sales/quotations/info/:id', loadComponent: () => import('./features/sales/quotations/quotation-info/quotation-info').then(m => m.QuotationInfoComponent) },
             { path: 'sales/invoices/info/:id', loadComponent: () => import('./features/sales/invoices/invoice-info/invoice-info').then(m => m.InvoiceInfoComponent) },
+            { path: 'sales/delivery-notes', loadComponent: () => import('./features/sales/delivery-notes/delivery-notes-list/delivery-notes-list.component').then(m => m.DeliveryNotesListComponent) },
+            { path: 'sales/delivery-notes/info/:id', loadComponent: () => import('./features/sales/delivery-notes/delivery-notes-info/delivery-notes-info.component').then(m => m.DeliveryNotesInfoComponent) },
             { path: 'admin/dashboard', component: AdminDashboard },
             { path: 'admin/clients', component: AdminClients },
             { path: 'admin/clients/new', component: AdminClientsNewComponent },
