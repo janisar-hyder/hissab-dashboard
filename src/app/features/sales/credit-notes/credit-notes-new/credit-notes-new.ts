@@ -42,6 +42,8 @@ export class CreditNotesNew implements OnInit {
 
   note = '';
   termsAndConditions = '';
+  saveNoteForFuture = false;
+  saveTermsForFuture = false;
 
   items: CreditNoteItem[] = [
     {

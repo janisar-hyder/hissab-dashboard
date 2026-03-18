@@ -3,6 +3,7 @@ import { CommonModule, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
+import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
 import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
 
 export interface CreditNoteItem {
@@ -18,6 +19,15 @@ export interface AppliedInvoice {
     date: string;
     invoiceNo: string;
     amountCredited: number;
+}
+
+export interface UnpaidInvoice {
+    date: string;
+    number: string;
+    amount: number;
+    due: number;
+    paid: number;
+    isFull: boolean;
 }
 
 export interface CreditNote {
@@ -42,7 +52,7 @@ export interface CreditNote {
 @Component({
     selector: 'app-credit-notes-info',
     standalone: true,
-    imports: [CommonModule, RouterModule, FormsModule, DecimalPipe, PaginationComponent, CustomFilterComponent],
+    imports: [CommonModule, RouterModule, FormsModule, DecimalPipe, PaginationComponent, CustomFilterComponent, DeleteModalComponent],
     templateUrl: './credit-notes-info.html',
     styleUrls: ['./credit-notes-info.scss']
 })
@@ -129,9 +139,17 @@ export class CreditNotesInfoComponent implements OnInit {
         { label: 'Draft', value: 'Draft', colorHex: '#64748b' }
     ];
 
+    // Apply to Invoice Modal
+    isApplyModalOpen = false;
+    unpaidInvoices: UnpaidInvoice[] = [];
+
     // Pagination properties
     currentPage = 1;
     itemsPerPage: number | 'All' = 15;
+
+    // Delete Confirmation
+    isDeleteItemModalOpen = false;
+    invoiceToDeleteIndex: number | null = null;
 
     constructor(
         private route: ActivatedRoute,
@@ -207,6 +225,76 @@ export class CreditNotesInfoComponent implements OnInit {
         this.activeTab = tab;
     }
 
+    // --- Apply to Invoice Logic ---
+    openApplyModal(): void {
+        if (!this.selectedCreditNote) return;
+        
+        this.isApplyModalOpen = true;
+        // Mocking unpaid invoices for "The Habegger Corp" or similar
+        this.unpaidInvoices = [
+            { date: '17 Jan 2026', number: 'INV-005', amount: 1000.000, due: 1000.000, paid: 0, isFull: false },
+            { date: '04 Jan 2026', number: 'INV-002', amount: 250.000, due: 250.000, paid: 0, isFull: false }
+        ];
+    }
+
+    closeApplyModal(): void {
+        this.isApplyModalOpen = false;
+    }
+
+    toggleFullPayment(invoice: UnpaidInvoice): void {
+        if (invoice.isFull) {
+            invoice.paid = invoice.due;
+        } else {
+            invoice.paid = 0;
+        }
+    }
+
+    onPaidAmountChange(invoice: UnpaidInvoice): void {
+        invoice.isFull = invoice.paid >= invoice.due;
+    }
+
+    clearAppliedAmount(): void {
+        this.unpaidInvoices.forEach(inv => {
+            inv.paid = 0;
+            inv.isFull = false;
+        });
+    }
+
+    get totalCreditsUsedInModal(): number {
+        return this.unpaidInvoices.reduce((sum, inv) => sum + (Number(inv.paid) || 0), 0);
+    }
+
+    get creditsRemainingInModal(): number {
+        if (!this.selectedCreditNote) return 0;
+        return this.selectedCreditNote.total - this.totalCreditsUsedInModal;
+    }
+
+    saveAppliedCredits(): void {
+        if (!this.selectedCreditNote) return;
+
+        const applied = this.unpaidInvoices
+            .filter(inv => inv.paid > 0)
+            .map(inv => ({
+                date: inv.date,
+                invoiceNo: inv.number,
+                amountCredited: inv.paid
+            }));
+
+        if (!this.selectedCreditNote.appliedInvoices) {
+            this.selectedCreditNote.appliedInvoices = [];
+        }
+
+        this.selectedCreditNote.appliedInvoices = [...this.selectedCreditNote.appliedInvoices, ...applied];
+        this.selectedCreditNote.creditsUsed += this.totalCreditsUsedInModal;
+        this.selectedCreditNote.creditsRemaining = this.selectedCreditNote.total - this.selectedCreditNote.creditsUsed;
+
+        if (this.selectedCreditNote.creditsRemaining <= 0) {
+            this.selectedCreditNote.status = 'Closed';
+        }
+
+        this.closeApplyModal();
+    }
+
     async downloadPdf() {
         if (!this.selectedCreditNote) return;
 
@@ -231,5 +319,31 @@ export class CreditNotesInfoComponent implements OnInit {
         
         pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
         pdf.save(`CreditNote-${this.selectedCreditNote.creditNoteNumber}.pdf`);
+    }
+
+    openDeleteConfirm(index: number): void {
+        this.invoiceToDeleteIndex = index;
+        this.isDeleteItemModalOpen = true;
+    }
+
+    closeDeleteConfirm(): void {
+        this.isDeleteItemModalOpen = false;
+        this.invoiceToDeleteIndex = null;
+    }
+
+    confirmDeleteAppliedInvoice(): void {
+        if (this.selectedCreditNote?.appliedInvoices && this.invoiceToDeleteIndex !== null) {
+            const removed = this.selectedCreditNote.appliedInvoices.splice(this.invoiceToDeleteIndex, 1)[0];
+            
+            // Revert credits
+            this.selectedCreditNote.creditsUsed -= removed.amountCredited;
+            this.selectedCreditNote.creditsRemaining += removed.amountCredited;
+            
+            // Re-open if closed
+            if (this.selectedCreditNote.creditsRemaining > 0 && this.selectedCreditNote.status === 'Closed') {
+                this.selectedCreditNote.status = 'Open';
+            }
+        }
+        this.closeDeleteConfirm();
     }
 }

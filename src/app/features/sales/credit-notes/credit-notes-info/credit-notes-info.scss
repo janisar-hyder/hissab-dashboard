@@ -570,3 +570,374 @@
         }
     }
 }
+
+.apply-btn {
+    height: 36px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    padding: 0 16px;
+    border-radius: 6px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #4b5563;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    outline: none;
+
+    &:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        color: #1e293b;
+    }
+}
+
+/* Apply Credits to Invoices Modal */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 2200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+    animation: fadeIn 0.2s ease-out;
+}
+
+.apply-modal-card {
+    width: 1150px;
+    width: 90vw;
+    min-height: 600px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUp 0.3s ease-out;
+
+    .modal-header {
+        padding: 32px 48px;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+
+            .info-icon-wrapper {
+                width: 48px;
+                height: 48px;
+                background: #eff6ff;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            h2 {
+                margin: 0;
+                font-size: 20px;
+                font-weight: 500;
+                color: #334155;
+            }
+        }
+    }
+
+    .modal-body {
+        padding: 40px 48px;
+        flex: 1;
+        overflow-y: auto;
+
+        .body-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+
+            h3 {
+                margin: 0;
+                font-size: 18px;
+                font-weight: 500;
+                color: #475569;
+            }
+
+            .clear-btn {
+                border: none;
+                color: #0052FF;
+                font-size: 15px;
+                font-weight: 500;
+                cursor: pointer;
+                background: none;
+                padding: 0;
+                transition: color 0.2s;
+                &:hover { color: #0041cc; }
+            }
+        }
+
+        /* Pixel Perfect Table Grid */
+        $receipt-table-grid: 20% 16% 16% 16% 16% 16%;
+
+        .unpaid-table-wrapper {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 32px;
+        }
+
+        .receipt-table {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .receipt-thead {
+            display: grid;
+            grid-template-columns: $receipt-table-grid;
+            background-color: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+
+            > div {
+                padding: 16px 24px;
+                font-size: 14px;
+                font-weight: 500;
+                color: #64748b;
+                border-right: 1px solid #e2e8f0;
+                display: flex;
+                align-items: center;
+
+                &:last-child {
+                    border-right: none;
+                }
+            }
+
+            .th-inv-amt, .th-amt-due, .th-amt-paid {
+                justify-content: flex-end;
+            }
+
+            .th-full-pmt {
+                justify-content: center;
+            }
+        }
+
+        .receipt-tbody {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .receipt-row {
+            display: grid;
+            grid-template-columns: $receipt-table-grid;
+            border-bottom: 1px solid #e2e8f0;
+            background: #fff;
+
+            &:last-child {
+                border-bottom: none;
+            }
+
+            .td-cell {
+                padding: 16px 24px;
+                border-right: 1px solid #e2e8f0;
+                display: flex;
+                align-items: center;
+                font-size: 14px;
+                color: #64748b;
+
+                &:last-child {
+                    border-right: none;
+                }
+
+                &.invoice-number {
+                    color: #2563eb;
+                    font-weight: 500;
+                }
+
+                &.text-right {
+                    justify-content: flex-end;
+                }
+
+                &.text-center {
+                    justify-content: center;
+                }
+            }
+        }
+
+        /* Table Inputs */
+        .cell-input-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .cell-input {
+            width: 120px;
+            height: 40px;
+            padding: 8px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            color: #334155;
+            background: #fff;
+            text-align: right;
+            outline: none;
+            transition: all 0.2s;
+
+            &:focus {
+                border-color: #2563eb;
+                box-shadow: 0 0 0 1px #2563eb;
+            }
+
+            &::placeholder {
+                color: #cbd5e1;
+            }
+
+            &::-webkit-outer-spin-button,
+            &::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+            appearance: textfield;
+        }
+
+        .apply-summary {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 12px;
+            margin-top: 32px;
+
+            .summary-row {
+                display: flex;
+                justify-content: flex-end;
+                align-items: center;
+                gap: 60px;
+                width: 100%;
+                max-width: 450px;
+                padding-right: 24px;
+
+                .label { font-size: 14.5px; color: #64748b; }
+                .value { 
+                    font-size: 14.5px; 
+                    font-weight: 500; 
+                    color: #334155;
+                    min-width: 120px;
+                    text-align: right;
+                    &.danger { color: #ef4444; }
+                }
+
+                &.remaining-box {
+                    background: #f8fafc;
+                    padding: 16px 32px;
+                    border-radius: 8px;
+                    margin-top: 8px;
+                    margin-right: 0;
+                    .label { color: #475569; font-weight: 500; flex: 1; text-align: left; }
+                    .value { font-size: 17px; color: #1e293b; font-weight: 600; min-width: 150px; }
+                }
+            }
+        }
+    }
+
+    .modal-footer {
+        padding: 24px 32px;
+        background: #fff;
+        border-top: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+
+        .footer-btn {
+            padding: 10px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+
+            &.secondary {
+                background: #fff;
+                border: 1px solid #e2e8f0;
+                color: #64748b;
+                &:hover { background: #f8fafc; color: #1e293b; }
+            }
+
+            &.primary {
+                background: #2563eb;
+                border: none;
+                color: #fff;
+                &:hover { background: #1d4ed8; }
+            }
+        }
+    }
+}
+
+/* Custom Checkbox (Pixel Perfect) */
+.custom-checkbox {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    width: 20px;
+    height: 20px;
+
+    input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        height: 0;
+        width: 0;
+    }
+
+    .checkmark {
+        height: 20px;
+        width: 20px;
+        background-color: #fff;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        transition: all 0.2s;
+        display: block;
+        position: relative;
+
+        &:after {
+            content: "";
+            position: absolute;
+            display: none;
+            left: 6px;
+            top: 2px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+    }
+
+    input:checked ~ .checkmark {
+        background-color: #2563eb;
+        border-color: #2563eb;
+
+        &:after {
+            display: block;
+        }
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
