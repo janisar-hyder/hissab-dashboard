@@ -121,6 +121,7 @@ import { filter } from 'rxjs/operators';
                 <a href="#" class="sub-item"><span class="dot"></span>Purchase Orders</a>
                 <a href="#" class="sub-item"><span class="dot"></span>Bills</a>
                 <a routerLink="/purchases/vendors" routerLinkActive="active" class="sub-item"><span class="dot"></span>Vendors</a>
+                <a routerLink="/purchases/expenses" routerLinkActive="active" class="sub-item"><span class="dot"></span>Expenses</a>
               </div>
             </div>
             
