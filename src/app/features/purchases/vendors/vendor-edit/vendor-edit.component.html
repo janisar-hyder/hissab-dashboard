@@ -2,10 +2,10 @@
     <div class="page-header">
         <div class="header-titles">
             <app-breadcrumbs [items]="[
-                { label: 'Customers', url: '/sales/customers' },
-                { label: isEditMode ? 'Edit Customer' : 'Add New Customer' }
+                { label: 'Vendors', url: '/purchases/vendors' },
+                { label: isEditMode ? 'Edit Vendor' : 'Add New Vendor' }
             ]"></app-breadcrumbs>
-            <h1 class="page-title">{{ isEditMode ? 'Edit Customer' : 'Add New Customer' }}</h1>
+            <h1 class="page-title">{{ isEditMode ? 'Edit Vendor' : 'Add New Vendor' }}</h1>
         </div>
         <div class="header-actions">
             <app-button variant="outline" (clicked)="openAttachmentsModal()">
@@ -38,8 +38,8 @@
         <!-- Tabbed Section -->
         <div class="tabs-container">
             <div class="tabs-header">
-                <button class="tab-btn" [class.active]="activeTab === 'customer-info'"
-                    (click)="setTab('customer-info')">Customer Information</button>
+                <button class="tab-btn" [class.active]="activeTab === 'vendor-info'"
+                    (click)="setTab('vendor-info')">Vendor Information</button>
                 <button class="tab-btn" [class.active]="activeTab === 'additional'"
                     (click)="setTab('additional')">Additional Information</button>
                 <button class="tab-btn" [class.active]="activeTab === 'address'"
@@ -50,29 +50,29 @@
             </div>
 
             <div class="tab-content">
-                <!-- Customer Information Tab -->
-                <div class="form-card" *ngIf="activeTab === 'customer-info'">
+                <!-- Vendor Information Tab -->
+                <div class="form-card" *ngIf="activeTab === 'vendor-info'">
                     <div class="form-grid form-grid-3">
-                        <!-- Customer Name -->
+                        <!-- Vendor Name -->
                         <div class="form-group">
-                            <label>Customer Name <span class="required">*</span></label>
-                            <input type="text" class="form-control" [(ngModel)]="customerData.name" placeholder="Enter Customer Name">
+                            <label>Vendor Name <span class="required">*</span></label>
+                            <input type="text" class="form-control" [(ngModel)]="vendorData.name" placeholder="Enter Vendor Name">
                         </div>
 
-                        <!-- Customer Type -->
+                        <!-- Vendor Type -->
                         <div class="form-group">
-                            <label>Customer Type</label>
+                            <label>Vendor Type</label>
                             <app-custom-select 
-                                [(ngModel)]="customerData.type" 
-                                [options]="customerTypeOptions" 
-                                placeholder="Select Customer Type">
+                                [(ngModel)]="vendorData.type" 
+                                [options]="vendorTypeOptions" 
+                                placeholder="Select Vendor Type">
                             </app-custom-select>
                         </div>
 
                         <!-- Primary Contact -->
                         <div class="form-group">
                             <label>Primary Contact</label>
-                            <input type="text" class="form-control" [(ngModel)]="customerData.primaryContact" placeholder="Enter Primary Contact Name">
+                            <input type="text" class="form-control" [(ngModel)]="vendorData.primaryContact" placeholder="Enter Primary Contact Name">
                         </div>
 
                         <!-- Email -->
@@ -80,7 +80,7 @@
                             <label>Email</label>
                             <div class="input-with-icon">
                                 <i class="las la-at input-icon"></i>
-                                <input type="email" class="form-control pl-icon" [(ngModel)]="customerData.email" placeholder="Enter your Email">
+                                <input type="email" class="form-control pl-icon" [(ngModel)]="vendorData.email" placeholder="Enter your Email">
                             </div>
                         </div>
 
@@ -91,7 +91,7 @@
                                 <div class="flag-prefix">
                                     <span class="flag-bh"></span> +973 <i class="las la-angle-down"></i>
                                 </div>
-                                <input type="tel" class="form-control" [(ngModel)]="customerData.phone" placeholder="Enter Telephone Number">
+                                <input type="tel" class="form-control" [(ngModel)]="vendorData.phone" placeholder="Enter Telephone Number">
                             </div>
                         </div>
 
@@ -102,7 +102,7 @@
                                 <div class="flag-prefix">
                                     <span class="flag-bh"></span> +973 <i class="las la-angle-down"></i>
                                 </div>
-                                <input type="tel" class="form-control" [(ngModel)]="customerData.mobile" placeholder="Enter Mobile Number">
+                                <input type="tel" class="form-control" [(ngModel)]="vendorData.mobile" placeholder="Enter Mobile Number">
                             </div>
                         </div>
                     </div>
@@ -115,7 +115,7 @@
                         <div class="form-group">
                             <label>Tax Treatment <span class="required">*</span></label>
                             <app-custom-select 
-                                [(ngModel)]="customerData.taxTreatment" 
+                                [(ngModel)]="vendorData.taxTreatment" 
                                 [options]="taxTreatmentOptions" 
                                 placeholder="Select Tax Treatment">
                             </app-custom-select>
@@ -124,7 +124,7 @@
                         <div class="form-group">
                             <label>Currency</label>
                             <app-custom-select 
-                                [(ngModel)]="customerData.currency" 
+                                [(ngModel)]="vendorData.currency" 
                                 [options]="currencyOptions">
                             </app-custom-select>
                         </div>
@@ -132,25 +132,16 @@
                         <div class="form-group">
                             <label>Opening Balance</label>
                             <div class="input-with-suffix">
-                                <input type="text" class="form-control pr-suffix" [(ngModel)]="customerData.openingBalance">
+                                <input type="text" class="form-control pr-suffix" [(ngModel)]="vendorData.openingBalance">
                                 <span class="input-suffix">BHD</span>
                             </div>
-                        </div>
-
-                        <!-- Source of Supply -->
-                        <div class="form-group">
-                            <label>Source of Supply <span class="required">*</span></label>
-                            <app-custom-select 
-                                [(ngModel)]="customerData.sourceOfSupply" 
-                                [options]="countryOptions">
-                            </app-custom-select>
                         </div>
 
                         <!-- Payment Terms -->
                         <div class="form-group">
                             <label>Payment Terms</label>
                             <app-custom-select 
-                                [(ngModel)]="customerData.paymentTerms" 
+                                [(ngModel)]="vendorData.paymentTerms" 
                                 [options]="paymentTermsOptions">
                             </app-custom-select>
                         </div>
@@ -167,24 +158,24 @@
                         <div class="address-grid">
                             <div class="form-group">
                                 <label>Attention</label>
-                                <input type="text" class="form-control" [(ngModel)]="billingAddress.attention"
+                                <input type="text" class="form-control" #billingAttention
                                     placeholder="Enter Name">
                             </div>
                             <div class="form-group">
                                 <label>Country / Region</label>
                                 <app-custom-select 
-                                    [(ngModel)]="billingAddress.country" 
-                                    [options]="countryOptions">
+                                    [options]="countryOptions" 
+                                    [ngModel]="'Bahrain'">
                                 </app-custom-select>
                             </div>
                             <div class="form-group">
                                 <label>Address</label>
-                                <textarea class="form-control" rows="3" [(ngModel)]="billingAddress.address"
+                                <textarea class="form-control" rows="3" #billingAddress
                                     placeholder="Enter Address"></textarea>
                             </div>
                             <div class="form-group">
                                 <label>City</label>
-                                <input type="text" class="form-control" [(ngModel)]="billingAddress.city"
+                                <input type="text" class="form-control" #billingCity
                                     placeholder="Enter City">
                             </div>
                         </div>
@@ -204,30 +195,25 @@
                             <div class="form-group">
                                 <label>Attention</label>
                                 <input type="text" class="form-control"
-                                    [ngModel]="sameAsBilling ? billingAddress.attention : shipmentAddress.attention"
-                                    (ngModelChange)="!sameAsBilling ? shipmentAddress.attention = $event : null"
+                                    [value]="sameAsBilling ? billingAttention.value : ''"
                                     placeholder="Enter Name">
                             </div>
                             <div class="form-group">
                                 <label>Country / Region</label>
                                 <app-custom-select 
-                                    [ngModel]="sameAsBilling ? billingAddress.country : shipmentAddress.country"
-                                    (ngModelChange)="!sameAsBilling ? shipmentAddress.country = $event : null"
-                                    [options]="countryOptions">
+                                    [options]="countryOptions" 
+                                    [ngModel]="sameAsBilling ? 'Bahrain' : 'Bahrain'">
                                 </app-custom-select>
                             </div>
                             <div class="form-group">
                                 <label>Address</label>
                                 <textarea class="form-control" rows="3"
-                                    [ngModel]="sameAsBilling ? billingAddress.address : shipmentAddress.address"
-                                    (ngModelChange)="!sameAsBilling ? shipmentAddress.address = $event : null"
-                                    placeholder="Enter Address"></textarea>
+                                    placeholder="Enter Address">{{ sameAsBilling ? billingAddress.value : '' }}</textarea>
                             </div>
                             <div class="form-group">
                                 <label>City</label>
                                 <input type="text" class="form-control"
-                                    [ngModel]="sameAsBilling ? billingAddress.city : shipmentAddress.city"
-                                    (ngModelChange)="!sameAsBilling ? shipmentAddress.city = $event : null"
+                                    [value]="sameAsBilling ? billingCity.value : ''"
                                     placeholder="Enter City">
                             </div>
                         </div>

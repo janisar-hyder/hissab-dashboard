@@ -8,28 +8,22 @@ import { AttachmentsModal } from '../../../../shared/components/attachments-moda
 import { CustomSelectComponent, SelectOption } from '../../../../shared/components/custom-select/custom-select.component';
 
 @Component({
-    selector: 'app-customer-edit',
+    selector: 'app-vendor-edit',
     standalone: true,
-    imports: [
-        CommonModule, 
-        FormsModule, 
-        ButtonComponent, 
-        BreadcrumbsComponent, 
-        AttachmentsModal, 
-        CustomSelectComponent
-    ],
-    templateUrl: './customer-edit.component.html',
-    styleUrls: ['./customer-edit.component.scss']
+    imports: [CommonModule, FormsModule, ButtonComponent, BreadcrumbsComponent, AttachmentsModal, CustomSelectComponent],
+    templateUrl: './vendor-edit.component.html',
+    styleUrls: ['./vendor-edit.component.scss']
 })
-export class CustomerEditComponent implements OnInit {
-    customerId: string | null = null;
-    activeTab: string = 'customer-info';
+export class VendorEditComponent implements OnInit {
+    vendorId: string | null = null;
+    activeTab: string = 'vendor-info'; // default tab
     isAttachmentsModalOpen = false;
     isEditMode: boolean = false;
     sameAsBilling = false;
+    shipmentAddress = { attention: '', country: 'Bahrain', address: '', city: '' };
 
     // Dropdown options for design consistency
-    customerTypeOptions: SelectOption[] = [
+    vendorTypeOptions: SelectOption[] = [
         { label: 'Business', value: 'Business' },
         { label: 'Individual', value: 'Individual' }
     ];
@@ -66,8 +60,8 @@ export class CustomerEditComponent implements OnInit {
         { label: 'Qatar', value: 'Qatar' }
     ];
 
-    // Form data
-    customerData = {
+    // Form data (mocked for demo)
+    vendorData = {
         name: '',
         type: 'Business',
         primaryContact: '',
@@ -77,22 +71,7 @@ export class CustomerEditComponent implements OnInit {
         taxTreatment: 'VAT Registered',
         currency: 'BHD- Bahraini Dinar',
         openingBalance: '0',
-        paymentTerms: 'Due On Receipt',
-        sourceOfSupply: 'Bahrain'
-    };
-
-    billingAddress = {
-        attention: '',
-        country: 'Bahrain',
-        address: '',
-        city: ''
-    };
-
-    shipmentAddress = {
-        attention: '',
-        country: 'Bahrain',
-        address: '',
-        city: ''
+        paymentTerms: 'Due On Receipt'
     };
 
     constructor(
@@ -101,41 +80,35 @@ export class CustomerEditComponent implements OnInit {
     ) { }
 
     ngOnInit(): void {
-        this.customerId = this.route.snapshot.paramMap.get('id');
-        this.isEditMode = !!this.customerId;
+        this.vendorId = this.route.snapshot.paramMap.get('id');
+        this.isEditMode = !!this.vendorId;
 
         if (this.isEditMode) {
-            // Mock data for edit mode
-            this.customerData = {
-                name: 'Young Supply Co.',
+            this.vendorData = {
+                name: 'APR Supply',
                 type: 'Business',
-                primaryContact: 'Ahmed Ali',
-                email: 'young@supply.com',
-                phone: '1798 6489',
-                mobile: '3258 4290',
+                primaryContact: 'Ali Al-Mansoori',
+                email: 'bertou@gmail.com',
+                phone: '1763 7218',
+                mobile: '3334 8343',
                 taxTreatment: 'VAT Registered',
                 currency: 'BHD- Bahraini Dinar',
                 openingBalance: '321',
-                paymentTerms: 'Due On Receipt',
-                sourceOfSupply: 'Bahrain'
-            };
-            this.billingAddress = {
-                attention: 'John Doe',
-                country: 'Bahrain',
-                address: '123 Business Rd, Manama',
-                city: 'Manama'
-            };
-            this.shipmentAddress = {
-                attention: 'Jane Doe',
-                country: 'Bahrain',
-                address: 'Building 45, Seef District',
-                city: 'Seef'
+                paymentTerms: 'Due On Receipt'
             };
         }
     }
 
     setTab(tab: string): void {
         this.activeTab = tab;
+    }
+
+    onSameAsBillingChange(attention: string, country: string, address: string, city: string): void {
+        if (this.sameAsBilling) {
+            this.shipmentAddress = { attention, country, address, city };
+        } else {
+            this.shipmentAddress = { attention: '', country: 'Bahrain', address: '', city: '' };
+        }
     }
 
     openAttachmentsModal(): void {
@@ -147,6 +120,6 @@ export class CustomerEditComponent implements OnInit {
     }
 
     goBack(): void {
-        this.router.navigate(['/sales/customers']);
+        this.router.navigate(['/purchases/vendors']);
     }
 }
