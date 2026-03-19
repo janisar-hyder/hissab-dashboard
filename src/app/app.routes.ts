@@ -51,6 +51,7 @@ export const routes: Routes = [
             { path: 'sales/invoices/info/:id', loadComponent: () => import('./features/sales/invoices/invoice-info/invoice-info').then(m => m.InvoiceInfoComponent) },
             { path: 'sales/delivery-notes', loadComponent: () => import('./features/sales/delivery-notes/delivery-notes-list/delivery-notes-list.component').then(m => m.DeliveryNotesListComponent) },
             { path: 'sales/delivery-notes/info/:id', loadComponent: () => import('./features/sales/delivery-notes/delivery-notes-info/delivery-notes-info.component').then(m => m.DeliveryNotesInfoComponent) },
+            { path: 'sales/delivery-notes/new', loadComponent: () => import('./features/sales/delivery-notes/delivery-notes-new/delivery-notes-new').then(m => m.DeliveryNotesNewComponent) },
             { path: 'admin/dashboard', component: AdminDashboard },
             { path: 'admin/clients', component: AdminClients },
             { path: 'admin/clients/new', component: AdminClientsNewComponent },
