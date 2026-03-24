@@ -62,6 +62,10 @@ export const routes: Routes = [
             { path: 'purchases/recurring-expenses/new', loadComponent: () => import('./features/purchases/recurring-expenses/rec-exp-edit/rec-exp-edit.component').then(m => m.RecurringExpensesEditComponent) },
             { path: 'purchases/recurring-expenses/edit/:id', loadComponent: () => import('./features/purchases/recurring-expenses/rec-exp-edit/rec-exp-edit.component').then(m => m.RecurringExpensesEditComponent) },
             { path: 'purchases/recurring-expenses/info/:id', loadComponent: () => import('./features/purchases/recurring-expenses/recurring-expenses-info/recurring-expenses-info.component').then(m => m.RecurringExpensesInfoComponent) },
+            
+            { path: 'purchases/bills', loadComponent: () => import('./features/purchases/bills/bills-list/bills-list.component').then(m => m.BillsListComponent) },
+            { path: 'purchases/bills/new', loadComponent: () => import('./features/purchases/bills/bills-new/bills-new').then(m => m.BillsNew) },
+            { path: 'purchases/bills/info/:id', loadComponent: () => import('./features/purchases/bills/bills-info/bills-info.component').then(m => m.BillsInfoComponent) },
             { path: 'admin/dashboard', component: AdminDashboard },
             { path: 'admin/clients', component: AdminClients },
             { path: 'admin/clients/new', component: AdminClientsNewComponent },

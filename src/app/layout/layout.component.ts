@@ -119,7 +119,7 @@ import { filter } from 'rxjs/operators';
               <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('purchases')">
                 <div class="sub-menu-line"></div>
                 <a href="#" class="sub-item"><span class="dot"></span>Purchase Orders</a>
-                <a href="#" class="sub-item"><span class="dot"></span>Bills</a>
+                <a routerLink="/purchases/bills" routerLinkActive="active" class="sub-item"><span class="dot"></span>Bills</a>
                 <a routerLink="/purchases/vendors" routerLinkActive="active" class="sub-item"><span class="dot"></span>Vendors</a>
                 <a routerLink="/purchases/expenses" routerLinkActive="active" class="sub-item"><span class="dot"></span>Expenses</a>
                 <a routerLink="/purchases/recurring-expenses" routerLinkActive="active" class="sub-item"><span class="dot"></span>Recurring Expenses</a>
