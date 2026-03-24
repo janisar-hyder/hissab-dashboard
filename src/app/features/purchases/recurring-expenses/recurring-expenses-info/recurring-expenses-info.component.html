@@ -1,0 +1,117 @@
+<div class="recurring-expenses-info-page">
+    
+    <!-- Left Sidebar: Recurring Expenses List -->
+    <div class="sidebar-list">
+        <div class="sidebar-header">
+            <h1 class="page-title">Recurring Expenses</h1>
+            <div class="header-actions">
+                <button class="header-btn primary" (click)="navigateToNew()"><span class="plus-icon">+</span></button>
+                <button class="header-btn outline">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                </button>
+                <button class="header-btn outline">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="sidebar-main-card">
+            <div class="search-section">
+                <div class="search-input-wrapper">
+                    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" [(ngModel)]="searchTerm" placeholder="Search for something..">
+                </div>
+                <app-custom-filter
+                    [options]="filterOptions"
+                    [currentFilter]="selectedStatus"
+                    activeLabelPrefix="All"
+                    (filterChange)="onFilterChange($event)">
+                </app-custom-filter>
+            </div>
+
+            <div class="list-container">
+                <div class="list-row" 
+                     *ngFor="let re of paginatedExpenses" 
+                     [class.selected]="selectedExpense?.id === re.id"
+                     (click)="onExpenseClick(re.id)">
+                    <div class="checkbox-col" (click)="$event.stopPropagation()">
+                        <label class="custom-checkbox">
+                            <input type="checkbox" [checked]="selectedExpense?.id === re.id">
+                            <span class="checkmark"></span>
+                        </label>
+                    </div>
+                    <div class="details-col">
+                        <div class="row-top">
+                            <span class="client-name">{{ re.profileName }}</span>
+                            <div class="status-indicator" [ngClass]="re.status.toLowerCase()">
+                                <span class="dot"></span> {{ re.status }}
+                            </div>
+                        </div>
+                        <div class="row-bottom">
+                            <span class="date-text">{{ re.frequency }}</span>
+                            <span class="amount-text">BHD {{ re.amount | number:'1.3-3' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Pagination -->
+            <app-pagination 
+                [totalItems]="filteredExpenses.length" 
+                [itemsPerPage]="itemsPerPage"
+                [currentPage]="currentPage" 
+                [showEntriesInfo]="false"
+                [showPageSizeOptions]="false"
+                (pageChange)="onPageChange($event)">
+            </app-pagination>
+        </div>
+    </div>
+
+    <!-- Right Sidebar: Expense History -->
+    <div class="detail-view">
+        <div class="detail-header">
+            <div class="header-breadcrumb">
+                <h3>All Expenses</h3>
+            </div>
+            <div class="detail-actions">
+                <button class="action-btn" (click)="navigateToEdit()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </button>
+                <button class="action-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                </button>
+                <button class="action-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                </button>
+                <button class="action-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+                </button>
+                <button class="close-x-btn" (click)="closeInfo()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="history-view" *ngIf="selectedExpense">
+            <div class="history-table-container">
+                <div class="history-table">
+                    <div class="history-header">
+                        <div class="col-date">Date</div>
+                        <div class="col-account">Expense Account</div>
+                        <div class="col-paid">Paid Through</div>
+                        <div class="col-amt">Amount</div>
+                    </div>
+                    <div class="history-row" *ngFor="let item of selectedExpense.history">
+                        <div class="col-date">{{ item.date }}</div>
+                        <div class="col-account">{{ item.expenseAccount }}</div>
+                        <div class="col-paid">{{ item.paidThrough }}</div>
+                        <div class="col-amt">BHD {{ item.amount | number:'1.3-3' }}</div>
+                    </div>
+                    <div class="empty-history" *ngIf="!selectedExpense.history || selectedExpense.history.length === 0">
+                        <p>No expenses have been generated yet.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

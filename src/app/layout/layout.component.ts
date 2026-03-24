@@ -122,6 +122,7 @@ import { filter } from 'rxjs/operators';
                 <a href="#" class="sub-item"><span class="dot"></span>Bills</a>
                 <a routerLink="/purchases/vendors" routerLinkActive="active" class="sub-item"><span class="dot"></span>Vendors</a>
                 <a routerLink="/purchases/expenses" routerLinkActive="active" class="sub-item"><span class="dot"></span>Expenses</a>
+                <a routerLink="/purchases/recurring-expenses" routerLinkActive="active" class="sub-item"><span class="dot"></span>Recurring Expenses</a>
               </div>
             </div>
             
@@ -290,6 +291,7 @@ export class LayoutComponent implements OnInit {
     // Main sidebar sections
     if (url.startsWith('/sales/receipts')) return 'sales';
     if (url.startsWith('/sales')) return 'sales';
+    if (url.startsWith('/purchases/recurring-expenses')) return 'purchases';
     if (url.startsWith('/purchases')) return 'purchases';
     if (url.startsWith('/inventory')) return 'inventory';
     if (url.startsWith('/user-management')) return 'user-management';
