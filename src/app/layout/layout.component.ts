@@ -122,6 +122,7 @@ import { filter } from 'rxjs/operators';
                 <a routerLink="/purchases/bills" routerLinkActive="active" class="sub-item"><span class="dot"></span>Bills</a>
                 <a routerLink="/purchases/recurring-bills" routerLinkActive="active" class="sub-item"><span class="dot"></span>Recurring Bills</a>
                 <a routerLink="/purchases/payments" routerLinkActive="active" class="sub-item"><span class="dot"></span>Payments</a>
+                <a routerLink="/purchases/debit-notes" routerLinkActive="active" class="sub-item"><span class="dot"></span>Debit Notes</a>
                 <a routerLink="/purchases/vendors" routerLinkActive="active" class="sub-item"><span class="dot"></span>Vendors</a>
                 <a routerLink="/purchases/expenses" routerLinkActive="active" class="sub-item"><span class="dot"></span>Expenses</a>
                 <a routerLink="/purchases/recurring-expenses" routerLinkActive="active" class="sub-item"><span class="dot"></span>Recurring Expenses</a>
@@ -293,7 +294,8 @@ export class LayoutComponent implements OnInit {
     // Main sidebar sections
     if (url.startsWith('/sales/receipts')) return 'sales';
     if (url.startsWith('/sales')) return 'sales';
-    if (url.startsWith('/purchases/recurring-expenses')) return 'purchases';
+    if (url.startsWith('/purchases/debit-notes')) return 'purchases';
+    if (url.startsWith('/purchases/payments')) return 'purchases';
     if (url.startsWith('/purchases')) return 'purchases';
     if (url.startsWith('/inventory')) return 'inventory';
     if (url.startsWith('/user-management')) return 'user-management';

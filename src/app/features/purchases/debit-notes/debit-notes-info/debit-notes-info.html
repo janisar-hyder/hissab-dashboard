@@ -1,0 +1,316 @@
+<div class="debit-notes-info-page">
+    
+    <!-- Left Sidebar: Debit Notes List -->
+    <div class="sidebar-list">
+        <div class="sidebar-header">
+            <h1 class="page-title">Debit Notes</h1>
+            <div class="header-actions">
+                <button class="header-btn primary" [routerLink]="['/purchases/debit-notes/new']"><span class="plus-icon">+</span></button>
+                <button class="header-btn outline">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                </button>
+                <button class="header-btn outline">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="sidebar-main-card">
+            <div class="search-section">
+                <div class="search-input-wrapper">
+                    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" [(ngModel)]="searchTerm" placeholder="Search for something..">
+                </div>
+                <app-custom-filter
+                    [options]="filterOptions"
+                    [currentFilter]="selectedStatus"
+                    activeLabelPrefix="All"
+                    (filterChange)="onFilterChange($event)">
+                </app-custom-filter>
+            </div>
+
+            <div class="list-container">
+                <div class="list-row" 
+                     *ngFor="let dn of paginatedDebitNotes" 
+                     [class.selected]="selectedDebitNote?.id === dn.id"
+                     (click)="onDebitNoteClick(dn.id)">
+                    <div class="checkbox-col" (click)="$event.stopPropagation()">
+                        <label class="custom-checkbox">
+                            <input type="checkbox" [checked]="selectedDebitNote?.id === dn.id">
+                            <span class="checkmark"></span>
+                        </label>
+                    </div>
+                    <div class="details-col">
+                        <div class="row-top">
+                            <span class="client-name">{{ dn.vendorName }}</span>
+                            <div class="status-indicator" [ngClass]="dn.status.toLowerCase()">
+                                <span class="dot"></span> {{ dn.status }}
+                            </div>
+                        </div>
+                        <div class="row-bottom">
+                            <span class="date-text">{{ dn.date }}</span>
+                            <span class="amount-text">BHD {{ dn.amount | number:'1.3-3' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Pagination -->
+            <app-pagination 
+                [totalItems]="filteredDebitNotes.length" 
+                [itemsPerPage]="itemsPerPage"
+                [currentPage]="currentPage" 
+                [showEntriesInfo]="false"
+                [showPageSizeOptions]="false"
+                (pageChange)="onPageChange($event)"
+                (itemsPerPageChange)="onItemsPerPageChange($event)">
+            </app-pagination>
+        </div>
+    </div>
+
+    <!-- Right Content: Debit Note Detail -->
+    <div class="detail-view">
+        <div class="detail-header" *ngIf="selectedDebitNote">
+            <div class="header-breadcrumb">
+                <h3>{{ selectedDebitNote.debitNoteNumber }}</h3>
+            </div>
+            <div class="detail-actions">
+                <button class="action-btn" [routerLink]="['/purchases/debit-notes/edit', selectedDebitNote.id]">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </button>
+                <button class="action-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                </button>
+                <button class="action-btn" (click)="downloadPdf()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                </button>
+                <button class="apply-btn" *ngIf="selectedDebitNote.status === 'Open'" (click)="openApplyModal()">
+                    Apply to Bills
+                </button>
+                <button class="action-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+                </button>
+                <button class="close-x-btn" (click)="closeInfo()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="tabs-navigation" *ngIf="selectedDebitNote">
+            <div class="tabs-wrapper">
+                <button class="tab-btn" [class.active]="activeTab === 'Overview'" (click)="setActiveTab('Overview')">Overview</button>
+                <button class="tab-btn" [class.active]="activeTab === 'DebitApplied'" (click)="setActiveTab('DebitApplied')">Debit Applied Bills</button>
+            </div>
+        </div>
+
+        <div class="document-container" *ngIf="activeTab === 'Overview' && selectedDebitNote">
+            <div class="document-paper" id="debit-note-document">
+                <div class="doc-status-banner" [ngClass]="selectedDebitNote.status.toLowerCase()">
+                    <svg class="banner-main" xmlns="http://www.w3.org/2000/svg" width="78" height="62" viewBox="0 0 78 62" fill="none">
+                        <path d="M3.77763 34.8663L44.9095 2.17177C46.6786 0.765518 48.872 0 51.1319 0H77.8579L0.560613 62L0.00434329 42.987C-0.0878246 39.8367 1.31048 36.8274 3.77763 34.8663Z" fill="currentColor"/>
+                    </svg>
+                    <span class="status-text">{{ selectedDebitNote.status }}</span>
+                </div>
+                
+                <div class="doc-info-grid">
+                    <div class="customer-info">
+                        <label>Vendor Info</label>
+                        <h4>{{ selectedDebitNote.vendorName }}</h4>
+                        <div class="address-details">
+                            <p>{{ selectedDebitNote.vendorContact }}</p>
+                            <p *ngFor="let line of selectedDebitNote.vendorAddress">{{ line }}</p>
+                        </div>
+                    </div>
+                    <div class="cn-meta">
+                        <h2 class="title">DEBIT NOTE</h2>
+                        <p class="cn-num"># {{ selectedDebitNote.debitNoteNumber }}</p>
+                        <div class="meta-row">
+                            <span>Date</span>
+                            <span>{{ selectedDebitNote.date }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="items-table">
+                    <div class="table-header">
+                        <div class="col-hash">#</div>
+                        <div class="col-item">Item</div>
+                        <div class="col-qty">Qty</div>
+                        <div class="col-rate">Rate</div>
+                        <div class="col-disc">Discount</div>
+                        <div class="col-vat">VAT</div>
+                        <div class="col-amt">Amount</div>
+                    </div>
+                    <div class="table-row" *ngFor="let item of selectedDebitNote.items; let i = index">
+                        <div class="col-hash">{{ i + 1 }}</div>
+                        <div class="col-item">
+                            <span class="item-name">{{ item.name }}</span>
+                            <span class="item-desc">{{ item.description }}</span>
+                        </div>
+                        <div class="col-qty">{{ item.qty | number:'1.2-2' }}</div>
+                        <div class="col-rate">{{ item.rate | number:'1.3-3' }}</div>
+                        <div class="col-disc">{{ item.discount | number:'1.3-3' }}</div>
+                        <div class="col-vat">{{ item.vat }}%</div>
+                        <div class="col-amt">{{ (item.qty * item.rate - item.discount) | number:'1.3-3' }}</div>
+                    </div>
+                </div>
+
+                <div class="summary-section">
+                    <div class="summary-details">
+                        <div class="summary-row">
+                            <span>Sub Total</span>
+                            <span>{{ selectedDebitNote.subTotal | number:'1.3-3' }}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>VAT (10%)</span>
+                            <span>{{ selectedDebitNote.vatAmount | number:'1.3-3' }}</span>
+                        </div>
+                        <div class="summary-row total-row">
+                            <span>Total</span>
+                            <span>{{ selectedDebitNote.total | number:'1.3-3' }}</span>
+                        </div>
+                        <div class="summary-row danger">
+                            <span>Debits Used</span>
+                            <span>-{{ selectedDebitNote.debitsUsed | number:'1.3-3' }}</span>
+                        </div>
+                    </div>
+                    <div class="credits-remaining-box">
+                        <div class="summary-row">
+                            <span>Debits Remaining</span>
+                            <span>BHD {{ selectedDebitNote.debitsRemaining | number:'1.3-3' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Debit Applied Bills View -->
+        <div class="applied-invoices-view" *ngIf="activeTab === 'DebitApplied'">
+            <div class="applied-table-container" *ngIf="selectedDebitNote?.appliedBills?.length; else emptyState">
+                <div class="applied-table">
+                    <div class="applied-header">
+                        <div class="col-date">Date</div>
+                        <div class="col-inv">Bill No</div>
+                        <div class="col-amt">Amount Debited</div>
+                        <div class="col-action"></div>
+                    </div>
+                    <div class="applied-row" *ngFor="let bill of selectedDebitNote?.appliedBills; let i = index">
+                        <div class="col-date">{{ bill.date }}</div>
+                        <div class="col-inv">{{ bill.billNo }}</div>
+                        <div class="col-amt">BHD {{ bill.amountDebited | number:'1.3-3' }}</div>
+                        <div class="col-action">
+                            <button class="delete-btn" (click)="openDeleteConfirm(i)">
+                                <div class="delete-icon"></div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <ng-template #emptyState>
+                <div class="empty-applied">
+                    <p>No bills have been applied to this debit note yet.</p>
+                </div>
+            </ng-template>
+        </div>
+    </div>
+</div>
+
+<!-- Apply Debits to Bills Modal -->
+<div class="modal-backdrop" *ngIf="isApplyModalOpen" (click)="closeApplyModal()">
+    <div class="apply-modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <div class="header-left">
+                <div class="info-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <g clip-path="url(#clip0_601_3632)">
+                          <mask id="mask0_601_3632" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+                            <path d="M24 0H0V24H24V0Z" fill="white"/>
+                          </mask>
+                          <g mask="url(#mask0_601_3632)">
+                            <path d="M15.78 2H8.22C4.44 2 3.5 3.01 3.5 7.04V18.3C3.5 20.96 4.96 21.59 6.73 19.69L6.74 19.68C7.56 18.81 8.81 18.88 9.52 19.83L10.53 21.18C11.34 22.25 12.65 22.25 13.46 21.18L14.47 19.83C15.19 18.87 16.44 18.8 17.26 19.68C19.04 21.58 20.49 20.95 20.49 18.29V7.04C20.5 3.01 19.56 2 15.78 2ZM15 11.75H9C8.59 11.75 8.25 11.41 8.25 11C8.25 10.59 8.59 10.25 9 10.25H15C15.41 10.25 15.75 10.59 15.75 11C15.75 11.41 15.41 11.75 15 11.75ZM16 7.75H8C7.59 7.75 7.25 7.41 7.25 7C7.25 6.59 7.59 6.25 8 6.25H16C16.41 6.25 16.75 6.59 16.75 7C16.75 7.41 16.41 7.75 16 7.75Z" fill="#0052FF"/>
+                          </g>
+                        </g>
+                        <defs>
+                          <clipPath id="clip0_601_3632">
+                            <rect width="24" height="24" fill="white"/>
+                          </clipPath>
+                        </defs>
+                    </svg>
+                </div>
+                <h2>Apply Debits to Bills</h2>
+            </div>
+        </div>
+
+        <div class="modal-body">
+            <div class="body-title-row">
+                <h3>Unpaid Bills</h3>
+                <button class="clear-btn" (click)="clearAppliedAmount()">Clear Applied Amount</button>
+            </div>
+
+            <div class="unpaid-table-wrapper">
+                <div class="receipt-table">
+                    <!-- Table Header -->
+                    <div class="receipt-thead">
+                        <div class="th-date">Date</div>
+                        <div class="th-inv-num">Bill Number</div>
+                        <div class="th-inv-amt">Bill Amount</div>
+                        <div class="th-amt-due">Amount Due</div>
+                        <div class="th-amt-paid">Amount Paid</div>
+                        <div class="th-full-pmt">Paid in Full</div>
+                    </div>
+
+                    <!-- Table Body -->
+                    <div class="receipt-tbody">
+                        <div class="receipt-row" *ngFor="let bill of unpaidBills">
+                            <div class="td-cell td-date">{{ bill.date }}</div>
+                            <div class="td-cell td-inv-num invoice-number">{{ bill.number }}</div>
+                            <div class="td-cell td-inv-amt text-right">{{ bill.amount | number:'1.3-3' }}</div>
+                            <div class="td-cell td-amt-due text-right">{{ bill.due | number:'1.3-3' }}</div>
+                            <div class="td-cell td-amt-paid">
+                                <div class="cell-input-wrapper">
+                                    <input type="number" 
+                                           class="cell-input" 
+                                           [(ngModel)]="bill.paid" 
+                                           (ngModelChange)="onPaidAmountChange(bill)"
+                                           placeholder="0.000">
+                                </div>
+                            </div>
+                            <div class="td-cell td-full-pmt text-center">
+                                <label class="custom-checkbox no-label">
+                                    <input type="checkbox" [(ngModel)]="bill.isFull" (change)="toggleFullPayment(bill)">
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="apply-summary">
+                <div class="summary-row">
+                    <span class="label">Applied Debit</span>
+                    <span class="value used" [class.danger]="totalDebitsUsedInModal > 0">
+                        {{ totalDebitsUsedInModal | number:'1.3-3' }}
+                    </span>
+                </div>
+                <div class="summary-row remaining-box">
+                    <span class="label">Debits Remaining</span>
+                    <span class="value">BHD {{ debitsRemainingInModal | number:'1.3-3' }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="footer-btn secondary" (click)="closeApplyModal()">Cancel</button>
+            <button class="footer-btn primary" (click)="saveAppliedDebits()">Save</button>
+        </div>
+    </div>
+</div>
+
+<app-delete-modal 
+    [isOpen]="isDeleteItemModalOpen" 
+    title="Remove Applied Debit"
+    message="Are you sure you want to remove this applied debit? This will restore the debit balance to this debit note."
+    (cancel)="closeDeleteConfirm()" 
+    (confirm)="confirmDeleteAppliedBill()">
+</app-delete-modal>
