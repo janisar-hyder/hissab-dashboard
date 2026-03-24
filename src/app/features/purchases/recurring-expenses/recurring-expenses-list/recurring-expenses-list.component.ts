@@ -61,6 +61,7 @@ export class RecurringExpensesListComponent implements OnInit {
     isManageColumnsOpen = false;
     openMenuId: string | null = null;
     expenseToDelete: RecurringExpense | null = null;
+    bulkDeletePending = false;
     currentFilter: 'All' | 'Active' | 'Expired' | string = 'All';
 
     // Sorting and Filter properties
@@ -226,14 +227,11 @@ export class RecurringExpensesListComponent implements OnInit {
 
     closeDeleteModal(): void {
         this.expenseToDelete = null;
+        this.bulkDeletePending = false;
     }
 
     confirmDelete(): void {
-        if (this.expenseToDelete) {
-            this.recurringExpenses = this.recurringExpenses.filter(re => re.id !== this.expenseToDelete!.id);
-            this.selectedRecurringExpenseIds.delete(this.expenseToDelete.id);
-            this.expenseToDelete = null;
-            
+        const adjustPage = () => {
             const Math = window.Math;
             if (this.itemsPerPage !== 'All') {
                 const maxPage = Math.ceil(this.recurringExpenses.length / this.itemsPerPage) || 1;
@@ -241,21 +239,24 @@ export class RecurringExpensesListComponent implements OnInit {
                     this.currentPage = maxPage;
                 }
             }
+        };
+
+        if (this.bulkDeletePending) {
+            this.recurringExpenses = this.recurringExpenses.filter(re => !this.selectedRecurringExpenseIds.has(re.id));
+            this.selectedRecurringExpenseIds.clear();
+            this.bulkDeletePending = false;
+            adjustPage();
+        } else if (this.expenseToDelete) {
+            this.recurringExpenses = this.recurringExpenses.filter(re => re.id !== this.expenseToDelete!.id);
+            this.selectedRecurringExpenseIds.delete(this.expenseToDelete.id);
+            this.expenseToDelete = null;
+            adjustPage();
         }
     }
 
     handleBulkAction(actionId: string): void {
         if (actionId === 'delete') {
-            this.recurringExpenses = this.recurringExpenses.filter(re => !this.selectedRecurringExpenseIds.has(re.id));
-            this.selectedRecurringExpenseIds.clear();
-            
-            const Math = window.Math;
-            if (this.itemsPerPage !== 'All') {
-                const maxPage = Math.ceil(this.recurringExpenses.length / this.itemsPerPage) || 1;
-                if (this.currentPage > maxPage) {
-                    this.currentPage = maxPage;
-                }
-            }
+            this.bulkDeletePending = true;
         }
     }
 

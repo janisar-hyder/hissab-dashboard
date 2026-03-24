@@ -167,7 +167,10 @@
     (columnsChange)="onColumnsChange($event)">
 </app-manage-columns>
 
-<app-delete-modal [isOpen]="!!expenseToDelete" title="Delete Recurring Expense"
-    message="Are you sure you want to delete this recurring expense? This action cannot be undone."
+<app-delete-modal [isOpen]="!!expenseToDelete || bulkDeletePending" 
+    [title]="bulkDeletePending ? 'Delete Recurring Expenses' : 'Delete Recurring Expense'"
+    [message]="bulkDeletePending 
+        ? 'Are you sure you want to delete ' + selectedRecurringExpenseIds.size + ' selected recurring expense(s)? This action cannot be undone.'
+        : 'Are you sure you want to delete this recurring expense? This action cannot be undone.'"
     (cancel)="closeDeleteModal()" (confirm)="confirmDelete()">
 </app-delete-modal>
