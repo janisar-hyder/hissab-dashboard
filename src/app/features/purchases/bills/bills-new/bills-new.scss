@@ -156,8 +156,9 @@
         &:disabled {
             background-color: #F8F9FA;
             color: var(--text-muted);
-            cursor: not-allowed;
+            cursor: default;
             border-color: var(--border-light);
+            caret-color: transparent;
         }
 
         &.date-input {
@@ -455,6 +456,7 @@ input[type="number"] {
     color: var(--text-muted);
     border-color: var(--border-light);
     cursor: default;
+    caret-color: transparent;
 
     &:focus {
         border-color: var(--border-light);

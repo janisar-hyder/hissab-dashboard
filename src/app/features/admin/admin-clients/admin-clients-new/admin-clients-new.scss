@@ -140,8 +140,9 @@
         &:disabled, &[readonly] {
             background-color: #F8FAFC;
             color: var(--text-muted);
-            cursor: not-allowed;
+            cursor: default;
             border-color: #E2E8F0;
+            caret-color: transparent;
         }
 
         &[type="date"] {

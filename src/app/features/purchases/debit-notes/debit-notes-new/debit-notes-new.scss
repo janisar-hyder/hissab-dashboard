@@ -128,8 +128,9 @@
         &:disabled {
             background-color: #f1f5f9;
             color: #94a3b8;
-            cursor: not-allowed;
+            cursor: default;
             border-color: #e2e8f0;
+            caret-color: transparent;
         }
 
         &.date-input {
@@ -327,6 +328,7 @@ input[type="number"] {
     color: var(--text-muted);
     border-color: var(--border-light);
     cursor: default;
+    caret-color: transparent;
 
     &:focus {
         border-color: var(--border-light);

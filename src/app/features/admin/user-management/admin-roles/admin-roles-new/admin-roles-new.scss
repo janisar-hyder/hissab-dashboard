@@ -76,6 +76,14 @@
             border-color: var(--primary);
         }
 
+        &:disabled, &[readonly] {
+            background-color: var(--bg-light);
+            color: var(--text-muted);
+            cursor: default;
+            border-color: var(--border-light);
+            caret-color: transparent;
+        }
+
         &::placeholder {
             color: #9CA3AF;
         }

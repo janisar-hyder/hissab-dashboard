@@ -123,8 +123,9 @@
         &:disabled {
             background-color: #F8F9FA;
             color: var(--text-muted);
-            cursor: not-allowed;
+            cursor: default;
             border-color: var(--border-light);
+            caret-color: transparent;
         }
 
         &.date-input {
@@ -297,6 +298,7 @@ $col-grid-no-discount: 48% 12% 10% 12% 14% 4%;
     color: var(--text-muted);
     border-color: var(--border-light);
     cursor: default;
+    caret-color: transparent;
 
     &:focus {
         border-color: var(--border-light);

@@ -135,11 +135,11 @@ export interface SelectOption {
       }
 
       &:hover {
-        background-color: var(--bg-light);
+        background-color: var(--bg-main);
       }
 
       &.active {
-        background-color: var(--bg-light);
+        background-color: var(--bg-main);
         font-weight: 500;
         color: var(--primary);
 

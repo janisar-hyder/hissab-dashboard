@@ -15,7 +15,7 @@ interface BillItem {
   qty: number;
   discount: number;
   discountType: '%' | 'flat';
-  vat: number;
+  vat: number | null;
   amount: number;
 }
 
@@ -56,7 +56,7 @@ export class BillsNew implements OnInit {
       qty: null as any,
       discount: null as any,
       discountType: '%',
-      vat: 0,
+      vat: null,
       amount: 0,
     }
   ];
@@ -102,7 +102,7 @@ export class BillsNew implements OnInit {
   ];
 
   vatSelectOptions: SelectOption[] = [
-    { label: 'Select', value: 0 },
+    { label: 'Select', value: null },
     { label: '5%', value: 5 },
     { label: '10%', value: 10 },
     { label: '15%', value: 15 },
@@ -218,7 +218,7 @@ export class BillsNew implements OnInit {
       qty: 1,
       discount: 0,
       discountType: '%',
-      vat: 0,
+      vat: null,
       amount: 0,
     });
   }
@@ -277,7 +277,7 @@ export class BillsNew implements OnInit {
         qty: 1,
         discount: null as any,
         discountType: '%',
-        vat: 0,
+        vat: null,
         amount: 0
       };
       this.updateAmount(newItem);
