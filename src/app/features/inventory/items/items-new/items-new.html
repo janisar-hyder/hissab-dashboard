@@ -30,67 +30,55 @@
                 <!-- Item ID -->
                 <div class="form-group">
                     <label>Item ID <span class="required">*</span></label>
-                    <input type="text" class="form-control" value="ITM-001" disabled readonly>
+                    <input type="text" class="form-control" [value]="itemData.itemId" disabled readonly>
                 </div>
 
                 <!-- Item Name -->
                 <div class="form-group">
                     <label>Item Name</label>
-                    <input type="text" class="form-control" placeholder="Enter Product Name">
+                    <input type="text" class="form-control" [(ngModel)]="itemData.itemName" placeholder="Enter Product Name">
                 </div>
 
                 <!-- Unit of Measure -->
                 <div class="form-group">
                     <label>Unit of Measure</label>
-                    <div class="custom-select-wrapper">
-                        <select class="form-control" style="appearance: none;">
-                            <option value="" disabled selected>Select Unit</option>
-                            <option value="pcs">Pcs</option>
-                            <option value="unit">Unit</option>
-                            <option value="hour">Hour</option>
-                        </select>
-                        <i class="las la-angle-down select-icon"></i>
-                    </div>
+                    <app-custom-select 
+                        [(ngModel)]="itemData.uom" 
+                        [options]="uomOptions" 
+                        placeholder="Select Unit">
+                    </app-custom-select>
                 </div>
 
                 <!-- Category -->
                 <div class="form-group">
                     <label>Category</label>
-                    <div class="custom-select-wrapper">
-                        <select class="form-control" style="appearance: none;">
-                            <option value="" disabled selected>Select Category</option>
-                            <option value="hardware">Hardware</option>
-                            <option value="software">Software</option>
-                            <option value="service">Service</option>
-                        </select>
-                        <i class="las la-angle-down select-icon"></i>
-                    </div>
+                    <app-custom-select 
+                        [(ngModel)]="itemData.category" 
+                        [options]="categoryOptions" 
+                        placeholder="Select Category">
+                    </app-custom-select>
                 </div>
 
                 <!-- Sub Category -->
                 <div class="form-group">
                     <label>Sub Category</label>
-                    <div class="custom-select-wrapper">
-                        <select class="form-control" style="appearance: none;">
-                            <option value="" disabled selected>Select Sub Category</option>
-                            <option value="laptops">Laptops</option>
-                            <option value="servers">Servers</option>
-                            <option value="networking">Networking</option>
-                        </select>
-                        <i class="las la-angle-down select-icon"></i>
-                    </div>
+                    <app-custom-select 
+                        [(ngModel)]="itemData.subCategory" 
+                        [options]="subCategoryOptions" 
+                        placeholder="Select Sub Category">
+                    </app-custom-select>
                 </div>
 
                 <!-- SKU -->
                 <div class="form-group">
                     <label>SKU</label>
-                    <input type="text" class="form-control" placeholder="Enter your SKU">
+                    <input type="text" class="form-control" [(ngModel)]="itemData.sku" placeholder="Enter your SKU">
                 </div>
 
                 <!-- Description (Full Width) -->
                 <div class="form-group full-width">
                     <label>Description</label>
-                    <input type="text" class="form-control" placeholder="Enter Description">
+                    <input type="text" class="form-control" [(ngModel)]="itemData.description" placeholder="Enter Description">
                 </div>
             </div>
         </div>
@@ -101,7 +89,7 @@
                 <div class="form-group">
                     <label>Rate <span class="required">*</span></label>
                     <div class="input-with-suffix">
-                        <input type="text" class="form-control" placeholder="0.000">
+                        <input type="number" class="form-control" [(ngModel)]="itemData.salesRate" placeholder="0.000">
                         <div class="suffix">BHD</div>
                     </div>
                 </div>
@@ -109,35 +97,27 @@
                 <!-- VAT Preference -->
                 <div class="form-group">
                     <label>VAT Preference</label>
-                    <div class="custom-select-wrapper">
-                        <select class="form-control" style="appearance: none;">
-                            <option value="" disabled selected>Select Preference</option>
-                            <option value="taxable">Taxable</option>
-                            <option value="non-taxable">Non-Taxable</option>
-                            <option value="exempt">Exempt</option>
-                        </select>
-                        <i class="las la-angle-down select-icon"></i>
-                    </div>
+                    <app-custom-select 
+                        [(ngModel)]="itemData.vatPreference" 
+                        [options]="vatPreferenceOptions" 
+                        placeholder="Select Preference">
+                    </app-custom-select>
                 </div>
 
                 <!-- Account -->
                 <div class="form-group">
                     <label>Account</label>
-                    <div class="custom-select-wrapper">
-                        <select class="form-control" style="appearance: none;">
-                            <option value="" disabled selected>Select Account</option>
-                            <option value="sales">Sales</option>
-                            <option value="discount">Discount</option>
-                            <option value="general-income">General Income</option>
-                        </select>
-                        <i class="las la-angle-down select-icon"></i>
-                    </div>
+                    <app-custom-select 
+                        [(ngModel)]="itemData.salesAccount" 
+                        [options]="salesAccountOptions" 
+                        placeholder="Select Account">
+                    </app-custom-select>
                 </div>
 
                 <!-- Sales Description (Full Width) -->
                 <div class="form-group full-width">
                     <label>Sales Description</label>
-                    <input type="text" class="form-control" placeholder="Enter Sales Description">
+                    <input type="text" class="form-control" [(ngModel)]="itemData.salesDescription" placeholder="Enter Sales Description">
                 </div>
             </div>
         </div>
@@ -148,7 +128,7 @@
                 <div class="form-group">
                     <label>Cost Price</label>
                     <div class="input-with-suffix">
-                        <input type="text" class="form-control" placeholder="0.000">
+                        <input type="number" class="form-control" [(ngModel)]="itemData.purchaseCost" placeholder="0.000">
                         <div class="suffix">BHD</div>
                     </div>
                 </div>
@@ -156,27 +136,23 @@
                 <!-- Reorder Quantity -->
                 <div class="form-group">
                     <label>Reorder Quantity</label>
-                    <input type="text" class="form-control" placeholder="Enter Reorder Quantity">
+                    <input type="text" class="form-control" [(ngModel)]="itemData.reorderQty" placeholder="Enter Reorder Quantity">
                 </div>
 
                 <!-- Account -->
                 <div class="form-group">
                     <label>Account</label>
-                    <div class="custom-select-wrapper">
-                        <select class="form-control" style="appearance: none;">
-                            <option value="" disabled selected>Select Account</option>
-                            <option value="cost-of-goods-sold">Cost of Goods Sold</option>
-                            <option value="inventory-asset">Inventory Asset</option>
-                            <option value="expense">Expense</option>
-                        </select>
-                        <i class="las la-angle-down select-icon"></i>
-                    </div>
+                    <app-custom-select 
+                        [(ngModel)]="itemData.purchaseAccount" 
+                        [options]="purchaseAccountOptions" 
+                        placeholder="Select Account">
+                    </app-custom-select>
                 </div>
 
                 <!-- Purchase Description (Full Width) -->
                 <div class="form-group full-width">
                     <label>Purchase Description</label>
-                    <input type="text" class="form-control" placeholder="Enter Purchase Description">
+                    <input type="text" class="form-control" [(ngModel)]="itemData.purchaseDescription" placeholder="Enter Purchase Description">
                 </div>
             </div>
         </div>
@@ -186,98 +162,81 @@
                 <!-- Account -->
                 <div class="form-group">
                     <label>Account</label>
-                    <div class="custom-select-wrapper">
-                        <select class="form-control" style="appearance: none;">
-                            <option value="" disabled selected>Select Account</option>
-                            <option value="inventory">Inventory Asset</option>
-                        </select>
-                        <i class="las la-angle-down select-icon"></i>
-                    </div>
+                    <app-custom-select 
+                        [(ngModel)]="itemData.inventoryAccount" 
+                        [options]="inventoryAccountOptions" 
+                        placeholder="Select Account">
+                    </app-custom-select>
                 </div>
 
                 <!-- Warranty Period -->
                 <div class="form-group">
                     <label>Warranty Period (In days)</label>
-                    <input type="text" class="form-control" placeholder="Enter Days">
+                    <input type="text" class="form-control" [(ngModel)]="itemData.warrantyPeriod" placeholder="Enter Days">
                 </div>
 
                 <!-- Shelf Life -->
                 <div class="form-group">
                     <label>Shelf Life (In Days)</label>
-                    <input type="text" class="form-control" placeholder="Enter Days">
+                    <input type="text" class="form-control" [(ngModel)]="itemData.shelfLife" placeholder="Enter Days">
                 </div>
 
                 <!-- Vendor -->
                 <div class="form-group">
                     <label>Vendor</label>
-                    <div class="custom-select-wrapper">
-                        <select class="form-control" style="appearance: none;">
-                            <option value="" disabled selected>Select Vendor</option>
-                            <option value="vendor-1">Vendor 1</option>
-                            <option value="vendor-2">Vendor 2</option>
-                        </select>
-                        <i class="las la-angle-down select-icon"></i>
-                    </div>
+                    <app-custom-select 
+                        [(ngModel)]="itemData.vendor" 
+                        [options]="vendorOptions" 
+                        placeholder="Select Vendor">
+                    </app-custom-select>
                 </div>
 
                 <!-- Weight Per Unit -->
                 <div class="form-group">
                     <label>Weight Per Unit</label>
-                    <input type="text" class="form-control" placeholder="Enter Weight">
+                    <input type="text" class="form-control" [(ngModel)]="itemData.weightPerUnit" placeholder="Enter Weight">
                 </div>
 
                 <!-- Weight UOM -->
                 <div class="form-group">
                     <label>Weight UOM</label>
-                    <div class="custom-select-wrapper">
-                        <select class="form-control" style="appearance: none;">
-                            <option value="" disabled selected>Select Weight UOM</option>
-                            <option value="kg">kg</option>
-                            <option value="g">g</option>
-                            <option value="lb">lb</option>
-                        </select>
-                        <i class="las la-angle-down select-icon"></i>
-                    </div>
+                    <app-custom-select 
+                        [(ngModel)]="itemData.weightUom" 
+                        [options]="weightUomOptions" 
+                        placeholder="Select Weight UOM">
+                    </app-custom-select>
                 </div>
 
                 <!-- Valuation Method -->
                 <div class="form-group">
                     <label>Valuation Method</label>
-                    <div class="custom-select-wrapper">
-                        <select class="form-control" style="appearance: none;">
-                            <option value="" disabled selected>Select Valuation Method</option>
-                            <option value="fifo">FIFO</option>
-                            <option value="lifo">LIFO</option>
-                            <option value="average">Average Cost</option>
-                        </select>
-                        <i class="las la-angle-down select-icon"></i>
-                    </div>
+                    <app-custom-select 
+                        [(ngModel)]="itemData.valuationMethod" 
+                        [options]="valuationMethodOptions" 
+                        placeholder="Select Valuation Method">
+                    </app-custom-select>
                 </div>
 
                 <!-- Volume Per Unit -->
                 <div class="form-group">
                     <label>Volume Per Unit</label>
-                    <input type="text" class="form-control" placeholder="Enter Volume">
+                    <input type="text" class="form-control" [(ngModel)]="itemData.volumePerUnit" placeholder="Enter Volume">
                 </div>
 
                 <!-- Volume UOM -->
                 <div class="form-group">
                     <label>Volume UOM</label>
-                    <div class="custom-select-wrapper">
-                        <select class="form-control" style="appearance: none;">
-                            <option value="" disabled selected>Select Volume UOM</option>
-                            <option value="l">L</option>
-                            <option value="ml">ml</option>
-                            <option value="gal">gal</option>
-                        </select>
-                        <i class="las la-angle-down select-icon"></i>
-                    </div>
+                    <app-custom-select 
+                        [(ngModel)]="itemData.volumeUom" 
+                        [options]="volumeUomOptions" 
+                        placeholder="Select Volume UOM">
+                    </app-custom-select>
                 </div>
 
                 <!-- Inventory Description (Full Width) -->
                 <div class="form-group full-width">
                     <label>Inventory Description</label>
-                    <input type="text" class="form-control" placeholder="Enter Inventory Description">
+                    <input type="text" class="form-control" [(ngModel)]="itemData.inventoryDescription" placeholder="Enter Inventory Description">
                 </div>
             </div>
         </div>
