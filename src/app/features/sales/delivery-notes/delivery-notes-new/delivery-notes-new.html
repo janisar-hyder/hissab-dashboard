@@ -119,10 +119,14 @@
                             <div class="discount-input-group">
                                 <input type="number" class="discount-control-num" [(ngModel)]="item.discount" (ngModelChange)="updateAmount(item)" placeholder="0">
                                 <div class="discount-divider"></div>
-                                <select class="discount-control-type" [(ngModel)]="item.discountType" (ngModelChange)="updateAmount(item)">
-                                    <option value="%">%</option>
-                                    <option value="flat">BHD</option>
-                                </select>
+                                <div class="discount-control-type-wrapper">
+                                    <app-custom-select 
+                                        [(ngModel)]="item.discountType" 
+                                        [options]="discountTypeOptions" 
+                                        variant="compact"
+                                        (ngModelChange)="updateAmount(item)">
+                                    </app-custom-select>
+                                </div>
                             </div>
                         </div>
 
@@ -176,10 +180,13 @@
                             <div class="discount-input-group">
                                 <input type="number" class="discount-control-num" [(ngModel)]="deliveryNoteData.transactionDiscount" placeholder="0">
                                 <div class="discount-divider"></div>
-                                <select class="discount-control-type" [(ngModel)]="deliveryNoteData.transactionDiscountType">
-                                    <option value="%">%</option>
-                                    <option value="flat">BHD</option>
-                                </select>
+                                <div class="discount-control-type-wrapper">
+                                    <app-custom-select 
+                                        [(ngModel)]="deliveryNoteData.transactionDiscountType" 
+                                        [options]="discountTypeOptions" 
+                                        variant="compact">
+                                    </app-custom-select>
+                                </div>
                             </div>
                         </div>
                     </div>

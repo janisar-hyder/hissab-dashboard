@@ -113,6 +113,11 @@ export class InvoicesNew implements OnInit {
     { label: 'Transaction Level', value: 'Transaction Level' }
   ];
 
+  discountTypeOptions: SelectOption[] = [
+    { label: '%', value: '%' },
+    { label: 'BHD', value: 'flat' }
+  ];
+
   vatSelectOptions: SelectOption[] = [
     { label: 'Select', value: null },
     { label: '5%', value: 5 },

@@ -14,7 +14,7 @@ export interface SelectOption {
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="select-container" [class.disabled]="disabled">
+    <div class="select-container" [class.disabled]="disabled" [class.compact]="variant === 'compact'">
       <button class="select-control" (click)="toggleMenu($event)" [class.open]="isOpen" [disabled]="disabled">
         <span class="placeholder" *ngIf="!selectedLabel">{{ placeholder }}</span>
         <span class="value" *ngIf="selectedLabel">{{ selectedLabel }}</span>
@@ -36,11 +36,51 @@ export interface SelectOption {
     :host {
       display: block;
       width: 100%;
+      height: 100%;
     }
 
     .select-container {
       position: relative;
       width: 100%;
+      height: 100%;
+
+      &.compact {
+        .select-control {
+          border: none;
+          background: transparent;
+          padding: 0 10px;
+          min-height: 100%;
+          border-radius: 0;
+          font-size: 13px;
+
+          &:focus {
+            box-shadow: none;
+          }
+
+          .arrow-icon {
+            font-size: 12px;
+            margin-left: 4px;
+          }
+        }
+
+        .select-menu {
+          width: 75px;
+          min-width: auto;
+          right: 0;
+          left: auto;
+          top: calc(100% + 4px);
+          padding: 4px;
+
+          .menu-item {
+            padding: 8px 10px;
+            font-size: 13px;
+
+            .check-icon {
+              font-size: 12px;
+            }
+          }
+        }
+      }
     }
 
     .select-control {
@@ -171,6 +211,7 @@ export class CustomSelectComponent implements ControlValueAccessor, OnDestroy {
   @Input() placeholder: string = 'Select an option';
   @Input() disabled = false;
   @Input() id: string = 'select-' + Math.random().toString(36).substr(2, 9);
+  @Input() variant: 'default' | 'compact' = 'default';
 
   value: any;
   isOpen = false;

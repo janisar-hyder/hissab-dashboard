@@ -129,6 +129,11 @@ export class QuotationsNew {
     { label: 'Line Item Level', value: 'Line Item Level' },
     { label: 'Transaction Level', value: 'Transaction Level' }
   ];
+  
+  discountTypeOptions: SelectOption[] = [
+    { label: '%', value: '%' },
+    { label: 'BHD', value: 'flat' }
+  ];
 
   vatSelectOptions: SelectOption[] = [
     { label: 'Select', value: null },

@@ -119,6 +119,11 @@ export class RecurringInvoicesNewComponent implements OnInit {
     { label: '0%', value: 0 }
   ];
 
+  discountTypeOptions: SelectOption[] = [
+    { label: '%', value: '%' },
+    { label: 'BHD', value: 'flat' }
+  ];
+
   isBulkModalOpen = false;
   bulkSearchTerm = '';
   selectedBulkItems = new Set<string>();
