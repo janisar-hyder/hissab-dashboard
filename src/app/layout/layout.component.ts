@@ -56,7 +56,6 @@ import { filter } from 'rxjs/operators';
                 <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('users')"></i>
               </a>
               <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('users')">
-                <div class="sub-menu-line"></div>
                 <a routerLink="/admin/user-management/users" routerLinkActive="active" class="sub-item"><span class="dot"></span>Users</a>
                 <a routerLink="/admin/user-management/roles" routerLinkActive="active" class="sub-item"><span class="dot"></span>Roles</a>
               </div>
@@ -75,7 +74,6 @@ import { filter } from 'rxjs/operators';
                 <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('settings')"></i>
               </a>
               <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('settings')">
-                <div class="sub-menu-line"></div>
                 <a href="#" class="sub-item"><span class="dot"></span>General</a>
               </div>
             </div>
@@ -97,7 +95,6 @@ import { filter } from 'rxjs/operators';
                 <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('sales')"></i>
               </a>
               <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('sales')">
-                <div class="sub-menu-line"></div>
                 <a routerLink="/sales/customers" routerLinkActive="active" class="sub-item"><span class="dot"></span>Customers</a>
                 <a routerLink="/sales/quotations" routerLinkActive="active" class="sub-item"><span class="dot"></span>Quotations</a>
                 <a routerLink="/sales/invoices" routerLinkActive="active" class="sub-item"><span class="dot"></span>Invoices</a>
@@ -117,7 +114,6 @@ import { filter } from 'rxjs/operators';
                 <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('purchases')"></i>
               </a>
               <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('purchases')">
-                <div class="sub-menu-line"></div>
                 <a href="#" class="sub-item"><span class="dot"></span>Purchase Orders</a>
                 <a routerLink="/purchases/bills" routerLinkActive="active" class="sub-item"><span class="dot"></span>Bills</a>
                 <a routerLink="/purchases/recurring-bills" routerLinkActive="active" class="sub-item"><span class="dot"></span>Recurring Bills</a>
@@ -155,7 +151,6 @@ import { filter } from 'rxjs/operators';
                 <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('accounts')"></i>
               </a>
               <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('accounts')">
-                <div class="sub-menu-line"></div>
                 <a href="#" class="sub-item"><span class="dot"></span>Chart of Accounts</a>
                 <a href="#" class="sub-item"><span class="dot"></span>Journals</a>
               </div>
@@ -171,7 +166,6 @@ import { filter } from 'rxjs/operators';
                 <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('hr')"></i>
               </a>
               <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('hr')">
-                <div class="sub-menu-line"></div>
                 <a href="#" class="sub-item"><span class="dot"></span>Employees</a>
                 <a href="#" class="sub-item"><span class="dot"></span>Payrolls</a>
               </div>
@@ -187,7 +181,6 @@ import { filter } from 'rxjs/operators';
                 <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('production')"></i>
               </a>
               <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('production')">
-                <div class="sub-menu-line"></div>
                 <a href="#" class="sub-item"><span class="dot"></span>Work Orders</a>
                 <a href="#" class="sub-item"><span class="dot"></span>BOM</a>
               </div>
@@ -203,7 +196,6 @@ import { filter } from 'rxjs/operators';
                 <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('projects')"></i>
               </a>
               <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('projects')">
-                <div class="sub-menu-line"></div>
                 <a href="#" class="sub-item"><span class="dot"></span>All Projects</a>
                 <a href="#" class="sub-item"><span class="dot"></span>Timesheets</a>
               </div>
@@ -219,7 +211,6 @@ import { filter } from 'rxjs/operators';
                 <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('user-management')"></i>
               </a>
               <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('user-management')">
-                <div class="sub-menu-line"></div>
                 <a routerLink="/user-management/users" routerLinkActive="active" class="sub-item"><span class="dot"></span>Users</a>
                 <a routerLink="/user-management/roles" routerLinkActive="active" class="sub-item"><span class="dot"></span>Roles</a>
               </div>
@@ -308,14 +299,17 @@ export class LayoutComponent implements OnInit {
 
   ngOnInit(): void {
     const initialActive = this.getMenuFromUrl(this.router.url);
+    if (initialActive) {
+      this.expandedMenu = initialActive;
+    }
+
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
       const currentActive = this.getMenuFromUrl(event.urlAfterRedirects);
-      // If we navigate to a page that's inside a module, we clear the 'accordion' state
-      // because that module is now the 'sticky' active one.
-      if (currentActive === this.expandedMenu) {
-        this.expandedMenu = null;
+      // Auto-expand the newly active module upon navigation
+      if (currentActive) {
+        this.expandedMenu = currentActive;
       }
     });
   }
@@ -325,8 +319,8 @@ export class LayoutComponent implements OnInit {
   }
 
   isExpanded(menu: string): boolean {
-      // Expanded if it's the active one OR if it's the one we manually opened (accordion)
-      return this.isActiveModule(menu) || this.expandedMenu === menu;
+      // ONLY based on what is currently expanded (accordion behavior)
+      return this.expandedMenu === menu;
   }
 
   isActiveModule(menu: string): boolean {
@@ -349,11 +343,9 @@ export class LayoutComponent implements OnInit {
   }
 
   toggleSubMenu(menu: string, event: Event) {
-    event.preventDefault();
+    if (event) event.preventDefault();
     
-    // If it's the active module, stay open
-    if (this.isActiveModule(menu)) return;
-
+    // Accordion: if it's already open, close it (even if active). Otherwise, open it and close others.
     if (this.expandedMenu === menu) {
         this.expandedMenu = null;
     } else {

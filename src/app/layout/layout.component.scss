@@ -338,17 +338,6 @@
             margin-top: 0; // Removed margin to bridge gap
             position: relative;
 
-            // Vertical connecting line
-            &::before {
-                content: '';
-                position: absolute;
-                left: 20px; // align directly under icon
-                top: -12px; // Extended further up to center of parent icon
-                bottom: 16px;
-                width: 1px;
-                background-color: var(--border-light);
-                z-index: 0;
-            }
 
             .sub-item {
                 display: flex;
@@ -359,6 +348,25 @@
                 font-size: 13.5px;
                 transition: all 0.2s;
                 position: relative;
+
+                &::before {
+                    content: '';
+                    position: absolute;
+                    left: 20px;
+                    top: 0;
+                    bottom: 0;
+                    width: 1px;
+                    background-color: var(--border-light);
+                    z-index: 0;
+                }
+
+                &:first-child::before {
+                    top: 50%; /* Starts precisely at the center of the first sub-item's dot */
+                }
+
+                &:last-child::before {
+                    bottom: 50%; /* Precisely stops at the center of the last sub-item's dot */
+                }
 
                 .dot {
                     width: 6px;
