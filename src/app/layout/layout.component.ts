@@ -137,7 +137,7 @@ import { filter } from 'rxjs/operators';
               <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('inventory')">
                 <div class="sub-menu-line"></div>
                 <a routerLink="/inventory/items" routerLinkActive="active" class="sub-item"><span class="dot"></span>Items</a>
-                <a href="#" class="sub-item"><span class="dot"></span>Adjustments</a>
+                <a routerLink="/inventory/adjustments" routerLinkActive="active" class="sub-item"><span class="dot"></span>Adjustments</a>
               </div>
             </div>
 
