@@ -9,6 +9,7 @@ import { ActionMenu, MenuAction } from '../../../../shared/components/action-men
 import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
 import { AddUserModalComponent } from './components/add-user-modal/add-user-modal.component';
 import { BulkActionsComponent, BulkAction } from '../../../../shared/components/bulk-actions/bulk-actions.component';
+import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
 import { FormsModule } from '@angular/forms';
 
 interface AdminUser {
@@ -33,6 +34,7 @@ interface AdminUser {
     ActionMenu,
     DeleteModalComponent,
     BulkActionsComponent,
+    CustomFilterComponent,
     FormsModule
   ],
   templateUrl: './admin-users.html',
@@ -49,14 +51,9 @@ export class AdminUsers {
     { id: '4', name: 'Tariq Mahmood', role: 'Admin', email: 'tariq@gmail.com', status: 'Active' },
   ];
 
-  // Global selections
   selectedUserIds = new Set<string>();
-
-  // Pagination
   currentPage = 1;
   itemsPerPage = 15;
-
-  // Modals & Action Menus
   isManageColumnsOpen = false;
   isAddUserModalOpen = false;
   userToDelete: AdminUser | null = null;
@@ -66,6 +63,12 @@ export class AdminUsers {
   sortColumn: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
   searchQuery: string = '';
+  currentFilter: 'All' | 'Active' | 'Inactive' | string = 'All';
+
+  userFilterOptions: FilterOption[] = [
+    { label: 'Active', value: 'Active', colorHex: '#10b981' },
+    { label: 'Inactive', value: 'Inactive', colorHex: '#64748b' }
+  ];
 
   bulkActions: BulkAction[] = [
     { id: 'delete', label: 'Delete Users', colorClass: 'text-danger' }
@@ -81,7 +84,6 @@ export class AdminUsers {
     ];
   }
 
-  // Manage Columns Configuration
   availableColumns: ColumnDef[] = [
     { id: 'name', label: 'Name', visible: true },
     { id: 'role', label: 'Role', visible: true },
@@ -90,18 +92,34 @@ export class AdminUsers {
   ];
 
   get filteredUsers(): AdminUser[] {
-    if (!this.searchQuery) return this.users;
-    const query = this.searchQuery.toLowerCase();
-    return this.users.filter(u => 
-      u.name.toLowerCase().includes(query) || 
-      u.email.toLowerCase().includes(query) ||
-      u.role.toLowerCase().includes(query)
-    );
+    let filtered = this.users;
+
+    // Status Filter
+    if (this.currentFilter !== 'All') {
+      filtered = filtered.filter(u => u.status === this.currentFilter);
+    }
+
+    // Search Query
+    if (this.searchQuery) {
+      const query = this.searchQuery.toLowerCase();
+      filtered = filtered.filter(u => 
+        u.name.toLowerCase().includes(query) || 
+        u.email.toLowerCase().includes(query) ||
+        u.role.toLowerCase().includes(query)
+      );
+    }
+
+    return filtered;
   }
 
   get paginatedUsers(): AdminUser[] {
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
     return this.filteredUsers.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  setFilter(filter: string) {
+    this.currentFilter = filter;
+    this.currentPage = 1;
   }
 
   isColumnVisible(columnId: string): boolean {
@@ -163,11 +181,7 @@ export class AdminUsers {
   }
 
   handleUserAction(event: { action: string, data: any }) {
-    console.log(`Executing ${event.action} on user ID: ${event.data.id}`);
-    
-    if (event.action === 'edit') {
-      // Future mapping
-    } else if (event.action === 'delete') {
+    if (event.action === 'delete') {
       this.userToDelete = event.data;
     } else if (event.action === 'mark_active') {
       event.data.status = 'Active';
@@ -188,7 +202,6 @@ export class AdminUsers {
       email: userData.email,
       status: 'Active'
     };
-    // Prepend new user
     this.users = [newUser, ...this.users];
   }
 

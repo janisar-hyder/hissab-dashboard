@@ -4,17 +4,17 @@
         <div class="card-toolbar">
             <div class="search-box">
                 <i class="las la-search search-icon"></i>
-                <input type="text" placeholder="Search for something.." [(ngModel)]="searchQuery" class="search-input">
+                <input type="text" placeholder="Search for something.." [(ngModel)]="searchQuery" (ngModelChange)="currentPage = 1" class="search-input">
                 <i class="las la-times clear-icon" *ngIf="searchQuery" (click)="clearSearch()"></i>
             </div>
             
             <div class="toolbar-actions" style="display: flex; gap: var(--space-sm); align-items: center;">
-                <div class="custom-dropdown" style="position: relative;">
-                    <button class="dropdown-trigger" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: white; border: 1px solid var(--border-light); border-radius: var(--radius-sm); color: var(--text-muted); font-size: 13px; font-weight: 500; cursor: pointer;">
-                        All Users
-                        <i class="las la-angle-down"></i>
-                    </button>
-                </div>
+                <app-custom-filter
+                    [options]="userFilterOptions"
+                    [currentFilter]="currentFilter"
+                    activeLabelPrefix="All Users"
+                    (filterChange)="setFilter($event)">
+                </app-custom-filter>
                 
                 <app-button variant="outline" iconPrefix="las la-sliders-h" (clicked)="toggleManageColumns()">Manage Columns</app-button>
             </div>
@@ -54,10 +54,12 @@
                                        (change)="toggleSelection(user.id)">
                                 <span class="checkmark"></span>
                             </label>
-</td>
+                        </td>
                         <ng-container *ngFor="let col of availableColumns">
                             <td *ngIf="col.visible" [ngSwitch]="col.id" [class.col-status]="col.id === 'status'" class="text-muted">
-                                <ng-container *ngSwitchCase="'name'">{{ user.name }}</ng-container>
+                                <ng-container *ngSwitchCase="'name'">
+                                    <span style="color: var(--text-dark); font-weight: 500;">{{ user.name }}</span>
+                                </ng-container>
                                 <ng-container *ngSwitchCase="'role'">{{ user.role }}</ng-container>
                                 <ng-container *ngSwitchCase="'email'">{{ user.email }}</ng-container>
                                 <ng-container *ngSwitchCase="'status'">
@@ -76,13 +78,13 @@
                         </td>
                     </tr>
                     <!-- Internal Empty State (No Results found inside table) -->
-                    <tr *ngIf="filteredUsers.length === 0">
+                    <tr *ngIf="paginatedUsers.length === 0">
                         <td [attr.colspan]="availableColumns.length + 2" style="padding: 0;">
                             <app-empty-state 
-                                [title]="searchQuery ? 'No Users Found.' : 'No Users Found.'"
+                                [title]="(searchQuery || currentFilter !== 'All') ? 'No Users Found.' : 'No Users Found.'"
                                 [subtitle]="searchQuery ? 'We couldn\'t find any users matching \'' + searchQuery + '\'' : 'It looks like you haven\'t added any users yet.'" 
-                                [actionLabel]="searchQuery ? '' : 'Add New User'"
-                                [actionIconClass]="searchQuery ? '' : 'las la-plus'" 
+                                [actionLabel]="(searchQuery || currentFilter !== 'All') ? '' : 'Add New User'"
+                                [actionIconClass]="(searchQuery || currentFilter !== 'All') ? '' : 'las la-plus'" 
                                 (actionClick)="navigateToNew()">
                             </app-empty-state>
                         </td>

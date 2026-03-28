@@ -1,128 +1,112 @@
 <!-- Data Card -->
 <div class="data-card" style="margin: 0; display: flex; flex-direction: column;" *ngIf="roles.length > 0 || searchQuery">
-        <!-- Toolbar -->
-        <div class="card-toolbar">
-            <div class="search-box">
-                <i class="las la-search search-icon"></i>
-                <input type="text" placeholder="Search for something.." [(ngModel)]="searchQuery" class="search-input">
-                <i class="las la-times clear-icon" *ngIf="searchQuery" (click)="clearSearch()"></i>
-            </div>
-            
-            <div class="toolbar-actions" style="display: flex; gap: var(--space-sm); align-items: center;">
-                <div class="custom-dropdown" style="position: relative;">
-                    <button class="dropdown-trigger" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: white; border: 1px solid var(--border-light); border-radius: var(--radius-sm); color: var(--text-muted); font-size: 13px; font-weight: 500; cursor: pointer;">
-                        All Roles
-                        <i class="las la-angle-down"></i>
-                    </button>
-                </div>
-                
-                <app-button variant="outline" iconPrefix="las la-sliders-h" (clicked)="toggleManageColumns()">Manage Columns</app-button>
-            </div>
+    <!-- Toolbar -->
+    <div class="card-toolbar">
+        <div class="search-box">
+            <i class="las la-search search-icon"></i>
+            <input type="text" placeholder="Search for something.." [(ngModel)]="searchQuery" (ngModelChange)="currentPage = 1" class="search-input">
+            <i class="las la-times clear-icon" *ngIf="searchQuery" (click)='clearSearch()'></i>
         </div>
 
-        <!-- Table -->
-        <div class="table-responsive">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th class="col-checkbox">
-                            <label class="custom-checkbox">
-                                <input type="checkbox" 
-                                       [checked]="isAllSelected()" 
-                                       [indeterminate]="isPartiallySelected()"
-                                       (change)="toggleAll($event)">
-                                <span class="checkmark"></span>
-                            </label>
-                        </th>
-                        <ng-container *ngFor="let col of availableColumns">
-                            <th *ngIf="col.visible" [class.col-status]="col.id === 'status'">
-                                {{ col.label }} 
-                                <i [class]="sortColumn === col.id ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" 
-                                   (click)="sort(col.id, $event)"
-                                   style="cursor: pointer; margin-left: 4px;"></i>
-                            </th>
-                        </ng-container>
-                        <th class="col-actions"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let role of paginatedRoles">
-                        <td class="col-checkbox">
-                            <label class="custom-checkbox">
-                                <input type="checkbox" 
-                                       [checked]="selectedRoleIds.has(role.id)" 
-                                       (change)="toggleSelection(role.id)">
-                                <span class="checkmark"></span>
-                            </label>
-                        </td>
-                        <ng-container *ngFor="let col of availableColumns">
-                            <td *ngIf="col.visible" [ngSwitch]="col.id" [class.col-status]="col.id === 'status'" class="text-muted">
-                                <ng-container *ngSwitchCase="'name'">{{ role.name }}</ng-container>
-                                <ng-container *ngSwitchCase="'status'">
-                                    <span class="status-pill" [ngClass]="role.status.toLowerCase()">
-                                        <span class="dot"></span> {{ role.status }}
-                                    </span>
-                                </ng-container>
-                            </td>
-                        </ng-container>
-                        <td class="col-actions">
-                            <app-action-menu
-                                [actions]="getRoleActions(role)"
-                                [data]="role"
-                                (actionClick)="handleRoleAction($event)">
-                            </app-action-menu>
-                        </td>
-                    </tr>
-                    <!-- Internal Empty State (No Results found inside table) -->
-                    <tr *ngIf="filteredRoles.length === 0">
-                        <td [attr.colspan]="availableColumns.length + 2" style="padding: 0;">
-                            <app-empty-state 
-                                [title]="searchQuery ? 'No Roles Found.' : 'No Roles Found.'"
-                                [subtitle]="searchQuery ? 'We couldn\'t find any roles matching \'' + searchQuery + '\'' : 'It looks like you haven\'t added any roles yet.'" 
-                                [actionLabel]="searchQuery ? '' : 'Add New Role'"
-                                [actionIconClass]="searchQuery ? '' : 'las la-plus'" 
-                                (actionClick)="navigateToNew()">
-                            </app-empty-state>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="toolbar-actions" style="display: flex; gap: var(--space-sm); align-items: center;">
+            <app-custom-filter
+                [options]="roleFilterOptions"
+                [currentFilter]="currentFilter"
+                activeLabelPrefix="All Roles"
+                (filterChange)="setFilter($event)">
+            </app-custom-filter>
+
+            <app-button variant="outline" iconPrefix="las la-sliders-h" (clicked)="toggleManageColumns()">Manage Columns</app-button>
         </div>
-
-
-        <!-- Footer Pagination -->
-        <app-pagination 
-            [totalItems]="filteredRoles.length" 
-            [itemsPerPage]="itemsPerPage" 
-            [currentPage]="currentPage"
-            (pageChange)="onPageChange($event)" 
-            (itemsPerPageChange)="onItemsPerPageChange($event)">
-        </app-pagination>
     </div>
 
-    <app-empty-state *ngIf="roles.length === 0 && !searchQuery" 
-        title="No Roles Found."
-        subtitle="It looks like you haven't added any roles yet." 
-        actionLabel="Add New Role"
-        actionIconClass="las la-plus" 
-        (actionClick)="navigateToNew()">
-    </app-empty-state>
+    <!-- Table -->
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th class="col-checkbox">
+                        <label class="custom-checkbox">
+                            <input type="checkbox" [checked]="isAllSelected()" [indeterminate]="isPartiallySelected()"
+                                (change)="toggleAll($event)">
+                            <span class="checkmark"></span>
+                        </label>
+                    </th>
+                    <ng-container *ngFor="let col of availableColumns">
+                        <th *ngIf="col.visible" [class.col-status]="col.id === 'status'">
+                            {{ col.label }}
+                            <i [class]="sortColumn === col.id ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'"
+                                (click)="sort(col.id, $event)" 
+                                style="cursor: pointer; margin-left: 4px;"></i>
+                        </th>
+                    </ng-container>
+                    <th class="col-actions"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let role of paginatedRoles">
+                    <td class="col-checkbox">
+                        <label class="custom-checkbox">
+                            <input type="checkbox" [checked]="selectedRoleIds.has(role.id)"
+                                (change)="toggleSelection(role.id)">
+                            <span class="checkmark"></span>
+                        </label>
+                    </td>
+                    <ng-container *ngFor="let col of availableColumns">
+                        <td *ngIf="col.visible" [ngSwitch]="col.id" [class.col-status]="col.id === 'status'" class="text-muted">
+                            <ng-container *ngSwitchCase="'name'">
+                                <span style="color: var(--text-dark); font-weight: 500;">{{ role.name }}</span>
+                            </ng-container>
+                            <ng-container *ngSwitchCase="'status'">
+                                <span class="status-pill" [ngClass]="role.status.toLowerCase()">
+                                    <span class="dot"></span> {{ role.status }}
+                                </span>
+                            </ng-container>
+                        </td>
+                    </ng-container>
+                    <td class="col-actions">
+                        <app-action-menu [actions]="getRoleActions(role)" [data]="role"
+                            (actionClick)="handleRoleAction($event)">
+                        </app-action-menu>
+                    </td>
+                </tr>
+                <!-- Internal Empty State (No Results found inside table) -->
+                <tr *ngIf="paginatedRoles.length === 0">
+                    <td [attr.colspan]="availableColumns.length + 2" style="padding: 0;">
+                        <app-empty-state 
+                            [title]="(searchQuery || currentFilter !== 'All') ? 'No Roles Found.' : 'No Roles Found.'"
+                            [subtitle]="searchQuery ? 'We couldn\'t find any roles matching \'' + searchQuery + '\'' : 'It looks like you haven\'t added any roles yet.'"
+                            [actionLabel]="(searchQuery || currentFilter !== 'All') ? '' : 'Add New Role'" 
+                            [actionIconClass]="(searchQuery || currentFilter !== 'All') ? '' : 'las la-plus'"
+                            (actionClick)="navigateToNew()">
+                        </app-empty-state>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer Pagination -->
+    <app-pagination [totalItems]="filteredRoles.length" [itemsPerPage]="itemsPerPage === -1 ? filteredRoles.length : itemsPerPage"
+        [currentPage]="currentPage" (pageChange)="onPageChange($event)"
+        (itemsPerPageChange)="onItemsPerPageChange($event)">
+    </app-pagination>
+</div>
+
+<app-empty-state *ngIf="roles.length === 0 && !searchQuery" title="No Roles Found."
+    subtitle="It looks like you haven't added any roles yet." actionLabel="Add New Role" actionIconClass="las la-plus"
+    (actionClick)="navigateToNew()">
+</app-empty-state>
 
 <!-- Manage Columns Side Panel -->
-<app-manage-columns 
-    [isOpen]="isManageColumnsOpen" 
-    [columns]="availableColumns" 
-    (closePanel)="closeManageColumns()"
+<app-manage-columns [isOpen]="isManageColumnsOpen" [columns]="availableColumns" (closePanel)="closeManageColumns()"
     (columnsChange)="onColumnsChange($event)">
 </app-manage-columns>
 
 <!-- Delete Confirmation Modal -->
-<app-delete-modal 
-    [isOpen]="!!roleToDelete || bulkDeletePending" 
-    [title]="bulkDeletePending ? 'Delete Roles' : 'Delete Role'"
-    [message]="bulkDeletePending 
+<app-delete-modal [isOpen]="!!roleToDelete || bulkDeletePending"
+    [title]="bulkDeletePending ? 'Delete Roles' : 'Delete Role'" [message]="bulkDeletePending 
         ? 'Are you sure you want to delete ' + selectedRoleIds.size + ' selected role(s)? This action cannot be undone.'
-        : 'Are you sure you want to delete this role? This action cannot be undone.'" 
-    (cancel)="closeDeleteModal()"
+        : 'Are you sure you want to delete this role? This action cannot be undone.'" (cancel)="closeDeleteModal()"
     (confirm)="confirmDelete()">
 </app-delete-modal>

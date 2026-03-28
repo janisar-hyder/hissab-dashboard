@@ -9,6 +9,7 @@ import { DeleteModalComponent } from '../../../shared/components/delete-modal/de
 import { ActionMenu, MenuAction } from '../../../shared/components/action-menu/action-menu';
 import { Router, ActivatedRoute } from '@angular/router';
 import { BulkActionsComponent, BulkAction } from '../../../shared/components/bulk-actions/bulk-actions.component';
+import { CustomFilterComponent, FilterOption } from '../../../shared/components/custom-filter/custom-filter';
 import { FormsModule } from '@angular/forms';
 
 interface Role {
@@ -29,6 +30,7 @@ interface Role {
     ActionMenu,
     DeleteModalComponent,
     BulkActionsComponent,
+    CustomFilterComponent,
     FormsModule
   ],
   templateUrl: './roles.html',
@@ -55,6 +57,12 @@ export class RolesComponent {
   sortColumn: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
   searchQuery: string = '';
+  currentFilter: 'All' | 'Active' | 'Inactive' | string = 'All';
+
+  roleFilterOptions: FilterOption[] = [
+    { label: 'Active', value: 'Active', colorHex: '#10b981' },
+    { label: 'Inactive', value: 'Inactive', colorHex: '#64748b' }
+  ];
 
   bulkActions: BulkAction[] = [
     { id: 'delete', label: 'Delete Roles', colorClass: 'text-danger' }
@@ -76,15 +84,31 @@ export class RolesComponent {
   ];
 
   get filteredRoles(): Role[] {
-    if (!this.searchQuery) return this.roles;
-    const query = this.searchQuery.toLowerCase();
-    return this.roles.filter(r => r.name.toLowerCase().includes(query));
+    let filtered = this.roles;
+
+    // Status Filter
+    if (this.currentFilter !== 'All') {
+      filtered = filtered.filter(r => r.status === this.currentFilter);
+    }
+
+    // Search Query
+    if (this.searchQuery) {
+      const query = this.searchQuery.toLowerCase();
+      filtered = filtered.filter(r => r.name.toLowerCase().includes(query));
+    }
+
+    return filtered;
   }
 
   get paginatedRoles() {
     if (this.itemsPerPage === -1) return this.filteredRoles;
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
     return this.filteredRoles.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  setFilter(filter: string) {
+    this.currentFilter = filter;
+    this.currentPage = 1;
   }
 
   isColumnVisible(columnId: string): boolean {

@@ -9,6 +9,7 @@ import { ActionMenu, MenuAction } from '../../../shared/components/action-menu/a
 import { DeleteModalComponent } from '../../../shared/components/delete-modal/delete-modal.component';
 import { AddUserModalComponent } from './components/add-user-modal/add-user-modal.component';
 import { BulkActionsComponent, BulkAction } from '../../../shared/components/bulk-actions/bulk-actions.component';
+import { CustomFilterComponent, FilterOption } from '../../../shared/components/custom-filter/custom-filter';
 import { FormsModule } from '@angular/forms';
 
 interface User {
@@ -33,6 +34,7 @@ interface User {
     ActionMenu,
     DeleteModalComponent,
     BulkActionsComponent,
+    CustomFilterComponent,
     FormsModule
   ],
   templateUrl: './users.html',
@@ -61,6 +63,12 @@ export class UsersComponent {
   sortColumn: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
   searchQuery: string = '';
+  currentFilter: 'All' | 'Active' | 'Inactive' | string = 'All';
+
+  userFilterOptions: FilterOption[] = [
+    { label: 'Active', value: 'Active', colorHex: '#10b981' },
+    { label: 'Inactive', value: 'Inactive', colorHex: '#64748b' }
+  ];
 
   bulkActions: BulkAction[] = [
     { id: 'delete', label: 'Delete Users', colorClass: 'text-danger' }
@@ -84,18 +92,34 @@ export class UsersComponent {
   ];
 
   get filteredUsers(): User[] {
-    if (!this.searchQuery) return this.users;
-    const query = this.searchQuery.toLowerCase();
-    return this.users.filter(u => 
-      u.name.toLowerCase().includes(query) || 
-      u.email.toLowerCase().includes(query) ||
-      u.role.toLowerCase().includes(query)
-    );
+    let filtered = this.users;
+
+    // Status Filter
+    if (this.currentFilter !== 'All') {
+      filtered = filtered.filter(u => u.status === this.currentFilter);
+    }
+
+    // Search Query
+    if (this.searchQuery) {
+      const query = this.searchQuery.toLowerCase();
+      filtered = filtered.filter(u => 
+        u.name.toLowerCase().includes(query) || 
+        u.email.toLowerCase().includes(query) ||
+        u.role.toLowerCase().includes(query)
+      );
+    }
+
+    return filtered;
   }
 
   get paginatedUsers(): User[] {
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
     return this.filteredUsers.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  setFilter(filter: string) {
+    this.currentFilter = filter;
+    this.currentPage = 1;
   }
 
   isColumnVisible(columnId: string): boolean {

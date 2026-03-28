@@ -9,9 +9,10 @@ import { DeleteModalComponent } from '../../../../shared/components/delete-modal
 import { ActionMenu, MenuAction } from '../../../../shared/components/action-menu/action-menu';
 import { Router, ActivatedRoute } from '@angular/router';
 import { BulkActionsComponent, BulkAction } from '../../../../shared/components/bulk-actions/bulk-actions.component';
+import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
 import { FormsModule } from '@angular/forms';
 
-interface AdminRole {
+interface Role {
   id: string;
   name: string;
   status: 'Active' | 'Inactive';
@@ -29,6 +30,7 @@ interface AdminRole {
     ActionMenu,
     DeleteModalComponent,
     BulkActionsComponent,
+    CustomFilterComponent,
     FormsModule
   ],
   templateUrl: './admin-roles.html',
@@ -38,88 +40,87 @@ export class AdminRoles {
   pageTitle = 'Roles';
   entityName = 'Role';
 
-  roles: AdminRole[] = [
+  roles: Role[] = [
     { id: '1', name: 'Super Admin', status: 'Active' },
     { id: '2', name: 'Account Manager', status: 'Inactive' },
+    { id: '3', name: 'Sales Manager', status: 'Active' },
   ];
 
-  // Global selections
   selectedRoleIds = new Set<string>();
-
-  // Pagination
   currentPage = 1;
   itemsPerPage = 15;
-
-  // Modals & Action Menus
   isManageColumnsOpen = false;
-  roleToDelete: AdminRole | null = null;
+  roleToDelete: Role | null = null;
   bulkDeletePending = false;
 
   // Sorting and Filter properties
   sortColumn: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
   searchQuery: string = '';
+  currentFilter: 'All' | 'Active' | 'Inactive' | string = 'All';
+
+  roleFilterOptions: FilterOption[] = [
+    { label: 'Active', value: 'Active', colorHex: '#10b981' },
+    { label: 'Inactive', value: 'Inactive', colorHex: '#64748b' }
+  ];
 
   bulkActions: BulkAction[] = [
     { id: 'delete', label: 'Delete Roles', colorClass: 'text-danger' }
   ];
 
-  getRoleActions(role: AdminRole): MenuAction[] {
+  getRoleActions(role: Role): MenuAction[] {
     return [
       { label: 'Edit', action: 'edit', svgIconPath: '/icons/edit.svg', customClass: 'edit-btn' },
-      role.status === 'Active' 
+      role.status === 'Active'
         ? { label: 'Mark As Inactive', action: 'mark_inactive', iconClass: 'la-times-circle', customClass: 'edit-btn' }
         : { label: 'Mark As Active', action: 'mark_active', iconClass: 'la-check-circle', customClass: 'edit-btn' },
       { label: 'Delete', action: 'delete', svgIconPath: '/icons/delete.svg', customClass: 'delete-btn' }
     ];
   }
 
-  // Manage Columns Configuration
   availableColumns: ColumnDef[] = [
     { id: 'name', label: 'Role Name', visible: true },
     { id: 'status', label: 'Status', visible: true }
   ];
 
-  get filteredRoles(): AdminRole[] {
-    if (!this.searchQuery) return this.roles;
-    const query = this.searchQuery.toLowerCase();
-    return this.roles.filter(r => r.name.toLowerCase().includes(query));
+  get filteredRoles(): Role[] {
+    let filtered = this.roles;
+
+    // Status Filter
+    if (this.currentFilter !== 'All') {
+      filtered = filtered.filter(r => r.status === this.currentFilter);
+    }
+
+    // Search Query
+    if (this.searchQuery) {
+      const query = this.searchQuery.toLowerCase();
+      filtered = filtered.filter(r => r.name.toLowerCase().includes(query));
+    }
+
+    return filtered;
   }
 
   get paginatedRoles() {
-    if (this.itemsPerPage === -1) { // Handling 'All'
-      return this.filteredRoles;
-    }
+    if (this.itemsPerPage === -1) return this.filteredRoles;
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
     return this.filteredRoles.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  setFilter(filter: string) {
+    this.currentFilter = filter;
+    this.currentPage = 1;
   }
 
   isColumnVisible(columnId: string): boolean {
     return this.availableColumns.find(col => col.id === columnId)?.visible ?? false;
   }
 
-  toggleManageColumns() {
-    this.isManageColumnsOpen = true;
-  }
-
-  closeManageColumns() {
-    this.isManageColumnsOpen = false;
-  }
-
-  onColumnsChange(newColumns: ColumnDef[]) {
-    this.availableColumns = newColumns;
-  }
-
-  onPageChange(page: number) {
-    this.currentPage = page;
-  }
-
+  toggleManageColumns() { this.isManageColumnsOpen = true; }
+  closeManageColumns() { this.isManageColumnsOpen = false; }
+  onColumnsChange(newColumns: ColumnDef[]) { this.availableColumns = newColumns; }
+  onPageChange(page: number) { this.currentPage = page; }
   onItemsPerPageChange(event: number | 'All') {
-    if (event === 'All') {
-      this.itemsPerPage = -1; // Specific convention or length
-    } else {
-      this.itemsPerPage = event;
-    }
+    this.itemsPerPage = event === 'All' ? -1 : event;
     this.currentPage = 1;
   }
 
@@ -145,7 +146,7 @@ export class AdminRoles {
   }
 
   isAllSelected(): boolean {
-    return this.paginatedRoles.length > 0 && 
+    return this.paginatedRoles.length > 0 &&
            this.paginatedRoles.every(role => this.selectedRoleIds.has(role.id));
   }
 
@@ -155,10 +156,8 @@ export class AdminRoles {
   }
 
   handleRoleAction(event: { action: string, data: any }) {
-    console.log(`Executing ${event.action} on role ID: ${event.data.id}`);
-    
     if (event.action === 'edit') {
-      // Setup edit navigation path mapping future
+      this.router.navigate([event.data.id, 'edit'], { relativeTo: this.route });
     } else if (event.action === 'delete') {
       this.roleToDelete = event.data;
     } else if (event.action === 'mark_active') {
@@ -171,7 +170,7 @@ export class AdminRoles {
   constructor(private router: Router, private route: ActivatedRoute) {}
 
   navigateToNew() {
-    this.router.navigate(['new'], { relativeTo: this.route });
+    this.router.navigate(['admin-roles-new'], { relativeTo: this.route });
   }
 
   sort(columnId: string, event: Event): void {
@@ -209,8 +208,8 @@ export class AdminRoles {
 
   confirmDelete() {
     const adjustPage = () => {
-      const Math = window.Math;
       if (this.itemsPerPage !== -1) {
+        const Math = window.Math;
         const maxPage = Math.ceil(this.roles.length / this.itemsPerPage) || 1;
         if (this.currentPage > maxPage) this.currentPage = maxPage;
       } else { this.currentPage = 1; }
