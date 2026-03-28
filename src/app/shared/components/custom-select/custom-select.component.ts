@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ElementRef, HostListener, forwardRef, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ElementRef, HostListener, forwardRef, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { DropdownService } from '../../services/dropdown.service';
@@ -22,12 +22,28 @@ export interface SelectOption {
       </button>
       
       <div class="select-menu" *ngIf="isOpen">
-        <div class="menu-item" 
-             *ngFor="let option of options" 
-             (click)="selectOption(option, $event)"
-             [class.active]="option.value === value">
-          <span class="label-text">{{ option.label }}</span>
-          <i class="las la-check check-icon" *ngIf="option.value === value"></i>
+        <div class="search-container" (click)="$event.stopPropagation()">
+          <i class="las la-search search-icon"></i>
+          <input type="text" 
+                 class="search-input" 
+                 placeholder="Search" 
+                 [value]="searchTerm"
+                 (input)="onSearchInput($event)"
+                 #searchInput>
+        </div>
+
+        <div class="menu-items-container">
+          <div class="menu-item" 
+               *ngFor="let option of filteredOptions" 
+               (click)="selectOption(option, $event)"
+               [class.active]="option.value === value">
+            <span class="label-text">{{ option.label }}</span>
+            <i class="las la-check check-icon" *ngIf="option.value === value"></i>
+          </div>
+
+          <div class="no-results" *ngIf="filteredOptions.length === 0">
+            NO RESULTS FOUND
+          </div>
         </div>
       </div>
     </div>
@@ -152,10 +168,71 @@ export interface SelectOption {
       border-radius: 8px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05);
       z-index: 1000;
-      max-height: 250px;
-      overflow-y: auto;
+      max-height: 280px;
+      display: flex;
+      flex-direction: column;
       padding: 6px;
       box-sizing: border-box;
+    }
+
+    .search-container {
+      position: relative;
+      padding: 4px;
+      margin-bottom: 6px;
+      flex-shrink: 0;
+
+      .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: 16px;
+        pointer-events: none;
+      }
+
+      .search-input {
+        width: 100%;
+        padding: 10px 12px 10px 36px;
+        border: 1px solid var(--border-light);
+        border-radius: 6px;
+        font-size: 14px;
+        color: var(--text-dark);
+        outline: none;
+        transition: all 0.2s;
+        background: white;
+        box-sizing: border-box;
+
+        &::placeholder {
+          color: #9CA3AF;
+        }
+
+        &:focus {
+          border-color: #3B82F6;
+          box-shadow: 0 0 0 1px #3B82F6;
+        }
+      }
+    }
+
+    .menu-items-container {
+      overflow-y: auto;
+      flex-grow: 1;
+      max-height: 200px;
+
+      /* Custom Scrollbar */
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      &::-webkit-scrollbar-thumb {
+        background: #E5E7EB;
+        border-radius: 10px;
+      }
+      &::-webkit-scrollbar-thumb:hover {
+        background: #D1D5DB;
+      }
     }
 
     .menu-item {
@@ -194,6 +271,15 @@ export interface SelectOption {
       }
     }
 
+    .no-results {
+      padding: 20px 12px;
+      text-align: center;
+      color: #6B7280;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
     .disabled {
       opacity: 0.7;
     }
@@ -213,8 +299,11 @@ export class CustomSelectComponent implements ControlValueAccessor, OnDestroy {
   @Input() id: string = 'select-' + Math.random().toString(36).substr(2, 9);
   @Input() variant: 'default' | 'compact' = 'default';
 
+  @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
+
   value: any;
   isOpen = false;
+  searchTerm = '';
   onChange: any = () => {};
   onTouched: any = () => {};
   private dropdownSub: Subscription;
@@ -223,6 +312,7 @@ export class CustomSelectComponent implements ControlValueAccessor, OnDestroy {
     this.dropdownSub = this.dropdownService.openDropdown$.subscribe(openedId => {
       if (openedId !== this.id) {
         this.isOpen = false;
+        this.searchTerm = '';
       }
     });
   }
@@ -232,13 +322,29 @@ export class CustomSelectComponent implements ControlValueAccessor, OnDestroy {
     return selected ? selected.label : undefined;
   }
 
+  get filteredOptions(): SelectOption[] {
+    if (!this.searchTerm) return this.options;
+    const query = this.searchTerm.toLowerCase();
+    return this.options.filter(opt => opt.label.toLowerCase().includes(query));
+  }
+
   toggleMenu(event: Event) {
     if (this.disabled) return;
     event.stopPropagation();
     this.isOpen = !this.isOpen;
     if (this.isOpen) {
       this.dropdownService.notifyOpen(this.id);
+      this.searchTerm = '';
+      setTimeout(() => {
+        if (this.searchInput) {
+          this.searchInput.nativeElement.focus();
+        }
+      }, 0);
     }
+  }
+
+  onSearchInput(event: any) {
+    this.searchTerm = event.target.value;
   }
 
   selectOption(option: SelectOption, event: Event) {
@@ -247,12 +353,14 @@ export class CustomSelectComponent implements ControlValueAccessor, OnDestroy {
     this.onChange(this.value);
     this.onTouched();
     this.isOpen = false;
+    this.searchTerm = '';
   }
 
   @HostListener('document:click', ['$event'])
   clickout(event: Event) {
     if (!this.eRef.nativeElement.contains(event.target)) {
       this.isOpen = false;
+      this.searchTerm = '';
     }
   }
 
