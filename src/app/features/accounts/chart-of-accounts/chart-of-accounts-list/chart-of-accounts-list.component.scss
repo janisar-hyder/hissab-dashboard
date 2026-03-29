@@ -17,12 +17,10 @@
 .page-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
-
+    align-items: center;
     .header-titles {
         display: flex;
         flex-direction: column;
-        gap: 6px;
     }
 
     .page-title {

@@ -10,6 +10,8 @@ import { BulkActionsComponent, BulkAction } from '../../../../shared/components/
 import { ManageColumnsComponent, ColumnDef } from '../../../../shared/components/manage-columns/manage-columns.component';
 import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
 import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
+import { CreateAccountModalComponent } from '../components/create-account-modal/create-account-modal.component';
+import { SelectOption } from '../../../../shared/components/custom-select/custom-select.component';
 
 export interface AccountNode {
     id: string;
@@ -35,7 +37,8 @@ export interface AccountNode {
         DeleteModalComponent,
         CustomFilterComponent,
         EmptyStateComponent,
-        BreadcrumbsComponent
+        BreadcrumbsComponent,
+        CreateAccountModalComponent
     ],
     templateUrl: './chart-of-accounts-list.component.html',
     styleUrl: './chart-of-accounts-list.component.scss'
@@ -71,6 +74,7 @@ export class ChartOfAccountsListComponent implements OnInit {
     searchQuery: string = '';
     currentFilter: string = 'All';
     isManageColumnsOpen = false;
+    isCreateModalOpen = false;
     openMenuId: string | null = null;
     accountToDelete: AccountNode | null = null;
     bulkDeletePending = false;
@@ -78,6 +82,8 @@ export class ChartOfAccountsListComponent implements OnInit {
     // Pagination (for the top level)
     currentPage = 1;
     itemsPerPage: number | 'All' = 15;
+    sortColumn: string = '';
+    sortDirection: 'asc' | 'desc' = 'asc';
 
     filterOptions: FilterOption[] = [
         { label: 'Active', value: 'Active', colorHex: '#10b981' },
@@ -141,6 +147,38 @@ export class ChartOfAccountsListComponent implements OnInit {
         this.searchQuery = '';
     }
 
+    sort(columnId: string, event: Event): void {
+        event.stopPropagation();
+        if (this.sortColumn === columnId) {
+            this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            this.sortColumn = columnId;
+            this.sortDirection = 'asc';
+        }
+
+        const sortNodes = (nodes: AccountNode[]) => {
+            nodes.sort((a, b) => {
+                const valA = (a as any)[columnId === 'name' ? 'name' : columnId];
+                const valB = (b as any)[columnId === 'name' ? 'name' : columnId];
+
+                if (typeof valA === 'string' && typeof valB === 'string') {
+                    return this.sortDirection === 'asc'
+                        ? valA.localeCompare(valB)
+                        : valB.localeCompare(valA);
+                } else {
+                    return this.sortDirection === 'asc'
+                        ? (valA > valB ? 1 : -1)
+                        : (valA < valB ? 1 : -1);
+                }
+            });
+            nodes.forEach(node => {
+                if (node.children) sortNodes(node.children);
+            });
+        };
+
+        sortNodes(this.accounts);
+    }
+
     // Bulk & Row Selection
     selectedAccountIds = new Set<string>();
 
@@ -200,11 +238,9 @@ export class ChartOfAccountsListComponent implements OnInit {
         this.openMenuId = (this.openMenuId === id) ? null : id;
     }
 
-    @HostListener('document:click', ['$event'])
-    clickout(event: Event) {
-        if (!this.eRef.nativeElement.contains(event.target)) {
-            this.openMenuId = null;
-        }
+    @HostListener('document:click')
+    clickout() {
+        this.openMenuId = null;
     }
 
     toggleManageColumns(): void { this.isManageColumnsOpen = true; }
@@ -249,8 +285,61 @@ export class ChartOfAccountsListComponent implements OnInit {
     onPageChange(page: number): void { this.currentPage = page; }
     onItemsPerPageChange(size: number | 'All'): void { this.itemsPerPage = size; this.currentPage = 1; }
 
+    // Create Modal Logic
+    get parentAccountOptions(): SelectOption[] {
+        const options: SelectOption[] = [];
+        const flatten = (nodes: AccountNode[]) => {
+            nodes.forEach(node => {
+                options.push({ label: node.name, value: node.id });
+                if (node.children) flatten(node.children);
+            });
+        };
+        flatten(this.accounts);
+        return options;
+    }
+
+    openCreateModal(): void {
+        this.isCreateModalOpen = true;
+    }
+
+    closeCreateModal(): void {
+        this.isCreateModalOpen = false;
+    }
+
+    saveAccount(data: any): void {
+        const newAccount: AccountNode = {
+            id: Math.random().toString(36).substr(2, 9),
+            name: data.name,
+            type: data.type,
+            status: 'Active',
+            isExpanded: false
+        };
+
+        if (data.addParent && data.parentId) {
+            this.addChildToParent(this.accounts, data.parentId, newAccount);
+        } else {
+            this.accounts = [...this.accounts, newAccount];
+        }
+        this.closeCreateModal();
+    }
+
+    private addChildToParent(nodes: AccountNode[], parentId: string, child: AccountNode): boolean {
+        for (const node of nodes) {
+            if (node.id === parentId) {
+                if (!node.children) node.children = [];
+                node.children.push(child);
+                node.isExpanded = true;
+                return true;
+            }
+            if (node.children && this.addChildToParent(node.children, parentId, child)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // Navigation
     navigateToNew(): void {
-        console.log('Navigate to New Account');
+        this.openCreateModal();
     }
 }
