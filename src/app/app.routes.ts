@@ -82,6 +82,9 @@ export const routes: Routes = [
             { path: 'accounts/journal-vouchers', loadComponent: () => import('./features/accounts/journal-vouchers/journal-vouchers-list/journal-vouchers-list.component').then(m => m.JournalVouchersListComponent) },
             { path: 'accounts/journal-vouchers/new', loadComponent: () => import('./features/accounts/journal-vouchers/journal-vouchers-new/journal-vouchers-new.component').then(m => m.JournalVouchersNewComponent) },
             { path: 'accounts/journal-vouchers/info/:id', loadComponent: () => import('./features/accounts/journal-vouchers/journal-vouchers-info/journal-vouchers-info.component').then(m => m.JournalVouchersInfoComponent) },
+            { path: 'accounts/contra-journals', loadComponent: () => import('./features/accounts/contra-journals/contra-journals-list/contra-journals-list.component').then(m => m.ContraJournalsListComponent) },
+            { path: 'accounts/contra-journals/info/:id', loadComponent: () => import('./features/accounts/contra-journals/contra-journals-info/contra-journals-info.component').then(m => m.ContraJournalsInfoComponent) },
+            { path: 'accounts/contra-journals/new', loadComponent: () => import('./features/accounts/contra-journals/contra-journals-new/contra-journals-new.component').then(m => m.ContraJournalsNewComponent) },
             
             { path: 'admin/dashboard', component: AdminDashboard },
             { path: 'admin/clients', component: AdminClients },

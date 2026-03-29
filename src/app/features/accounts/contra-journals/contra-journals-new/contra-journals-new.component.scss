@@ -1,4 +1,5 @@
-/* Absolute Pixel-Perfect Design Parity - Adapted from Adjustments New */
+
+/* Absolute Pixel-Perfect Design Parity - Adapted from Journal Vouchers New */
 
 :host {
     display: block;
@@ -80,7 +81,7 @@
         color: var(--text-muted);
 
         .required {
-            color: #ef4444; /* Standard danger color */
+            color: #ef4444;
             margin-left: 2px;
         }
     }
@@ -127,12 +128,10 @@
 .receipt-table-wrapper {
     border: 1px solid #e2e8f0;
     border-radius: 8px;
-    /* Overflow visible is VITAL for item select dropdowns to work within the bordered table */
     overflow: visible; 
     margin-bottom: 24px;
 }
 
-// Custom Grid columns to match Journal entry table: Account/Description (60%) | Debits (15%) | Credits (15%) | Delete (10%)
 $journal-table-grid: 60% 15% 15% 10%;
 
 .receipt-table {
@@ -193,7 +192,7 @@ $journal-table-grid: 60% 15% 15% 10%;
         padding: 24px 24px;
         border-right: 1px solid #e2e8f0;
         display: flex;
-        align-items: flex-start; /* Ensure stacked inputs start from top */
+        align-items: flex-start;
         font-size: 14px;
         color: #64748b;
 
@@ -238,11 +237,10 @@ $journal-table-grid: 60% 15% 15% 10%;
 
     .text-center {
         justify-content: center;
-        align-items: flex-start; /* Align with the top row of inputs */
+        align-items: flex-start;
     }
 }
 
-/* Table Inputs */
 .cell-input-wrapper {
     width: 100%;
     display: flex;
@@ -250,7 +248,7 @@ $journal-table-grid: 60% 15% 15% 10%;
 }
 
 .cell-input {
-    width: 100%; /* Take full width of cell minus padding */
+    width: 100%;
     max-width: 130px;
     height: 40px;
     padding: 8px 16px;
@@ -284,7 +282,6 @@ $journal-table-grid: 60% 15% 15% 10%;
     appearance: textfield;
 }
 
-/* Delete Action Matched to CreditNotesNew */
 .del-btn {
     background: transparent;
     border: none;
@@ -307,7 +304,7 @@ $journal-table-grid: 60% 15% 15% 10%;
         opacity: 1;
     }
 
-    margin-top: 4px; /* Center with 40px high inputs ( (40-32)/2 = 4px ) */
+    margin-top: 4px;
 
     &:disabled {
         opacity: 0.1;
@@ -315,7 +312,6 @@ $journal-table-grid: 60% 15% 15% 10%;
     }
 }
 
-/* Actions below table */
 .add-row-actions {
     display: flex;
     margin-bottom: 24px;
@@ -345,7 +341,6 @@ $journal-table-grid: 60% 15% 15% 10%;
     }
 }
 
-/* Totals Section Matched to Debit Note Refined */
 .totals-section {
     display: flex;
     flex-direction: column;
@@ -358,7 +353,7 @@ $journal-table-grid: 60% 15% 15% 10%;
         position: absolute;
         top: 0;
         right: 32px;
-        width: 540px; /* Aligns with "Total (BHD)" text start (580px row - 40px padding) */
+        width: 540px;
         height: 1px;
         background: var(--border-light);
     }
@@ -416,10 +411,9 @@ $journal-table-grid: 60% 15% 15% 10%;
 .note-divider-line {
     height: 1px;
     background: var(--border-light);
-    margin: 0 0 24px 0; /* Align with input start/end (which are constrained by card's 32px padding) */
+    margin: 0 0 24px 0;
 }
 
-/* Notes Section Matched to Adjustments New */
 .notes-container {
     .notes-label {
         display: block;

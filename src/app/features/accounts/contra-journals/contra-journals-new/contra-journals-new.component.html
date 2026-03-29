@@ -3,10 +3,10 @@
     <div class="page-header">
         <div class="header-titles">
             <app-breadcrumbs [items]="[
-                { label: 'Journal Voucher', url: '/accounts/journal-vouchers' },
-                { label: 'Add New Journal Voucher' }
+                { label: 'Contra Journals', url: '/accounts/contra-journals' },
+                { label: 'Add New Contra Journals' }
             ]"></app-breadcrumbs>
-            <h1 class="page-title">Add New Journal Voucher</h1>
+            <h1 class="page-title">Add New Contra Journals</h1>
         </div>
         <div class="header-actions">
             <app-button variant="outline" (clicked)="openAttachmentsModal()">
@@ -33,20 +33,20 @@
     <!-- Form Container -->
     <div class="form-container">
         
-        <!-- Form Card 1: Voucher Header -->
+        <!-- Form Card 1: Journal Header -->
         <div class="form-card">
             <div class="form-grid form-grid-3">
                 <div class="form-group">
-                    <label>Journal Voucher Number <span class="required">*</span></label>
-                    <input type="text" class="form-control" [value]="voucherData.journalNo" disabled>
+                    <label>Contra Journals Number <span class="required">*</span></label>
+                    <input type="text" class="form-control" [value]="journalData.contraNo" disabled>
                 </div>
                 <div class="form-group">
                     <label>Date <span class="required">*</span></label>
-                    <input type="date" class="form-control date-input" [(ngModel)]="voucherData.date">
+                    <input type="date" class="form-control date-input" [(ngModel)]="journalData.date">
                 </div>
                 <div class="form-group">
                     <label>Reference Number</label>
-                    <input type="text" class="form-control" [(ngModel)]="voucherData.referenceNumber" placeholder="Enter Reference Number">
+                    <input type="text" class="form-control" [(ngModel)]="journalData.referenceNumber" placeholder="Enter Reference Number">
                 </div>
             </div>
         </div>
@@ -120,13 +120,12 @@
 
             <!-- Totals Section -->
             <div class="totals-section">
-                <!-- Data rows same as before -->
                 <div class="total-row total-grand">
                     <span class="total-label">Total (BHD)</span>
                     <span class="total-value">{{ totalDebit | number:'1.3-3' }}</span>
                     <span class="total-value">{{ totalCredit | number:'1.3-3' }}</span>
                 </div>
-                <!-- Always show difference as per image, even if 0 -->
+                <!-- Always show difference in red/pink if not zero -->
                 <div class="total-row difference-row">
                     <span class="total-label text-pink">Difference</span>
                     <span class="total-value empty"></span>
@@ -139,7 +138,7 @@
             <!-- Notes Section -->
             <div class="notes-container">
                 <label class="notes-label">Note</label>
-                <textarea class="notes-textarea" [(ngModel)]="voucherData.notes" placeholder="Enter Note"></textarea>
+                <textarea class="notes-textarea" [(ngModel)]="journalData.notes" placeholder="Enter Note"></textarea>
             </div>
         </div>
     </div>
@@ -147,8 +146,6 @@
     <!-- Sticky Footer -->
     <div class="page-footer">
         <button class="footer-btn btn-cancel" (click)="cancel()">Cancel</button>
-        <div class="footer-actions">
-            <button class="footer-btn btn-save" (click)="save()">Save</button>
-        </div>
+        <button class="footer-btn btn-save" (click)="save()">Save</button>
     </div>
 </div>
