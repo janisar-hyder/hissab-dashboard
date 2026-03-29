@@ -154,6 +154,7 @@ import { filter } from 'rxjs/operators';
                 <a routerLink="/accounts/chart-of-accounts" class="sub-item" routerLinkActive="active"><span class="dot"></span>Chart of Accounts</a>
                 <a routerLink="/accounts/journal-vouchers" routerLinkActive="active" class="sub-item"><span class="dot"></span>Journal Vouchers</a>
                 <a routerLink="/accounts/contra-journals" routerLinkActive="active" class="sub-item"><span class="dot"></span>Contra Journals</a>
+                <a routerLink="/accounts/transaction-locking" routerLinkActive="active" class="sub-item"><span class="dot"></span>Transaction Locking</a>
               </div>
             </div>
 

@@ -1,0 +1,108 @@
+<div class="page-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-titles">
+            <h1 class="page-title">Transaction Locking</h1>
+        </div>
+    </div>
+
+    <!-- Data Card -->
+    <div class="data-card">
+        <!-- Table -->
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th class="col-checkbox">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" [checked]="isAllSelected()" [indeterminate]="isPartiallySelected()" (change)="toggleAll($event)">
+                                <span class="checkmark"></span>
+                            </label>
+                        </th>
+                        <th>
+                            Module 
+                            <i [class]="sortColumn === 'name' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('name', $event)"></i>
+                        </th>
+                        <th class="text-center">Lock/Unlock</th>
+                        <th>
+                            Locked Date 
+                            <i [class]="sortColumn === 'lockedDate' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('lockedDate', $event)"></i>
+                        </th>
+                        <th>
+                            Status 
+                            <i [class]="sortColumn === 'status' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('status', $event)"></i>
+                        </th>
+                        <th class="col-actions"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let m of modules" [class.row-locked]="m.isLocked">
+                        <td class="col-checkbox">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" [checked]="selectedModuleIds.has(m.id)" (change)="toggleSelection(m.id)">
+                                <span class="checkmark"></span>
+                            </label>
+                        </td>
+                        <td>
+                            <span class="module-name font-medium">{{ m.name }}</span>
+                        </td>
+                        <td class="text-center">
+                            <label class="switch" (click)="$event.preventDefault(); toggleLock(m)">
+                                <input type="checkbox" [checked]="m.isLocked">
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                        <td>
+                            <span class="locked-date text-muted">{{ m.lockedDate }}</span>
+                        </td>
+                        <td>
+                            <span class="status-pill" [ngClass]="'status-' + m.status.toLowerCase().split(' ').join('-')">
+                                <span class="dot"></span>
+                                {{ m.status }}
+                            </span>
+                        </td>
+                        <td class="col-actions">
+                            <div class="action-menu-container" *ngIf="m.status !== 'Unlocked'">
+                                <button class="action-btn" (click)="toggleMenu(m.id, $event)">
+                                    <i class="las la-ellipsis-h"></i>
+                                </button>
+                                <div class="action-dropdown" *ngIf="openMenuId === m.id">
+                                    <ng-container *ngIf="m.status === 'Locked'">
+                                        <button class="menu-item" (click)="openEditModal(m, $event)">
+                                            Edit
+                                        </button>
+                                        <button class="menu-item" (click)="openPartialModal(m, $event)">
+                                            Unlock Partially
+                                        </button>
+                                    </ng-container>
+                                    
+                                    <ng-container *ngIf="m.status === 'Partially Locked'">
+                                        <button class="menu-item" (click)="openEditModal(m, $event)">
+                                            Edit
+                                        </button>
+                                        <button class="menu-item" (click)="toggleLock(m)">
+                                            Full Lock
+                                        </button>
+                                    </ng-container>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Lock Confirmation Modal -->
+<app-lock-module-modal 
+    [isOpen]="isLockModalOpen"
+    [moduleName]="activeModule?.name || ''"
+    [mode]="modalMode"
+    [titleOverride]="modalTitle"
+    [initialDate]="initialDate"
+    [initialFromDate]="initialFromDate"
+    [initialToDate]="initialToDate"
+    (confirm)="handleLockConfirm($event)"
+    (cancel)="handleLockCancel()">
+</app-lock-module-modal>
