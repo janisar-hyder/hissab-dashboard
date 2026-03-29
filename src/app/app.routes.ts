@@ -78,6 +78,11 @@ export const routes: Routes = [
             { path: 'purchases/payments/new', loadComponent: () => import('./features/purchases/payments/payments-new/payments-new').then(m => m.PaymentsNew) },
             { path: 'purchases/payments/info/:id', loadComponent: () => import('./features/purchases/payments/payments-info/payments-info.component').then(m => m.PaymentsInfoComponent) },
             { path: 'purchases/payments/edit/:id', loadComponent: () => import('./features/purchases/payments/payments-new/payments-new').then(m => m.PaymentsNew) },
+            
+            { path: 'accounts/journal-vouchers', loadComponent: () => import('./features/accounts/journal-vouchers/journal-vouchers-list/journal-vouchers-list.component').then(m => m.JournalVouchersListComponent) },
+            { path: 'accounts/journal-vouchers/new', loadComponent: () => import('./features/accounts/journal-vouchers/journal-vouchers-new/journal-vouchers-new.component').then(m => m.JournalVouchersNewComponent) },
+            { path: 'accounts/journal-vouchers/info/:id', loadComponent: () => import('./features/accounts/journal-vouchers/journal-vouchers-info/journal-vouchers-info.component').then(m => m.JournalVouchersInfoComponent) },
+            
             { path: 'admin/dashboard', component: AdminDashboard },
             { path: 'admin/clients', component: AdminClients },
             { path: 'admin/clients/new', component: AdminClientsNewComponent },

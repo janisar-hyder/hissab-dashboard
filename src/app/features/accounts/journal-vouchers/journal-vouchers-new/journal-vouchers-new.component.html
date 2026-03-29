@@ -1,0 +1,152 @@
+<div class="page-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-titles">
+            <app-breadcrumbs [items]="[
+                { label: 'Journal Voucher', url: '/accounts/journal-vouchers' },
+                { label: 'Add New Journal Voucher' }
+            ]"></app-breadcrumbs>
+            <h1 class="page-title">Add New Journal Voucher</h1>
+        </div>
+        <div class="header-actions">
+            <app-button variant="outline" (clicked)="openAttachmentsModal()">
+                <svg svg-icon style="margin-right: 8px;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <g clip-path="url(#clip0_attach)">
+                        <mask id="mask0_attach" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="20" height="20">
+                            <path d="M20 0H0V20H20V0Z" fill="white" />
+                        </mask>
+                        <g mask="url(#mask0_attach)">
+                            <path d="M10.2752 17.7837C9.36683 17.7837 8.4585 17.442 7.76686 16.7503C6.38353 15.367 6.38353 13.1253 7.76686 11.742L9.8335 9.68367C10.0752 9.442 10.4752 9.442 10.7168 9.68367C10.9585 9.92533 10.9585 10.3253 10.7168 10.567L8.65016 12.6253C7.75853 13.517 7.75853 14.9753 8.65016 15.867C9.54183 16.7587 11.0002 16.7587 11.8918 15.867L15.1335 12.6253C16.1168 11.642 16.6585 10.3337 16.6585 8.942C16.6585 7.55029 16.1168 6.24196 15.1335 5.25863C13.1002 3.22529 9.80016 3.22529 7.76686 5.25863L4.23353 8.792C3.40853 9.617 2.9502 10.717 2.9502 11.8837C2.9502 13.0503 3.40853 14.1503 4.23353 14.9753C4.4752 15.217 4.4752 15.617 4.23353 15.8587C3.99186 16.1003 3.59186 16.1003 3.3502 15.8587C2.29186 14.792 1.7002 13.3837 1.7002 11.8837C1.7002 10.3837 2.28353 8.967 3.3502 7.90863L6.88353 4.37529C9.40016 1.85863 13.5002 1.85863 16.0168 4.37529C17.2335 5.59196 17.9085 7.21696 17.9085 8.942C17.9085 10.667 17.2335 12.292 16.0168 13.5087L12.7752 16.7503C12.0835 17.442 11.1835 17.7837 10.2752 17.7837Z" fill="#646569" />
+                        </g>
+                    </g>
+                    <defs>
+                        <clipPath id="clip0_attach">
+                            <rect width="20" height="20" fill="white" />
+                        </clipPath>
+                    </defs>
+                </svg>
+                Attach Documents
+            </app-button>
+        </div>
+    </div>
+
+    <!-- Form Container -->
+    <div class="form-container">
+        
+        <!-- Form Card 1: Voucher Header -->
+        <div class="form-card">
+            <div class="form-grid form-grid-3">
+                <div class="form-group">
+                    <label>Journal Voucher Number <span class="required">*</span></label>
+                    <input type="text" class="form-control" [value]="voucherData.journalNo" disabled>
+                </div>
+                <div class="form-group">
+                    <label>Date <span class="required">*</span></label>
+                    <input type="date" class="form-control date-input" [(ngModel)]="voucherData.date">
+                </div>
+                <div class="form-group">
+                    <label>Reference Number</label>
+                    <input type="text" class="form-control" [(ngModel)]="voucherData.referenceNumber" placeholder="Enter Reference Number">
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Card 2: Items Table and Note -->
+        <div class="form-card">
+            
+            <div class="receipt-table-wrapper">
+                <div class="receipt-table">
+                    <!-- Table Header -->
+                    <div class="receipt-thead">
+                        <div class="th-item">Account & Description</div>
+                        <div class="th-debit">Debits</div>
+                        <div class="th-credit">Credits</div>
+                        <div class="th-action"></div>
+                    </div>
+
+                    <!-- Table Rows -->
+                    <div class="receipt-tbody">
+                        <div class="receipt-row" *ngFor="let item of items; let i = index">
+                            <div class="td-cell td-item stacked-input-cell">
+                                <app-custom-select 
+                                    [(ngModel)]="item.accountId" 
+                                    [options]="accountOptions" 
+                                    placeholder="Select Account"
+                                    class="stacked-top">
+                                </app-custom-select>
+                                <input type="text" 
+                                       class="form-control custom-desc-input stacked-bottom" 
+                                       [(ngModel)]="item.description" 
+                                       placeholder="Enter Description">
+                            </div>
+
+                            <div class="td-cell td-debit">
+                                <div class="cell-input-wrapper">
+                                    <input type="number" 
+                                           class="cell-input text-right" 
+                                           [(ngModel)]="item.debit" 
+                                           (ngModelChange)="onDebitChange(item, $event)"
+                                           placeholder="0.000"
+                                           step="0.001">
+                                </div>
+                            </div>
+                            <div class="td-cell td-credit">
+                                <div class="cell-input-wrapper">
+                                    <input type="number" 
+                                           class="cell-input text-right" 
+                                           [(ngModel)]="item.credit" 
+                                           (ngModelChange)="onCreditChange(item, $event)"
+                                           placeholder="0.000"
+                                           step="0.001">
+                                </div>
+                            </div>
+
+                            <div class="td-cell td-action text-center">
+                                <button class="del-btn" (click)="removeRow(i)" [disabled]="items.length === 1">
+                                    <img src="icons/delete.svg" alt="Delete">
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Actions Strip -->
+            <div class="add-row-actions">
+                <button class="add-link-btn" (click)="addNewRow()">
+                    <span class="add-plus">+</span> Add New Row
+                </button>
+            </div>
+
+            <!-- Totals Section -->
+            <div class="totals-section">
+                <!-- Data rows same as before -->
+                <div class="total-row total-grand">
+                    <span class="total-label">Total (BHD)</span>
+                    <span class="total-value">{{ totalDebit | number:'1.3-3' }}</span>
+                    <span class="total-value">{{ totalCredit | number:'1.3-3' }}</span>
+                </div>
+                <!-- Always show difference as per image, even if 0 -->
+                <div class="total-row difference-row">
+                    <span class="total-label text-pink">Difference</span>
+                    <span class="total-value empty"></span>
+                    <span class="total-value text-pink">{{ difference | number:'1.3-3' }}</span>
+                </div>
+            </div>
+
+            <div class="note-divider-line"></div>
+
+            <!-- Notes Section -->
+            <div class="notes-container">
+                <label class="notes-label">Note</label>
+                <textarea class="notes-textarea" [(ngModel)]="voucherData.notes" placeholder="Enter Note"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Footer -->
+    <div class="page-footer">
+        <button class="footer-btn btn-cancel" (click)="cancel()">Cancel</button>
+        <button class="footer-btn btn-save" (click)="save()">Save</button>
+    </div>
+</div>

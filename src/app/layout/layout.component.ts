@@ -152,7 +152,7 @@ import { filter } from 'rxjs/operators';
               </a>
               <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('accounts')">
                 <a href="#" class="sub-item"><span class="dot"></span>Chart of Accounts</a>
-                <a href="#" class="sub-item"><span class="dot"></span>Journals</a>
+                <a routerLink="/accounts/journal-vouchers" routerLinkActive="active" class="sub-item"><span class="dot"></span>Journal Vouchers</a>
               </div>
             </div>
 
@@ -290,7 +290,7 @@ export class LayoutComponent implements OnInit {
     if (url.startsWith('/purchases')) return 'purchases';
     if (url.startsWith('/inventory')) return 'inventory';
     if (url.startsWith('/user-management')) return 'user-management';
-    if (url.startsWith('/accounting')) return 'accounts';
+    if (url.startsWith('/accounts')) return 'accounts';
     if (url.startsWith('/hr')) return 'hr';
     if (url.startsWith('/production')) return 'production';
     if (url.startsWith('/projects')) return 'projects';
