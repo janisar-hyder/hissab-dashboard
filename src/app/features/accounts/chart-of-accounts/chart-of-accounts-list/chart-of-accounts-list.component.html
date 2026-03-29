@@ -1,0 +1,174 @@
+<div class="page-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-titles">
+            <app-breadcrumbs [items]="[
+                { label: 'Accounts', url: '/accounts/journal-vouchers' },
+                { label: 'Chart of Accounts' }
+            ]"></app-breadcrumbs>
+            <h1 class="page-title">Chart of Accounts</h1>
+        </div>
+        <div class="header-actions">
+            <app-bulk-actions [selectedCount]="selectedAccountIds.size" [actions]="bulkActions" (actionSelected)="handleBulkAction($event)"></app-bulk-actions>
+            <app-button variant="primary" iconPrefix="las la-plus" (clicked)="navigateToNew()">Add New Account</app-button>
+            <app-button variant="outline">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 16V4M12 16L8 12M12 16L16 12"></path>
+                    <path d="M19 16V18C19 18.5304 18.7893 19.0391 18.4142 19.4142C18.0391 19.7893 17.5304 20 17 20H7C6.46957 20 5.96086 19.7893 5.58579 19.4142C5.21071 19.0391 5 18.5304 5 18V16"></path>
+                </svg>
+                Import
+            </app-button>
+            <app-button variant="outline">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 4V16M12 4L8 8M12 4L16 8"></path>
+                    <path d="M19 16V18C19 18.5304 18.7893 19.0391 18.4142 19.4142C18.0391 19.7893 17.5304 20 17 20H7C6.46957 20 5.96086 19.7893 5.58579 19.4142C5.21071 19.0391 5 18.5304 5 18V16"></path>
+                </svg>
+                Export
+            </app-button>
+        </div>
+    </div>
+
+    <!-- Data Card -->
+    <div class="data-card">
+        <!-- Toolbar -->
+        <div class="card-toolbar">
+            <div class="search-box">
+                <i class="las la-search search-icon"></i>
+                <input type="text" placeholder="Search for something.." class="search-input" [(ngModel)]="searchQuery" (ngModelChange)="currentPage = 1">
+                <i class="las la-times clear-icon" *ngIf="searchQuery" (click)="clearSearch()"></i>
+            </div>
+
+            <div class="toolbar-right">
+                <app-custom-filter
+                    [options]="filterOptions"
+                    [currentFilter]="currentFilter"
+                    activeLabelPrefix="All Accounts"
+                    (filterChange)="setFilter($event)">
+                </app-custom-filter>
+                <app-button variant="outline" iconPrefix="las la-sliders-h" (clicked)="toggleManageColumns()">Manage Columns</app-button>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-responsive">
+            <table class="data-table tree-table">
+                <thead>
+                    <tr>
+                        <th class="col-checkbox">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" [checked]="isAllSelected()" [indeterminate]="isPartiallySelected()" (change)="toggleAll($event)">
+                                <span class="checkmark"></span>
+                            </label>
+                        </th>
+                        <th *ngIf="availableColumns[0].visible">
+                            Account Name
+                            <i class="las la-sort"></i>
+                        </th>
+                        <th *ngIf="availableColumns[1].visible">
+                            Type
+                            <i class="las la-sort"></i>
+                        </th>
+                        <th *ngIf="availableColumns[2].visible">
+                            Status
+                            <i class="las la-sort"></i>
+                        </th>
+                        <th class="col-actions"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <ng-template #nodeTemplate let-node="node" let-level="level" let-isLast="isLast" let-ancestors="ancestors">
+                        <tr class="tree-row" 
+                            [class.is-expanded]="node.isExpanded" 
+                            [class.has-children]="node.children?.length" 
+                            [class.last-child-at-level]="isLast"
+                            [ngClass]="'level-' + level">
+                            <td class="col-checkbox">
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" [checked]="selectedAccountIds.has(node.id)" (change)="toggleSelection(node, $event)">
+                                    <span class="checkmark"></span>
+                                </label>
+                            </td>
+                            <td class="col-account-name">
+                                <div class="name-cell-inner" [ngStyle]="{'padding-left.px': level * 32}">
+                                    <!-- Ancestor vertical lines: continuous lines at each ancestor's chevron center -->
+                                    <ng-container *ngFor="let hasLine of ancestors; let i = index">
+                                        <div class="ancestor-line" 
+                                             *ngIf="hasLine"
+                                             [ngStyle]="{'left.px': i * 32 + 11}">
+                                        </div>
+                                    </ng-container>
+
+                                    <!-- L-shaped connector from immediate parent's chevron to this node -->
+                                    <div class="hierarchy-connector" 
+                                         *ngIf="level > 0"
+                                         [ngStyle]="{'left.px': (level - 1) * 32 + 11, 'width.px': 21}">
+                                    </div>
+                                    
+                                    <div class="expand-caret" *ngIf="node.children?.length" (click)="toggleExpand(node, $event)">
+                                        <i class="las" [ngClass]="node.isExpanded ? 'la-angle-down' : 'la-angle-right'"></i>
+                                    </div>
+                                    <span class="account-label">{{ node.name }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="text-muted">{{ node.type }}</span>
+                            </td>
+                            <td>
+                                <span class="status-pill" [ngClass]="'status-' + node.status.toLowerCase()">
+                                    <span class="dot"></span>
+                                    {{ node.status }}
+                                </span>
+                            </td>
+                            <td class="col-actions">
+                                <div class="action-menu-container">
+                                    <button class="action-btn" (click)="toggleMenu(node.id, $event)">
+                                        <i class="las la-ellipsis-h"></i>
+                                    </button>
+                                    <div class="action-dropdown" *ngIf="openMenuId === node.id">
+                                        <button class="menu-item edit-btn">Edit</button>
+                                        <button class="menu-item delete-btn" (click)="openDeleteModal(node, $event)">
+                                            <div class="svg-icon" style="-webkit-mask-image: url('/icons/delete.svg'); mask-image: url('/icons/delete.svg');"></div>
+                                            Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Render children recursively -->
+                        <ng-container *ngIf="node.children?.length && node.isExpanded">
+                            <ng-container *ngFor="let child of node.children; let childLast = last">
+                                <ng-container *ngTemplateOutlet="nodeTemplate; context: { 
+                                    node: child, 
+                                    level: level + 1, 
+                                    isLast: childLast, 
+                                    ancestors: ancestors.concat(!childLast) 
+                                }"></ng-container>
+                            </ng-container>
+                        </ng-container>
+                    </ng-template>
+
+                    <ng-container *ngFor="let acc of paginatedAccounts; let last = last">
+                        <ng-container *ngTemplateOutlet="nodeTemplate; context: { 
+                            node: acc, 
+                            level: 0, 
+                            isLast: last, 
+                            ancestors: [] 
+                        }"></ng-container>
+                    </ng-container>
+                    
+                    <tr *ngIf="paginatedAccounts.length === 0">
+                        <td colspan="5" style="padding: 0;">
+                            <app-empty-state title="No Accounts Found." subtitle="Check your filters or add a new account."></app-empty-state>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <app-pagination [totalItems]="filteredAccounts.length" [itemsPerPage]="itemsPerPage" [currentPage]="currentPage" (pageChange)="onPageChange($event)" (itemsPerPageChange)="onItemsPerPageChange($event)"></app-pagination>
+    </div>
+</div>
+
+<app-manage-columns [isOpen]="isManageColumnsOpen" [columns]="availableColumns" (closePanel)="closeManageColumns()" (columnsChange)="onColumnsChange($event)"></app-manage-columns>
+<app-delete-modal [isOpen]="!!accountToDelete || bulkDeletePending" (cancel)="closeDeleteModal()" (confirm)="confirmDelete()"></app-delete-modal>

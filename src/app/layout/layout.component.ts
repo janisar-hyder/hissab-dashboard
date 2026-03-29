@@ -151,7 +151,7 @@ import { filter } from 'rxjs/operators';
                 <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('accounts')"></i>
               </a>
               <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('accounts')">
-                <a href="#" class="sub-item" routerLinkActive="active"><span class="dot"></span>Chart of Accounts</a>
+                <a routerLink="/accounts/chart-of-accounts" class="sub-item" routerLinkActive="active"><span class="dot"></span>Chart of Accounts</a>
                 <a routerLink="/accounts/journal-vouchers" routerLinkActive="active" class="sub-item"><span class="dot"></span>Journal Vouchers</a>
                 <a routerLink="/accounts/contra-journals" routerLinkActive="active" class="sub-item"><span class="dot"></span>Contra Journals</a>
               </div>

@@ -85,6 +85,7 @@ export const routes: Routes = [
             { path: 'accounts/contra-journals', loadComponent: () => import('./features/accounts/contra-journals/contra-journals-list/contra-journals-list.component').then(m => m.ContraJournalsListComponent) },
             { path: 'accounts/contra-journals/info/:id', loadComponent: () => import('./features/accounts/contra-journals/contra-journals-info/contra-journals-info.component').then(m => m.ContraJournalsInfoComponent) },
             { path: 'accounts/contra-journals/new', loadComponent: () => import('./features/accounts/contra-journals/contra-journals-new/contra-journals-new.component').then(m => m.ContraJournalsNewComponent) },
+            { path: 'accounts/chart-of-accounts', loadComponent: () => import('./features/accounts/chart-of-accounts/chart-of-accounts-list/chart-of-accounts-list.component').then(m => m.ChartOfAccountsListComponent) },
             
             { path: 'admin/dashboard', component: AdminDashboard },
             { path: 'admin/clients', component: AdminClients },
