@@ -87,23 +87,21 @@
                         <!-- Phone Number -->
                         <div class="form-group">
                             <label>Phone Number</label>
-                            <div class="phone-input">
-                                <div class="flag-prefix">
-                                    <span class="flag-bh"></span> +973 <i class="las la-angle-down"></i>
-                                </div>
-                                <input type="tel" class="form-control" [(ngModel)]="customerData.phone" placeholder="Enter Telephone Number">
-                            </div>
+                            <app-phone-input 
+                                [(ngModel)]="customerData.phone"
+                                placeholder="Enter Telephone Number"
+                                defaultCountry="bh">
+                            </app-phone-input>
                         </div>
 
                         <!-- Mobile Number -->
                         <div class="form-group">
                             <label>Mobile Number</label>
-                            <div class="phone-input">
-                                <div class="flag-prefix">
-                                    <span class="flag-bh"></span> +973 <i class="las la-angle-down"></i>
-                                </div>
-                                <input type="tel" class="form-control" [(ngModel)]="customerData.mobile" placeholder="Enter Mobile Number">
-                            </div>
+                            <app-phone-input 
+                                [(ngModel)]="customerData.mobile"
+                                placeholder="Enter Mobile Number"
+                                defaultCountry="bh">
+                            </app-phone-input>
                         </div>
                     </div>
                 </div>
@@ -266,12 +264,11 @@
                                         <input type="email" class="form-control" placeholder="Email Address">
                                     </div>
                                     <div class="contacts-td">
-                                        <div class="phone-input compact">
-                                            <div class="flag-prefix">
-                                                <span class="flag-bh"></span> +973 <i class="las la-angle-down"></i>
-                                            </div>
-                                            <input type="tel" class="form-control" placeholder="Number">
-                                        </div>
+                                        <app-phone-input 
+                                            placeholder="Number"
+                                            defaultCountry="bh"
+                                            [compact]="true">
+                                        </app-phone-input>
                                     </div>
                                     <div class="contacts-td">
                                         <input type="text" class="form-control" placeholder="Designation">

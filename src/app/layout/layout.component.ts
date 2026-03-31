@@ -97,11 +97,11 @@ import { filter } from 'rxjs/operators';
               <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('sales')">
                 <a routerLink="/sales/customers" routerLinkActive="active" class="sub-item"><span class="dot"></span>Customers</a>
                 <a routerLink="/sales/quotations" routerLinkActive="active" class="sub-item"><span class="dot"></span>Quotations</a>
-                <a routerLink="/sales/invoices" routerLinkActive="active" class="sub-item"><span class="dot"></span>Invoices</a>
-                <a routerLink="/sales/recurring-invoices" routerLinkActive="active" class="sub-item"><span class="dot"></span>Recurring Invoices</a>
-                <a routerLink="/sales/delivery-notes" routerLinkActive="active" class="sub-item"><span class="dot"></span>Delivery Notes</a>
+                <a routerLink="/sales/invoices" routerLinkActive="active" class="sub-item"><span class="dot"></span>Invoice</a>
+                <a routerLink="/sales/recurring-invoices" routerLinkActive="active" class="sub-item"><span class="dot"></span>Recurring Invoice</a>
+                <a routerLink="/sales/delivery-notes" routerLinkActive="active" class="sub-item"><span class="dot"></span>Delivery Note</a>
                 <a routerLink="/sales/receipts" routerLinkActive="active" class="sub-item"><span class="dot"></span>Receipts</a>
-                <a routerLink="/sales/credit-notes" routerLinkActive="active" class="sub-item"><span class="dot"></span>Credit Notes</a>
+                <a routerLink="/sales/credit-notes" routerLinkActive="active" class="sub-item"><span class="dot"></span>Credit Note</a>
               </div>
             </div>
             <div class="nav-item-group">
@@ -114,14 +114,13 @@ import { filter } from 'rxjs/operators';
                 <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('purchases')"></i>
               </a>
               <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('purchases')">
-                <a href="#" class="sub-item"><span class="dot"></span>Purchase Orders</a>
-                <a routerLink="/purchases/bills" routerLinkActive="active" class="sub-item"><span class="dot"></span>Bills</a>
-                <a routerLink="/purchases/recurring-bills" routerLinkActive="active" class="sub-item"><span class="dot"></span>Recurring Bills</a>
-                <a routerLink="/purchases/payments" routerLinkActive="active" class="sub-item"><span class="dot"></span>Payments</a>
-                <a routerLink="/purchases/debit-notes" routerLinkActive="active" class="sub-item"><span class="dot"></span>Debit Notes</a>
                 <a routerLink="/purchases/vendors" routerLinkActive="active" class="sub-item"><span class="dot"></span>Vendors</a>
                 <a routerLink="/purchases/expenses" routerLinkActive="active" class="sub-item"><span class="dot"></span>Expenses</a>
                 <a routerLink="/purchases/recurring-expenses" routerLinkActive="active" class="sub-item"><span class="dot"></span>Recurring Expenses</a>
+                <a routerLink="/purchases/bills" routerLinkActive="active" class="sub-item"><span class="dot"></span>Bills</a>
+                <a routerLink="/purchases/recurring-bills" routerLinkActive="active" class="sub-item"><span class="dot"></span>Recurring Bills</a>
+                <a routerLink="/purchases/payments" routerLinkActive="active" class="sub-item"><span class="dot"></span>Payments</a>
+                <a routerLink="/purchases/debit-notes" routerLinkActive="active" class="sub-item"><span class="dot"></span>Debit Note</a>
               </div>
             </div>
             
@@ -151,10 +150,11 @@ import { filter } from 'rxjs/operators';
                 <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('accounts')"></i>
               </a>
               <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('accounts')">
-                <a routerLink="/accounts/chart-of-accounts" class="sub-item" routerLinkActive="active"><span class="dot"></span>Chart of Accounts</a>
                 <a routerLink="/accounts/journal-vouchers" routerLinkActive="active" class="sub-item"><span class="dot"></span>Journal Vouchers</a>
                 <a routerLink="/accounts/contra-journals" routerLinkActive="active" class="sub-item"><span class="dot"></span>Contra Journals</a>
+                <a routerLink="/accounts/chart-of-accounts" class="sub-item" routerLinkActive="active"><span class="dot"></span>Charts of Accounts</a>
                 <a routerLink="/accounts/transaction-locking" routerLinkActive="active" class="sub-item"><span class="dot"></span>Transaction Locking</a>
+                <a href="#" class="sub-item"><span class="dot"></span>Bank Reconciliation</a>
               </div>
             </div>
 

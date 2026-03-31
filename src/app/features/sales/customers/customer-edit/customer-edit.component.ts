@@ -6,6 +6,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { BreadcrumbsComponent } from '../../../../shared/components/breadcrumbs/breadcrumbs.component';
 import { AttachmentsModal } from '../../../../shared/components/attachments-modal/attachments-modal';
 import { CustomSelectComponent, SelectOption } from '../../../../shared/components/custom-select/custom-select.component';
+import { PhoneInputComponent } from '../../../../shared/components/phone-input/phone-input.component';
 
 @Component({
     selector: 'app-customer-edit',
@@ -16,7 +17,8 @@ import { CustomSelectComponent, SelectOption } from '../../../../shared/componen
         ButtonComponent, 
         BreadcrumbsComponent, 
         AttachmentsModal, 
-        CustomSelectComponent
+        CustomSelectComponent,
+        PhoneInputComponent
     ],
     templateUrl: './customer-edit.component.html',
     styleUrls: ['./customer-edit.component.scss']
