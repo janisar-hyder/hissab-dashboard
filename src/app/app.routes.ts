@@ -23,6 +23,12 @@ import { InvoicesNew } from './features/sales/invoices/invoices-new/invoices-new
 import { ReceiptsListComponent } from './features/sales/receipts/receipts-list/receipts-list.component';
 import { ReceiptsNew } from './features/sales/receipts/receipts-new/receipts-new';
 import { ReceiptsInfoComponent } from './features/sales/receipts/receipts-info/receipts-info.component';
+import { SettingsMainComponent } from './features/settings/settings-main/settings-main.component';
+import { CategoriesComponent } from './features/settings/categories/categories.component';
+import { SubCategoriesComponent } from './features/settings/sub-categories/sub-categories.component';
+import { UnitOfMeasuresComponent } from './features/settings/unit-of-measures/unit-of-measures.component';
+import { VatSettingsComponent } from './features/settings/vat-compliance/vat-settings/vat-settings.component';
+import { VatRatesComponent } from './features/settings/vat-compliance/vat-rates/vat-rates.component';
 
 export const routes: Routes = [
     {
@@ -115,7 +121,13 @@ export const routes: Routes = [
                     { path: 'roles/new', component: AddRolesComponent },
                     { path: '', redirectTo: 'users', pathMatch: 'full' }
                 ]
-            }
+            },
+            { path: 'settings', component: SettingsMainComponent },
+            { path: 'settings/categories', component: CategoriesComponent },
+            { path: 'settings/sub-categories', component: SubCategoriesComponent },
+            { path: 'settings/inventory/uom', component: UnitOfMeasuresComponent },
+            { path: 'settings/vat-compliance/vat-settings', component: VatSettingsComponent },
+            { path: 'settings/vat-compliance/vat-rates', component: VatRatesComponent }
         ]
     },
     { path: 'login', component: LoginComponent },

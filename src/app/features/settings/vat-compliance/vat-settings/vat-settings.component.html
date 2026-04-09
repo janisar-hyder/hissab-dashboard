@@ -1,0 +1,18 @@
+<div class="page-container">
+    <app-breadcrumbs [items]="[
+        { label: 'Settings', url: '/settings' },
+        { label: 'VAT Settings' }
+    ]"></app-breadcrumbs>
+
+    <div class="page-header">
+        <h1 class="page-title">VAT Settings</h1>
+    </div>
+
+    <div class="settings-card">
+        <span class="settings-label">Is your business registered for VAT?</span>
+        <label class="switch">
+            <input type="checkbox" [(ngModel)]="isVatRegistered" (change)="toggleVat($event)">
+            <span class="slider round"></span>
+        </label>
+    </div>
+</div>
