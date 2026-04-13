@@ -80,6 +80,36 @@ router.post('/categories', createCategory);
 
 /**
  * @swagger
+ * /api/v1/inventory/categories/bulk-status:
+ *   patch:
+ *     summary: Update status for multiple categories
+ *     tags: [Categories]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - ids
+ *               - status
+ *             properties:
+ *               ids:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *                 example: [1, 2]
+ *               status:
+ *                 type: string
+ *                 example: "Inactive"
+ *     responses:
+ *       200:
+ *         description: Successfully updated status for specified categories
+ */
+router.patch('/categories/bulk-status', require('./categories.controller').updateBulkStatus);
+
+/**
+ * @swagger
  * /api/v1/inventory/categories/{id}:
  *   patch:
  *     summary: Partially update an inventory category
@@ -152,5 +182,6 @@ router.delete('/categories/:id', deleteCategories);
  *         description: Successfully deleted specified categories
  */
 router.delete('/categories', deleteCategories);
+
 
 module.exports = router;

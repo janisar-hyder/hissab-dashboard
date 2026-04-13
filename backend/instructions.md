@@ -57,6 +57,18 @@ Delete a specific category by its ID.
 *   **Method**: `DELETE`
 *   **URL**: `{{base_url}}/api/v1/inventory/categories/:id`
 
+### F. Bulk Status Update
+Update the status of multiple categories at once.
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/inventory/categories/bulk-status`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2],
+      "status": "Inactive"
+    }
+    ```
+
 ---
 
 ## 📂 2. Sub-Category Module
@@ -104,9 +116,76 @@ Delete a specific sub-category by its ID.
 *   **Method**: `DELETE`
 *   **URL**: `{{base_url}}/api/v1/inventory/sub-categories/:id`
 
+### F. Bulk Status Update
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/inventory/sub-categories/bulk-status`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1],
+      "status": "Active"
+    }
+    ```
+
 ---
 
-## 🛠️ Global Troubleshooting
+## 📏 3. Unit of Measures
+Manage billing and inventory units (e.g., Kg, Pcs).
+
+### A. List Units
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/inventory/units`
+
+### B. Create Unit
+*   **Method**: `POST`
+*   **URL**: `{{base_url}}/api/v1/inventory/units`
+*   **Body (JSON)**:
+    ```json
+    {
+      "name": "Meters",
+      "status": "Active"
+    }
+    ```
+
+### C. Update Unit
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/inventory/units/:id`
+*   **Body (JSON)**:
+    ```json
+    {
+      "name": "Updated Unit Name"
+    }
+    ```
+
+### D. Bulk Delete Units
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/inventory/units`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1]
+    }
+    ```
+
+### E. Single Delete
+Delete a specific unit by its ID.
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/inventory/units/:id`
+
+### F. Bulk Status Update
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/inventory/units/bulk-status`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1],
+      "status": "Inactive"
+    }
+    ```
+
+
+
+
 | Error Code | Meaning | Likely Cause |
 | :--- | :--- | :--- |
 | **400 Bad Request** | Invalid Input | Missing required field (e.g., `name`) or DB constraint (e.g., Category linked to an Item). |

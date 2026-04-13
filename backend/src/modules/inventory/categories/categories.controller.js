@@ -174,3 +174,39 @@ exports.deleteCategories = async (req, res, next) => {
     next(err);
   }
 };
+
+/**
+ * @desc    Update status for multiple categories
+ * @route   PATCH /api/v1/inventory/categories/bulk-status
+ */
+exports.updateBulkStatus = async (req, res, next) => {
+  try {
+    const { ids, status } = req.body;
+    const { clientId, userId } = req.user;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0 || !status) {
+      const error = new Error('IDs array and status are required');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const updateResult = await prisma.inventoryCategory.updateMany({
+      where: {
+        client_id: clientId,
+        id: { in: ids.map(id => parseInt(id)) }
+      },
+      data: {
+        status,
+        updated_date: new Date(),
+        updated_by: userId
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Successfully updated status to ${status} for ${updateResult.count} categories`
+    });
+  } catch (err) {
+    next(err);
+  }
+};

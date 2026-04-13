@@ -85,6 +85,36 @@ router.post('/sub-categories', createSubCategory);
 
 /**
  * @swagger
+ * /api/v1/inventory/sub-categories/bulk-status:
+ *   patch:
+ *     summary: Update status for multiple sub-categories
+ *     tags: [Sub-Categories]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - ids
+ *               - status
+ *             properties:
+ *               ids:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *                 example: [1, 2]
+ *               status:
+ *                 type: string
+ *                 example: "Active"
+ *     responses:
+ *       200:
+ *         description: Successfully updated status for specified sub-categories
+ */
+router.patch('/sub-categories/bulk-status', require('./sub-categories.controller').updateBulkStatus);
+
+/**
+ * @swagger
  * /api/v1/inventory/sub-categories/{id}:
  *   patch:
  *     summary: Partially update an inventory sub-category
@@ -156,5 +186,6 @@ router.delete('/sub-categories/:id', deleteSubCategories);
  *         description: Successfully deleted specified sub-categories
  */
 router.delete('/sub-categories', deleteSubCategories);
+
 
 module.exports = router;
