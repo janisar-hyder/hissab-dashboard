@@ -3,18 +3,28 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const errorHandler = require('./middleware/errorHandler');
+const authenticate = require('./middleware/auth');
+
+const inventoryRoutes = require('./modules/inventory/inventory.routes');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
 
 const app = express();
 
 // 1. Global Security Middleware
 app.use(helmet()); // Sets various HTTP headers for security
 app.use(cors());   // Enables Cross-Origin Resource Sharing for the Angular frontend
+app.use(authenticate); // Centralized tenancy & user context provider
 
 // 2. Logging & Parsing
 app.use(morgan('dev')); // Dev-friendly request logging
 app.use(express.json()); // Built-in body parser for JSON
 
-// 3. Base Routes
+// 3. Application Routes
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/api/v1/inventory', inventoryRoutes);
+
+// Base Routes
 app.get('/', (req, res) => {
   res.json({ 
     message: 'Welcome to Hissab ERP Backend',

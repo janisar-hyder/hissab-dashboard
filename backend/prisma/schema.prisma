@@ -1,0 +1,601 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. PLATFORM ADMINISTRATION
+
+model SuperAdminRole {
+  id           Int      @id @default(autoincrement())
+  name         String   @unique @db.VarChar(100)
+  status       String?  @default("Active") @db.VarChar(50)
+  created_date DateTime @default(now())
+  created_by   Int?
+  updated_date DateTime @default(now()) @updatedAt
+  updated_by   Int?
+
+  // Relations
+  permissions SuperAdminRolePermission[]
+  users       SuperAdminUser[]          @relation("Role")
+
+  createdByUser SuperAdminUser? @relation("RoleCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser SuperAdminUser? @relation("RoleUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+
+  @@map("super_admin_roles")
+}
+
+model SuperAdminRolePermission {
+  id           Int      @id @default(autoincrement())
+  role_id      Int
+  module_name  String   @db.VarChar(150)
+  can_create   Boolean? @default(false)
+  can_view     Boolean? @default(true)
+  can_update   Boolean? @default(false)
+  can_delete   Boolean? @default(false)
+  created_date DateTime @default(now())
+  created_by   Int?
+  updated_date DateTime @default(now()) @updatedAt
+  updated_by   Int?
+
+  // Relations
+  role          SuperAdminRole  @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  createdByUser SuperAdminUser? @relation("PermCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser SuperAdminUser? @relation("PermUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+
+  @@map("super_admin_role_permissions")
+}
+
+model SuperAdminUser {
+  id            Int      @id @default(autoincrement())
+  name          String   @db.VarChar(255)
+  email         String   @unique @db.VarChar(255)
+  password_hash String   @db.VarChar(255)
+  role_id       Int?
+  status        String?  @default("Active") @db.VarChar(50)
+  created_date  DateTime @default(now())
+  created_by    Int?
+  updated_date  DateTime @default(now()) @updatedAt
+  updated_by    Int?
+
+  // Relations
+  role          SuperAdminRole? @relation("Role", fields: [role_id], references: [id], onDelete: SetNull)
+  createdByUser SuperAdminUser? @relation("SelfCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser SuperAdminUser? @relation("SelfUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+
+  // Reverse relations to satisfy self-references
+  createdSuperAdminUsers SuperAdminUser[] @relation("SelfCreatedBy")
+  updatedSuperAdminUsers SuperAdminUser[] @relation("SelfUpdatedBy")
+
+  // Audit trails for roles/perms
+  createdRoles       SuperAdminRole[]           @relation("RoleCreatedBy")
+  updatedRoles       SuperAdminRole[]           @relation("RoleUpdatedBy")
+  createdPermissions SuperAdminRolePermission[] @relation("PermCreatedBy")
+  updatedPermissions SuperAdminRolePermission[] @relation("PermUpdatedBy")
+
+  // Client Management relations
+  managedClients        Client[] @relation("AccountManager")
+  createdClients        Client[] @relation("ClientCreatedBy")
+  updatedClients        Client[] @relation("ClientUpdatedBy")
+
+  @@map("super_admin_users")
+}
+
+// 2. CLIENT MANAGEMENT
+
+model Client {
+  id                      Int      @id @default(autoincrement())
+  client_num              String   @unique @db.VarChar(50)
+  name                    String   @db.VarChar(255)
+  cr_num                  String   @db.VarChar(100)
+  email                   String?  @db.VarChar(255)
+  phone                   String?  @db.VarChar(50)
+  mobile                  String?  @db.VarChar(50)
+  account_manager_id      Int?
+  billing_cycle           String?  @db.VarChar(50)
+  sub_model               String?  @db.VarChar(50)
+  num_users               Int?     @default(1)
+  sub_start_date          DateTime? @db.Date
+  sub_end_date            DateTime? @db.Date
+  hosting                 String?  @db.VarChar(50)
+  amount                  Decimal? @db.Decimal(18, 3)
+  annual_maintenance_cost Decimal? @db.Decimal(18, 3)
+  cloud_charges           Decimal? @db.Decimal(18, 3)
+  default_language        String?  @default("English") @db.VarChar(50)
+  time_zone               String?  @default("UTC+3:00") @db.VarChar(100)
+  date_format             String?  @db.VarChar(50)
+  time_format             String?  @db.VarChar(50)
+  base_currency           String?  @default("BHD") @db.VarChar(10)
+  currency_format         String?  @db.VarChar(50)
+  logo_path               String?  @db.VarChar(512)
+  client_admin_username   String   @db.VarChar(255)
+  client_admin_password   String   @db.VarChar(255)
+  remarks                 String?  @db.Text
+  is_active               Boolean? @default(true)
+  deleted_at              DateTime?
+  created_date            DateTime @default(now())
+  created_by              Int?
+  updated_date            DateTime @default(now()) @updatedAt
+  updated_by              Int?
+
+  // Relations
+  accountManager SuperAdminUser? @relation("AccountManager", fields: [account_manager_id], references: [id], onDelete: SetNull)
+  createdByUser  SuperAdminUser? @relation("ClientCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser  SuperAdminUser? @relation("ClientUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+
+  // Business Data relations
+  clientRoles      ClientRole[]
+  clientUsers      ClientUser[]
+  clientContacts   ClientContact[]
+  permissions      ClientPermission[]
+  chartOfAccounts  ChartOfAccount[]
+  purchaseVendors  PurchaseVendor[]
+  categories       InventoryCategory[]
+  subCategories    InventorySubCategory[]
+  uoms             InventoryUnitOfMeasure[]
+  vatSettings      VatSetting?
+  vatRates         VatRate[]
+  inventoryItems   InventoryItem[]
+  customers        Customer[]
+
+  @@map("clients")
+}
+
+// 3. CLIENT OPERATIONS
+
+model ClientRole {
+  id           Int      @id @default(autoincrement())
+  client_id    Int
+  name         String   @db.VarChar(100)
+  status       String?  @default("Active") @db.VarChar(50)
+  created_date DateTime @default(now())
+  created_by   Int?
+  updated_date DateTime @default(now()) @updatedAt
+  updated_by   Int?
+
+  // Relations
+  client        Client        @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser ClientUser?   @relation("CRoleCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser ClientUser?   @relation("CRoleUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+  permissions   ClientRolePermission[]
+  users         ClientUser[]   @relation("UserRole")
+
+  @@unique([client_id, name])
+  @@map("client_roles")
+}
+
+model ClientRolePermission {
+  id           Int      @id @default(autoincrement())
+  role_id      Int
+  module_name  String   @db.VarChar(150)
+  can_create   Boolean? @default(false)
+  can_view     Boolean? @default(true)
+  can_update   Boolean? @default(false)
+  can_delete   Boolean? @default(false)
+  created_date DateTime @default(now())
+  created_by   Int?
+  updated_date DateTime @default(now()) @updatedAt
+  updated_by   Int?
+
+  // Relations
+  role ClientRole @relation(fields: [role_id], references: [id], onDelete: Cascade)
+
+  @@map("client_role_permissions")
+}
+
+model ClientUser {
+  id            Int      @id @default(autoincrement())
+  client_id     Int
+  name          String   @db.VarChar(255)
+  email         String   @db.VarChar(255)
+  password_hash String   @db.VarChar(255)
+  role_id       Int?
+  status        String?  @default("Active") @db.VarChar(50)
+  created_date  DateTime @default(now())
+  created_by    Int?
+  updated_date  DateTime @default(now()) @updatedAt
+  updated_by    Int?
+
+  // Relations
+  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  role          ClientRole? @relation("UserRole", fields: [role_id], references: [id], onDelete: SetNull)
+  createdByUser ClientUser? @relation("SelfCUserCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser ClientUser? @relation("SelfCUserUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+
+  // Reverse relations
+  createdClientUsers ClientUser[] @relation("SelfCUserCreatedBy")
+  updatedClientUsers ClientUser[] @relation("SelfCUserUpdatedBy")
+
+  // Audit traits for other models
+  createdCRoles       ClientRole[]            @relation("CRoleCreatedBy")
+  updatedCRoles       ClientRole[]            @relation("CRoleUpdatedBy")
+  createdCContacts    ClientContact[]         @relation("CContactCreatedBy")
+  updatedCContacts    ClientContact[]         @relation("CContactUpdatedBy")
+  createdCPerms       ClientPermission[]      @relation("CPermCreatedBy")
+  updatedCPerms       ClientPermission[]      @relation("CPermUpdatedBy")
+  createdCOAs         ChartOfAccount[]        @relation("COACreatedBy")
+  updatedCOAs         ChartOfAccount[]        @relation("COAUpdatedBy")
+  createdVendors      PurchaseVendor[]        @relation("VendorCreatedBy")
+  updatedVendors      PurchaseVendor[]        @relation("VendorUpdatedBy")
+  createdVContacts    PurchaseVendorContact[] @relation("VContactCreatedBy")
+  updatedVContacts    PurchaseVendorContact[] @relation("VContactUpdatedBy")
+  createdCategories   InventoryCategory[]     @relation("CatCreatedBy")
+  updatedCategories   InventoryCategory[]     @relation("CatUpdatedBy")
+  createdSubCats      InventorySubCategory[]  @relation("SubCatCreatedBy")
+  updatedSubCats      InventorySubCategory[]  @relation("SubCatUpdatedBy")
+  createdUOMs         InventoryUnitOfMeasure[] @relation("UOMCreatedBy")
+  updatedUOMs         InventoryUnitOfMeasure[] @relation("UOMUpdatedBy")
+  updatedVatSettings  VatSetting[]            @relation("VatSettUpdatedBy")
+  createdVatRates     VatRate[]               @relation("VatRateCreatedBy")
+  updatedVatRates     VatRate[]               @relation("VatRateUpdatedBy")
+  createdItems        InventoryItem[]         @relation("ItemCreatedBy")
+  updatedItems        InventoryItem[]         @relation("ItemUpdatedBy")
+  createdCustomers    Customer[]              @relation("CustCreatedBy")
+  updatedCustomers    Customer[]              @relation("CustUpdatedBy")
+  createdCustContacts CustomerContact[]       @relation("CustContCreatedBy")
+  updatedCustContacts CustomerContact[]       @relation("CustContUpdatedBy")
+
+  @@unique([client_id, email])
+  @@map("client_users")
+}
+
+// 4. BUSINESS DATA
+
+model ClientContact {
+  id           Int      @id @default(autoincrement())
+  client_id    Int
+  first_name   String?  @db.VarChar(100)
+  last_name    String?  @db.VarChar(100)
+  email        String?  @db.VarChar(255)
+  phone        String?  @db.VarChar(50)
+  designation  String?  @db.VarChar(150)
+  created_date DateTime @default(now())
+  created_by   Int?
+  updated_date DateTime @default(now()) @updatedAt
+  updated_by   Int?
+
+  // Relations
+  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser ClientUser? @relation("CContactCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser ClientUser? @relation("CContactUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+
+  @@map("client_contacts")
+}
+
+model ClientPermission {
+  id           Int      @id @default(autoincrement())
+  client_id    Int
+  module_name  String   @db.VarChar(150)
+  can_create   Boolean? @default(false)
+  can_view     Boolean? @default(true)
+  can_update   Boolean? @default(false)
+  can_delete   Boolean? @default(false)
+  created_date DateTime @default(now())
+  created_by   Int?
+  updated_date DateTime @default(now()) @updatedAt
+  updated_by   Int?
+
+  // Relations
+  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser ClientUser? @relation("CPermCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser ClientUser? @relation("CPermUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+
+  @@map("client_permissions")
+}
+
+model ChartOfAccount {
+  id           Int      @id @default(autoincrement())
+  client_id    Int
+  name         String   @db.VarChar(255)
+  code         String?  @db.VarChar(50)
+  type         String   @db.VarChar(100)
+  parent_id    Int?
+  description  String?  @db.Text
+  status       String?  @default("Active") @db.VarChar(50)
+  created_date DateTime @default(now())
+  created_by   Int?
+  updated_date DateTime @default(now()) @updatedAt
+  updated_by   Int?
+
+  // Relations
+  client         Client           @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  parent         ChartOfAccount?  @relation("COAParent", fields: [parent_id], references: [id], onDelete: Cascade)
+  children       ChartOfAccount[] @relation("COAParent")
+  createdByUser  ClientUser?      @relation("COACreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser  ClientUser?      @relation("COAUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+
+  // Usage in Items
+  salesItems     InventoryItem[] @relation("SalesAccount")
+  purchaseItems  InventoryItem[] @relation("PurchaseAccount")
+  inventoryItems InventoryItem[] @relation("InventoryAccount")
+
+  @@unique([client_id, name])
+  @@unique([client_id, code])
+  @@map("chart_of_accounts")
+}
+
+model PurchaseVendor {
+  id                      Int      @id @default(autoincrement())
+  client_id               Int
+  name                    String   @db.VarChar(255)
+  type                    String?  @db.VarChar(50)
+  primary_contact         String?  @db.VarChar(255)
+  email                   String?  @db.VarChar(255)
+  phone                   String?  @db.VarChar(50)
+  mobile                  String?  @db.VarChar(50)
+  tax_treatment           String?  @db.VarChar(100)
+  currency                String?  @default("BHD") @db.VarChar(10)
+  opening_balance         Decimal? @default(0.000) @db.Decimal(18, 3)
+  payment_terms           String?  @db.VarChar(100)
+  billing_attention       String?  @db.VarChar(255)
+  billing_country         String?  @db.VarChar(100)
+  billing_address         String?  @db.Text
+  billing_city            String?  @db.VarChar(100)
+  shipment_attention      String?  @db.VarChar(255)
+  shipment_country        String?  @db.VarChar(100)
+  shipment_address        String?  @db.Text
+  shipment_city           String?  @db.VarChar(100)
+  remarks                 String?  @db.Text
+  status                  String?  @default("Active") @db.VarChar(50)
+  is_active               Boolean? @default(true)
+  deleted_at              DateTime?
+  created_date            DateTime @default(now())
+  created_by              Int?
+  updated_date            DateTime @default(now()) @updatedAt
+  updated_by              Int?
+
+  // Relations
+  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser ClientUser? @relation("VendorCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser ClientUser? @relation("VendorUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+  contacts      PurchaseVendorContact[]
+  items         InventoryItem[]
+
+  @@map("purchase_vendors")
+}
+
+model PurchaseVendorContact {
+  id           Int      @id @default(autoincrement())
+  vendor_id    Int
+  salutation   String?  @db.VarChar(20)
+  first_name   String?  @db.VarChar(100)
+  last_name    String?  @db.VarChar(100)
+  email        String?  @db.VarChar(255)
+  phone        String?  @db.VarChar(50)
+  mobile       String?  @db.VarChar(50)
+  designation  String?  @db.VarChar(150)
+  created_date DateTime @default(now())
+  created_by   Int?
+  updated_date DateTime @default(now()) @updatedAt
+  updated_by   Int?
+
+  // Relations
+  vendor        PurchaseVendor @relation(fields: [vendor_id], references: [id], onDelete: Cascade)
+  createdByUser ClientUser?    @relation("VContactCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser ClientUser?    @relation("VContactUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+
+  @@map("purchase_vendor_contacts")
+}
+
+model InventoryCategory {
+  id           Int      @id @default(autoincrement())
+  client_id    Int
+  name         String   @db.VarChar(255)
+  description  String?  @db.Text
+  status       String?  @default("Active") @db.VarChar(50)
+  created_date DateTime @default(now())
+  created_by   Int?
+  updated_date DateTime @default(now()) @updatedAt
+  updated_by   Int?
+
+  // Relations
+  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser ClientUser? @relation("CatCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser ClientUser? @relation("CatUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+  subCategories InventorySubCategory[]
+  items         InventoryItem[]
+
+  @@unique([client_id, name])
+  @@map("inventory_categories")
+}
+
+model InventorySubCategory {
+  id           Int      @id @default(autoincrement())
+  client_id    Int
+  category_id  Int
+  name         String   @db.VarChar(255)
+  description  String?  @db.Text
+  status       String?  @default("Active") @db.VarChar(50)
+  created_date DateTime @default(now())
+  created_by   Int?
+  updated_date DateTime @default(now()) @updatedAt
+  updated_by   Int?
+
+  // Relations
+  client        Client            @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  category      InventoryCategory @relation(fields: [category_id], references: [id], onDelete: Cascade)
+  createdByUser ClientUser?       @relation("SubCatCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser ClientUser?       @relation("SubCatUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+  items         InventoryItem[]
+
+  @@unique([client_id, category_id, name])
+  @@map("inventory_sub_categories")
+}
+
+model InventoryUnitOfMeasure {
+  id           Int      @id @default(autoincrement())
+  client_id    Int
+  name         String   @db.VarChar(100)
+  status       String?  @default("Active") @db.VarChar(50)
+  created_date DateTime @default(now())
+  created_by   Int?
+  updated_date DateTime @default(now()) @updatedAt
+  updated_by   Int?
+
+  // Relations
+  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser ClientUser? @relation("UOMCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser ClientUser? @relation("UOMUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+  
+  // Usage in items
+  baseItems    InventoryItem[] @relation("BaseUOM")
+  weightItems  InventoryItem[] @relation("WeightUOM")
+  volumeItems  InventoryItem[] @relation("VolumeUOM")
+
+  @@unique([client_id, name])
+  @@map("inventory_unit_of_measures")
+}
+
+model VatSetting {
+  client_id         Int      @id
+  is_vat_registered Boolean? @default(false)
+  updated_date      DateTime @default(now()) @updatedAt
+  updated_by        Int?
+
+  // Relations
+  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  updatedByUser ClientUser? @relation("VatSettUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+
+  @@map("vat_settings")
+}
+
+model VatRate {
+  id           Int      @id @default(autoincrement())
+  client_id    Int
+  name         String   @db.VarChar(100)
+  rate         Decimal  @db.Decimal(5, 2)
+  status       String?  @default("Active") @db.VarChar(50)
+  created_date DateTime @default(now())
+  created_by   Int?
+  updated_date DateTime @default(now()) @updatedAt
+  updated_by   Int?
+
+  // Relations
+  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser ClientUser? @relation("VatRateCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser ClientUser? @relation("VatRateUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+
+  @@unique([client_id, name])
+  @@map("vat_rates")
+}
+
+model InventoryItem {
+  id                   Int      @id @default(autoincrement())
+  client_id            Int
+  item_code            String   @db.VarChar(50)
+  name                 String   @db.VarChar(255)
+  sku                  String?  @db.VarChar(100)
+  description          String?  @db.Text
+  uom_id               Int
+  category_id          Int
+  sub_category_id      Int?
+  sales_rate           Decimal? @db.Decimal(18, 3)
+  vat_preference       String?  @db.VarChar(50)
+  sales_account_id     Int?
+  sales_description    String?  @db.Text
+  purchase_cost        Decimal? @db.Decimal(18, 3)
+  reorder_point        Int?     @default(0)
+  purchase_account_id  Int?
+  purchase_description String?  @db.Text
+  inventory_account_id Int?
+  stock_in_hand        Decimal? @default(0) @db.Decimal(18, 3)
+  status               String?  @default("Active") @db.VarChar(50)
+  warranty_period      String?  @db.VarChar(100)
+  shelf_life           String?  @db.VarChar(100)
+  vendor_id            Int?
+  weight_per_unit      Decimal? @db.Decimal(18, 3)
+  weight_uom_id        Int?
+  valuation_method     String?  @db.VarChar(50)
+  volume_per_unit      Decimal? @db.Decimal(18, 3)
+  volume_uom_id        Int?
+  inventory_description String? @db.Text
+  created_date         DateTime @default(now())
+  created_by           Int?
+  updated_date         DateTime @default(now()) @updatedAt
+  updated_by           Int?
+
+  // Relations
+  client           Client           @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  uom              InventoryUnitOfMeasure @relation("BaseUOM", fields: [uom_id], references: [id], onDelete: Restrict)
+  category         InventoryCategory      @relation(fields: [category_id], references: [id], onDelete: Restrict)
+  subCategory      InventorySubCategory?  @relation(fields: [sub_category_id], references: [id], onDelete: SetNull)
+  salesAccount     ChartOfAccount?        @relation("SalesAccount", fields: [sales_account_id], references: [id], onDelete: SetNull)
+  purchaseAccount  ChartOfAccount?        @relation("PurchaseAccount", fields: [purchase_account_id], references: [id], onDelete: SetNull)
+  inventoryAccount ChartOfAccount?        @relation("InventoryAccount", fields: [inventory_account_id], references: [id], onDelete: SetNull)
+  vendor           PurchaseVendor?       @relation(fields: [vendor_id], references: [id], onDelete: SetNull)
+  weightUom        InventoryUnitOfMeasure? @relation("WeightUOM", fields: [weight_uom_id], references: [id], onDelete: SetNull)
+  volumeUom        InventoryUnitOfMeasure? @relation("VolumeUOM", fields: [volume_uom_id], references: [id], onDelete: SetNull)
+  createdByUser    ClientUser?            @relation("ItemCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser    ClientUser?            @relation("ItemUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+
+  @@unique([client_id, item_code])
+  @@unique([client_id, sku])
+  @@map("inventory_items")
+}
+
+model Customer {
+  id                 Int      @id @default(autoincrement())
+  client_id          Int
+  name               String   @db.VarChar(255)
+  type               String?  @db.VarChar(50)
+  primary_contact    String?  @db.VarChar(255)
+  email              String?  @db.VarChar(255)
+  phone              String?  @db.VarChar(50)
+  mobile             String?  @db.VarChar(50)
+  tax_treatment      String?  @db.VarChar(100)
+  currency           String?  @default("BHD") @db.VarChar(10)
+  opening_balance    Decimal? @default(0.000) @db.Decimal(18, 3)
+  source_of_supply   String?  @db.VarChar(255)
+  payment_terms      String?  @db.VarChar(100)
+  billing_attention  String?  @db.VarChar(255)
+  billing_country    String?  @db.VarChar(100)
+  billing_address    String?  @db.Text
+  billing_city       String?  @db.VarChar(100)
+  shipment_attention String?  @db.VarChar(255)
+  shipment_country   String?  @db.VarChar(100)
+  shipment_address   String?  @db.Text
+  shipment_city      String?  @db.VarChar(100)
+  remarks            String?  @db.Text
+  is_active          Boolean? @default(true)
+  deleted_at         DateTime?
+  created_date       DateTime @default(now())
+  created_by         Int?
+  updated_date       DateTime @default(now()) @updatedAt
+  updated_by         Int?
+
+  // Relations
+  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser ClientUser? @relation("CustCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser ClientUser? @relation("CustUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+  contacts      CustomerContact[]
+
+  @@map("customers")
+}
+
+model CustomerContact {
+  id           Int      @id @default(autoincrement())
+  customer_id  Int
+  salutation   String?  @db.VarChar(20)
+  first_name   String?  @db.VarChar(100)
+  last_name    String?  @db.VarChar(100)
+  email        String?  @db.VarChar(255)
+  phone        String?  @db.VarChar(50)
+  designation  String?  @db.VarChar(150)
+  created_date DateTime @default(now())
+  created_by   Int?
+  updated_date DateTime @default(now()) @updatedAt
+  updated_by   Int?
+
+  // Relations
+  customer      Customer    @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  createdByUser ClientUser? @relation("CustContCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser ClientUser? @relation("CustContUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+
+  @@map("customer_contacts")
+}
