@@ -1,0 +1,161 @@
+<div class="page-container">
+    <app-breadcrumbs [items]="[
+        { label: 'Settings', url: '/settings' },
+        { label: 'Sales Partners' }
+    ]"></app-breadcrumbs>
+    <app-page-header
+        style="margin-bottom: var(--space-lg); display: block;"
+        title="Sales Partners"
+        addBtnText="Add New Sales Partner"
+        [showActions]="true"
+        (addNew)="isAddModalOpen = true"
+        (importBtn)="onImport()"
+        (exportBtn)="onExport()">
+
+        <app-bulk-actions
+            custom-actions
+            *ngIf="selectedSalesPartnerIds.size > 0"
+            [selectedCount]="selectedSalesPartnerIds.size"
+            [actions]="bulkActions"
+            (actionSelected)="handleBulkAction($event)">
+        </app-bulk-actions>
+    </app-page-header>
+
+    <div class="data-card" style="margin: 0; display: flex; flex-direction: column;" *ngIf="salesPartners.length > 0 || searchQuery">
+        <!-- Toolbar -->
+        <div class="card-toolbar">
+            <div class="search-box">
+                <i class="las la-search search-icon"></i>
+                <input type="text" placeholder="Search for something.." [(ngModel)]="searchQuery" (ngModelChange)="currentPage = 1" class="search-input">
+                <i class="las la-times clear-icon" *ngIf="searchQuery" (click)="clearSearch()"></i>
+            </div>
+            
+            <div class="toolbar-actions" style="display: flex; gap: var(--space-sm); align-items: center;">
+                <app-custom-filter
+                    [options]="filterOptions"
+                    [currentFilter]="currentFilter"
+                    activeLabelPrefix="All Sales Partners"
+                    (filterChange)="setFilter($event)">
+                </app-custom-filter>
+                
+                <app-button variant="outline" iconPrefix="las la-sliders-h" (clicked)="toggleManageColumns()">Manage Columns</app-button>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th class="col-checkbox">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" [checked]="isAllSelected()" [indeterminate]="isPartiallySelected()" (change)="toggleAll()">
+                                <span class="checkmark"></span>
+                            </label>
+                        </th>
+                        <ng-container *ngFor="let col of availableColumns">
+                            <th *ngIf="col.visible" [class.col-status]="col.id === 'status'">
+                                {{ col.label }}
+                                <i [class]="sortColumn === col.id ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" 
+                                   (click)="sort(col.id, $event)"
+                                   style="cursor: pointer; margin-left: 4px;"></i>
+                            </th>
+                        </ng-container>
+                        <th class="col-actions"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let partner of paginatedSalesPartners">
+                        <td class="col-checkbox">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" [checked]="selectedSalesPartnerIds.has(partner.id)" (change)="toggleSelection(partner.id)">
+                                <span class="checkmark"></span>
+                            </label>
+                        </td>
+                        <ng-container *ngFor="let col of availableColumns">
+                            <td *ngIf="col.visible" [ngSwitch]="col.id" [class.col-status]="col.id === 'status'" class="text-muted">
+                                <ng-container *ngSwitchCase="'name'">
+                                    <span class="item-name">{{ partner.name }}</span>
+                                </ng-container>
+                                <ng-container *ngSwitchCase="'commission'">
+                                    {{ partner.commission }}
+                                </ng-container>
+                                <ng-container *ngSwitchCase="'description'">
+                                    {{ partner.description }}
+                                </ng-container>
+                                <ng-container *ngSwitchCase="'status'">
+                                    <span class="status-pill" [ngClass]="partner.status.toLowerCase()">
+                                        <span class="dot"></span> {{ partner.status }}
+                                    </span>
+                                </ng-container>
+                            </td>
+                        </ng-container>
+                        <td class="col-actions">
+                            <app-action-menu
+                                [actions]="getActions(partner)"
+                                [data]="partner"
+                                (actionClick)="handleAction($event)">
+                            </app-action-menu>
+                        </td>
+                    </tr>
+                    <!-- Internal Empty State -->
+                    <tr *ngIf="paginatedSalesPartners.length === 0">
+                        <td [attr.colspan]="availableColumns.length + 2" style="padding: 0;">
+                            <app-empty-state 
+                                [title]="(searchQuery || currentFilter !== 'All') ? 'No Sales Partners Found.' : 'No Sales Partners Found.'"
+                                [subtitle]="searchQuery ? 'We couldn\'t find any sales partners matching \'' + searchQuery + '\'' : 'It looks like you haven\'t added any sales partners yet.'" 
+                                [actionLabel]="(searchQuery || currentFilter !== 'All') ? '' : 'Add New Sales Partner'"
+                                [actionIconClass]="(searchQuery || currentFilter !== 'All') ? '' : 'las la-plus'" 
+                                (actionClick)="isAddModalOpen = true">
+                            </app-empty-state>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <app-pagination 
+            [totalItems]="filteredSalesPartners.length" 
+            [itemsPerPage]="itemsPerPage" 
+            [currentPage]="currentPage"
+            (pageChange)="onPageChange($event)" 
+            (itemsPerPageChange)="onItemsPerPageChange($event)">
+        </app-pagination>
+    </div>
+
+    <!-- External Empty State -->
+    <app-empty-state *ngIf="salesPartners.length === 0 && !searchQuery" 
+        title="No Sales Partners Found."
+        subtitle="It looks like you haven't added any sales partners yet." 
+        actionLabel="Add New Sales Partner"
+        actionIconClass="las la-plus" 
+        (actionClick)="isAddModalOpen = true">
+    </app-empty-state>
+</div>
+
+<!-- Modal -->
+<app-add-sales-partner-modal 
+    *ngIf="isAddModalOpen" 
+    (close)="isAddModalOpen = false" 
+    (save)="onSaveSalesPartner($event)">
+</app-add-sales-partner-modal>
+
+<!-- Delete Confirmation -->
+<app-delete-modal 
+    [isOpen]="!!partnerToDelete || bulkDeletePending" 
+    [title]="bulkDeletePending ? 'Delete Sales Partners' : 'Delete Sales Partner'"
+    [message]="bulkDeletePending 
+        ? 'Are you sure you want to delete ' + selectedSalesPartnerIds.size + ' selected sales partner(s)? This action cannot be undone.'
+        : 'Are you sure you want to delete this sales partner? This action cannot be undone.'" 
+    (cancel)="partnerToDelete = null; bulkDeletePending = false"
+    (confirm)="confirmDelete()">
+</app-delete-modal>
+
+<!-- Manage Columns -->
+<app-manage-columns 
+    [isOpen]="isManageColumnsOpen" 
+    [columns]="availableColumns" 
+    (closePanel)="closeManageColumns()"
+    (columnsChange)="onColumnsChange($event)">
+</app-manage-columns>

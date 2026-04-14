@@ -32,7 +32,9 @@ export class SettingsMainComponent {
       links: [
         { label: 'Profile', route: '/settings/organization/profile' },
         { label: 'Branding', route: '/settings/organization/branding' },
-        { label: 'Currencies', route: '/settings/organization/currencies' }
+        { label: 'Currencies', route: '/settings/currencies' },
+        { label: 'Sales Persons', route: '/settings/sales-persons' },
+        { label: 'Sales Partners', route: '/settings/sales-partners' }
       ]
     },
     {

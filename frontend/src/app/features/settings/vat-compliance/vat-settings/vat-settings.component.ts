@@ -12,6 +12,8 @@ import { BreadcrumbsComponent } from '../../../../shared/components/breadcrumbs/
 })
 export class VatSettingsComponent {
   isVatRegistered: boolean = false;
+  taxRegistrationNumber: string = '';
+  vatRegisteredOn: string = '';
 
   toggleVat(event: any) {
     // Logic for toggling VAT registration

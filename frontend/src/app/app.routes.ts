@@ -29,6 +29,10 @@ import { SubCategoriesComponent } from './features/settings/sub-categories/sub-c
 import { UnitOfMeasuresComponent } from './features/settings/unit-of-measures/unit-of-measures.component';
 import { VatSettingsComponent } from './features/settings/vat-compliance/vat-settings/vat-settings.component';
 import { VatRatesComponent } from './features/settings/vat-compliance/vat-rates/vat-rates.component';
+import { CurrenciesComponent } from './features/settings/currencies/currencies.component';
+import { SalesPersonsComponent } from './features/settings/sales-persons/sales-persons.component';
+import { SalesPartnersComponent } from './features/settings/sales-partners/sales-partners.component';
+import { CompanyProfileComponent } from './features/settings/company-profile/company-profile.component';
 
 export const routes: Routes = [
     {
@@ -127,7 +131,11 @@ export const routes: Routes = [
             { path: 'settings/sub-categories', component: SubCategoriesComponent },
             { path: 'settings/inventory/uom', component: UnitOfMeasuresComponent },
             { path: 'settings/vat-compliance/vat-settings', component: VatSettingsComponent },
-            { path: 'settings/vat-compliance/vat-rates', component: VatRatesComponent }
+            { path: 'settings/vat-compliance/vat-rates', component: VatRatesComponent },
+            { path: 'settings/currencies', component: CurrenciesComponent },
+            { path: 'settings/sales-persons', component: SalesPersonsComponent },
+            { path: 'settings/sales-partners', component: SalesPartnersComponent },
+            { path: 'settings/organization/profile', component: CompanyProfileComponent }
         ]
     },
     { path: 'login', component: LoginComponent },

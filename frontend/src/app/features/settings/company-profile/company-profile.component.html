@@ -1,0 +1,257 @@
+<div class="page-container">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-titles">
+            <app-breadcrumbs [items]="[
+                { label: 'Settings', url: '/settings' },
+                { label: 'Company Profile' }
+            ]"></app-breadcrumbs>
+            <h1 class="page-title">Company Profile</h1>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tabs-container">
+        <div class="tabs-header">
+            <button *ngFor="let tab of tabs" 
+                    class="tab-btn" 
+                    [class.active]="activeTab === tab.id"
+                    (click)="setTab(tab.id)">
+                {{ tab.label }}
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="form-container">
+
+        <!-- Company Information Tab -->
+        <div class="form-card" *ngIf="activeTab === 'company-info'">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Company ID</label>
+                    <input type="text" class="form-control" value="CNT-001" disabled readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>Company Name<span class="required">*</span></label>
+                    <input type="text" class="form-control" value="Optima">
+                </div>
+
+                <div class="form-group">
+                    <label>CR Number<span class="required">*</span></label>
+                    <input type="text" class="form-control" value="2381271-1">
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" class="form-control" value="info@optima.com">
+                </div>
+
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <app-phone-input 
+                        [(ngModel)]="phoneNumber"
+                        defaultCountry="bh">
+                    </app-phone-input>
+                </div>
+
+                <div class="form-group">
+                    <label>Mobile Number</label>
+                    <app-phone-input 
+                        [(ngModel)]="mobileNumber"
+                        defaultCountry="bh">
+                    </app-phone-input>
+                </div>
+
+                <div class="form-group">
+                    <label>Fiscal Year</label>
+                    <app-custom-select 
+                        [(ngModel)]="fiscalYear" 
+                        [options]="fiscalYearOptions">
+                    </app-custom-select>
+                </div>
+
+                <div class="form-group">
+                    <label>Start Date</label>
+                    <app-custom-select 
+                        [(ngModel)]="startDate" 
+                        [options]="startDateOptions">
+                    </app-custom-select>
+                </div>
+
+                <div class="form-group">
+                    <label>Period</label>
+                    <input type="text" class="form-control" value="01 January - 31 December" disabled readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>Report Basis</label>
+                    <app-custom-select 
+                        [(ngModel)]="reportBasis" 
+                        [options]="reportBasisOptions">
+                    </app-custom-select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Branding Tab -->
+        <div class="branding-tab" *ngIf="activeTab === 'branding'">
+            <div class="form-card">
+                <div class="branding-layout">
+                    <!-- Dropzone -->
+                    <div class="upload-dropzone branding-dropzone">
+                        <div class="dropzone-content">
+                            Drag & Drop or <span class="text-blue">choose</span> logo to upload
+                        </div>
+                    </div>
+
+                    <!-- Guidelines -->
+                    <div class="branding-guidelines">
+                        <p class="guideline-text">This logo will be displayed in transaction PDFs and email notifications.</p>
+                        <p class="guideline-subtext">Preferred Image Dimensions: 240 x 240 pixels @ 72 DPI</p>
+                        <p class="guideline-subtext">Maximum File Size: 1MB</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Address Tab -->
+        <div class="address-tab" *ngIf="activeTab === 'address'">
+            <div class="address-grid">
+                
+                <!-- Billing Address -->
+                <div class="form-card" style="padding-top: 24px;">
+                    <h2 class="card-title">Billing Address</h2>
+                    <div class="address-form-grid">
+                        <div class="form-group">
+                            <label>Attention</label>
+                            <input type="text" class="form-control" placeholder="Enter Name">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Country / Region</label>
+                            <app-custom-select 
+                                [(ngModel)]="billingCountry" 
+                                [options]="countryOptions">
+                            </app-custom-select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Address</label>
+                            <textarea class="form-control" placeholder="Enter Address"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>City</label>
+                            <input type="text" class="form-control" placeholder="Enter City">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shipment Address -->
+                <div class="form-card" style="padding-top: 24px;">
+                    <div class="card-title" style="margin-bottom: 24px;">
+                        <span>Shipment Address</span>
+                        <label class="custom-checkbox">
+                            <input type="checkbox" [(ngModel)]="sameAsBilling">
+                            <span class="checkmark"></span>
+                            <span class="checkbox-label">Same as Billing Address</span>
+                        </label>
+                    </div>
+                    
+                    <div class="address-form-grid">
+                        <div class="form-group">
+                            <label>Attention</label>
+                            <input type="text" class="form-control" placeholder="Enter Name" [disabled]="sameAsBilling">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Country / Region</label>
+                            <app-custom-select 
+                                [ngModel]="sameAsBilling ? billingCountry : shippingCountry"
+                                (ngModelChange)="!sameAsBilling ? shippingCountry = $event : null"
+                                [options]="countryOptions"
+                                [disabled]="sameAsBilling">
+                            </app-custom-select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Address</label>
+                            <textarea class="form-control" placeholder="Enter Address" [disabled]="sameAsBilling"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>City</label>
+                            <input type="text" class="form-control" placeholder="Enter City" [disabled]="sameAsBilling">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Localization Tab -->
+        <div class="localization-tab" *ngIf="activeTab === 'localization'">
+            <div class="form-card">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Default Language</label>
+                        <app-custom-select 
+                            [(ngModel)]="defaultLanguage" 
+                            [options]="languageOptions">
+                        </app-custom-select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Time Zone</label>
+                        <app-custom-select 
+                            [(ngModel)]="timeZone" 
+                            [options]="timeZoneOptions">
+                        </app-custom-select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Date Format<span class="required">*</span></label>
+                        <app-custom-select 
+                            [(ngModel)]="dateFormat" 
+                            [options]="dateFormatOptions">
+                        </app-custom-select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Base Currency<span class="required">*</span></label>
+                        <input type="text" class="form-control" value="BHD - Bahrini Dinar" disabled readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Currency Format<span class="required">*</span></label>
+                        <app-custom-select 
+                            [(ngModel)]="currencyFormat" 
+                            [options]="currencyFormatOptions">
+                        </app-custom-select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Manager Tab -->
+        <div class="account-manager-tab" *ngIf="activeTab === 'account-manager'">
+            <div class="form-card">
+                <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+                    
+                    <div class="form-group">
+                        <label>Name<span class="required">*</span></label>
+                        <input type="text" class="form-control" value="Hamad Yusuf">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" class="form-control" value="hamad@tamezy.com" disabled readonly>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
