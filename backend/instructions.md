@@ -313,8 +313,105 @@ Delete a specific sales partner by its ID.
 *   **Body (JSON)**:
     ```json
     {
+      "ids": [1, 2],
+      "status": "Inactive"
+    }
+    ```
+
+---
+
+### G. List Sales Persons
+Fetch all sales persons for the current tenant.
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/organization/sales-persons`
+
+### H. Create Sales Person
+*   **Method**: `POST`
+*   **URL**: `{{base_url}}/api/v1/organization/sales-persons`
+*   **Body (JSON)**:
+    ```json
+    {
+      "name": "Sarah Miller",
+      "description": "Junior sales agent",
+      "status": "Active"
+    }
+    ```
+
+### I. Update Sales Person
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/organization/sales-persons/:id`
+*   **Body (JSON)**:
+    ```json
+    {
+      "name": "Sarah Miller Updated"
+    }
+    ```
+
+### J. Bulk Delete Sales Persons
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/organization/sales-persons`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2]
+    }
+    ```
+
+### K. Single Delete
+Delete a specific sales person by its ID.
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/organization/sales-persons/:id`
+
+### L. Bulk Status Update
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/organization/sales-persons/bulk-status`
+*   **Body (JSON)**:
+    ```json
+    {
       "ids": [1],
       "status": "Inactive"
+    }
+    ```
+
+---
+
+### M. List Currencies
+Fetch all currencies for the current tenant.
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/organization/currencies`
+
+### N. Create Currency
+*   **Method**: `POST`
+*   **URL**: `{{base_url}}/api/v1/organization/currencies`
+*   **Body (JSON)**:
+    ```json
+    {
+      "name": "US Dollar",
+      "code": "USD",
+      "symbol": "$",
+      "is_base": true,
+      "decimal_places": 2,
+      "format": "en-US"
+    }
+    ```
+
+### O. Update Currency
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/organization/currencies/:id`
+*   **Body (JSON)**:
+    ```json
+    {
+      "decimal_places": 3
+    }
+    ```
+
+### P. Bulk Delete Currencies
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/organization/currencies`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2]
     }
     ```
 
