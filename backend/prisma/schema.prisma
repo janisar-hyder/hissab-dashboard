@@ -143,6 +143,10 @@ model Client {
   vatRates         VatRate[]
   inventoryItems   InventoryItem[]
   customers        Customer[]
+  salesPersons     SalesPerson[]
+  salesPartners    SalesPartner[]
+  currencies       Currency[]
+  companyProfile   CompanyProfile?
 
   @@map("clients")
 }
@@ -240,6 +244,13 @@ model ClientUser {
   updatedCustomers    Customer[]              @relation("CustUpdatedBy")
   createdCustContacts CustomerContact[]       @relation("CustContCreatedBy")
   updatedCustContacts CustomerContact[]       @relation("CustContUpdatedBy")
+  createdSalesPersons SalesPerson[]           @relation("SalesPersonCreatedBy")
+  updatedSalesPersons SalesPerson[]           @relation("SalesPersonUpdatedBy")
+  createdSalesPartners SalesPartner[]         @relation("SalesPartnerCreatedBy")
+  updatedSalesPartners SalesPartner[]         @relation("SalesPartnerUpdatedBy")
+  createdCurrencies    Currency[]             @relation("CurrencyCreatedBy")
+  updatedCurrencies    Currency[]             @relation("CurrencyUpdatedBy")
+  updatedCompanyProfiles CompanyProfile[]     @relation("CompProfUpdatedBy")
 
   @@unique([client_id, email])
   @@map("client_users")
@@ -453,10 +464,12 @@ model InventoryUnitOfMeasure {
 }
 
 model VatSetting {
-  client_id         Int      @id
-  is_vat_registered Boolean? @default(false)
-  updated_date      DateTime @default(now()) @updatedAt
-  updated_by        Int?
+  client_id               Int       @id
+  is_vat_registered       Boolean?  @default(false)
+  tax_registration_number String?   @db.VarChar(100)
+  vat_registered_on       DateTime? @db.Date
+  updated_date            DateTime  @default(now()) @updatedAt
+  updated_by              Int?
 
   // Relations
   client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
@@ -598,4 +611,101 @@ model CustomerContact {
   updatedByUser ClientUser? @relation("CustContUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
 
   @@map("customer_contacts")
+}
+
+model SalesPerson {
+  id           Int      @id @default(autoincrement())
+  client_id    Int
+  name         String   @db.VarChar(255)
+  description  String?  @db.Text
+  status       String?  @default("Active") @db.VarChar(50)
+  created_date DateTime @default(now())
+  created_by   Int?
+  updated_date DateTime @default(now()) @updatedAt
+  updated_by   Int?
+
+  // Relations
+  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser ClientUser? @relation("SalesPersonCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser ClientUser? @relation("SalesPersonUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+
+  @@unique([client_id, name])
+  @@map("sales_persons")
+}
+
+model SalesPartner {
+  id           Int      @id @default(autoincrement())
+  client_id    Int
+  name         String   @db.VarChar(255)
+  commission   Decimal  @default(0.00) @db.Decimal(5, 2)
+  description  String?  @db.Text
+  status       String?  @default("Active") @db.VarChar(50)
+  created_date DateTime @default(now())
+  created_by   Int?
+  updated_date DateTime @default(now()) @updatedAt
+  updated_by   Int?
+
+  // Relations
+  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser ClientUser? @relation("SalesPartnerCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser ClientUser? @relation("SalesPartnerUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+
+  @@unique([client_id, name])
+  @@map("sales_partners")
+}
+
+model Currency {
+  id             Int      @id @default(autoincrement())
+  client_id      Int
+  name           String   @db.VarChar(255)
+  code           String   @db.VarChar(10)
+  symbol         String   @db.VarChar(10)
+  is_base        Boolean? @default(false)
+  decimal_places Int?     @default(2)
+  format         String?  @db.VarChar(50)
+  created_date   DateTime @default(now())
+  created_by     Int?
+  updated_date   DateTime @default(now()) @updatedAt
+  updated_by     Int?
+
+  // Relations
+  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser ClientUser? @relation("CurrencyCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser ClientUser? @relation("CurrencyUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+
+  @@unique([client_id, code])
+  @@map("client_currencies")
+}
+
+model CompanyProfile {
+  client_id          Int      @id
+  company_name       String?  @db.VarChar(255)
+  cr_number          String?  @db.VarChar(100)
+  email              String?  @db.VarChar(255)
+  phone              String?  @db.VarChar(50)
+  mobile             String?  @db.VarChar(50)
+  fiscal_year        String?  @db.VarChar(100)
+  fiscal_start_date  String?  @db.VarChar(10)
+  fiscal_period      String?  @db.VarChar(100)
+  logo_path          String?  @db.VarChar(512)
+  billing_attention  String?  @db.VarChar(255)
+  billing_country    String?  @db.VarChar(100)
+  billing_address    String?  @db.Text
+  billing_city       String?  @db.VarChar(100)
+  shipment_attention String?  @db.VarChar(255)
+  shipment_country   String?  @db.VarChar(100)
+  shipment_address   String?  @db.Text
+  shipment_city      String?  @db.VarChar(100)
+  default_language   String?  @default("English") @db.VarChar(50)
+  time_zone          String?  @default("UTC + 3:00") @db.VarChar(100)
+  date_format        String?  @db.VarChar(100)
+  currency_format    String?  @db.VarChar(50)
+  updated_date       DateTime @default(now()) @updatedAt
+  updated_by         Int?
+
+  // Relations
+  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  updatedByUser ClientUser? @relation("CompProfUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+
+  @@map("company_profiles")
 }

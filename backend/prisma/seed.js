@@ -41,8 +41,10 @@ async function main() {
   });
 
   // 4. Client Role
-  const clientAdminRole = await prisma.clientRole.create({
-    data: {
+  const clientAdminRole = await prisma.clientRole.upsert({
+    where: { client_id_name: { client_id: client.id, name: 'Client Admin' } },
+    update: {},
+    create: {
       client_id: client.id,
       name: 'Client Admin',
       status: 'Active'
@@ -50,8 +52,10 @@ async function main() {
   });
 
   // 5. Client User
-  const clientUser = await prisma.clientUser.create({
-    data: {
+  const clientUser = await prisma.clientUser.upsert({
+    where: { client_id_email: { client_id: client.id, email: 'admin@testcorp.com' } },
+    update: {},
+    create: {
       client_id: client.id,
       name: 'Test Client Admin',
       email: 'admin@testcorp.com',
@@ -61,7 +65,14 @@ async function main() {
     }
   });
 
-  // 6. Chart of Accounts
+  // 6. Cleanup existing data for re-seeding
+  await prisma.salesPerson.deleteMany({ where: { client_id: client.id } });
+  await prisma.salesPartner.deleteMany({ where: { client_id: client.id } });
+  await prisma.currency.deleteMany({ where: { client_id: client.id } });
+  await prisma.chartOfAccount.deleteMany({ where: { client_id: client.id } });
+  await prisma.inventoryCategory.deleteMany({ where: { client_id: client.id } });
+
+  // 7. Chart of Accounts
   await prisma.chartOfAccount.createMany({
     data: [
       { client_id: client.id, name: 'Sales', code: '4000', type: 'Income', created_by: clientUser.id },
@@ -76,6 +87,79 @@ async function main() {
       { client_id: client.id, name: 'AC Units', status: 'Active', created_by: clientUser.id },
       { client_id: client.id, name: 'Consumables', status: 'Active', created_by: clientUser.id }
     ]
+  });
+
+  // 8. VAT Settings
+  await prisma.vatSetting.upsert({
+    where: { client_id: client.id },
+    update: {},
+    create: {
+      client_id: client.id,
+      is_vat_registered: true,
+      tax_registration_number: '100234567800003',
+      vat_registered_on: new Date('2019-01-01'),
+      updated_by: clientUser.id
+    }
+  });
+
+  // 9. Sales Persons
+  await prisma.salesPerson.createMany({
+    data: [
+      { client_id: client.id, name: 'Aaliyah Khan', description: 'Focuses on the Middle East market.', status: 'Active', created_by: clientUser.id },
+      { client_id: client.id, name: 'Liam Schmidt', description: 'Expert in European client relations.', status: 'Active', created_by: clientUser.id },
+      { client_id: client.id, name: 'Zara Al-Farsi', description: 'Specializes in high-tech sales.', status: 'Active', created_by: clientUser.id },
+      { client_id: client.id, name: 'Omar Dubois', description: 'Handles corporate accounts.', status: 'Active', created_by: clientUser.id }
+    ]
+  });
+
+  // 10. Sales Partners
+  await prisma.salesPartner.createMany({
+    data: [
+      { client_id: client.id, name: 'Jack Thomas', commission: 10.00, description: '-', status: 'Active', created_by: clientUser.id },
+      { client_id: client.id, name: 'Stellar Marketing', commission: 5.00, description: 'Collaborating to enhance our offerings.', status: 'Active', created_by: clientUser.id },
+      { client_id: client.id, name: 'Eco Innovations', commission: 20.00, description: '-', status: 'Active', created_by: clientUser.id },
+      { client_id: client.id, name: 'Noah Patel', commission: 10.00, description: 'Working together for mutual success.', status: 'Inactive', created_by: clientUser.id }
+    ]
+  });
+
+  // 11. Currencies
+  await prisma.currency.createMany({
+    data: [
+      { client_id: client.id, name: 'Bahraini Dinar', code: 'BHD', symbol: 'BHD', is_base: true, decimal_places: 3, created_by: clientUser.id },
+      { client_id: client.id, name: 'UAE Dirham', code: 'AED', symbol: 'AED', is_base: false, decimal_places: 2, created_by: clientUser.id },
+      { client_id: client.id, name: 'Canadian Dollar', code: 'CAD', symbol: '$', is_base: false, decimal_places: 2, created_by: clientUser.id },
+      { client_id: client.id, name: 'Euro', code: 'EUR', symbol: '€', is_base: false, decimal_places: 2, created_by: clientUser.id },
+      { client_id: client.id, name: 'Pound Sterling', code: 'GBP', symbol: '£', is_base: false, decimal_places: 2, created_by: clientUser.id },
+      { client_id: client.id, name: 'Pakistani Rupee', code: 'PKR', symbol: 'Rs.', is_base: false, decimal_places: 0, created_by: clientUser.id },
+      { client_id: client.id, name: 'Kuwaiti Dinar', code: 'KWD', symbol: 'KWD', is_base: false, decimal_places: 3, created_by: clientUser.id },
+      { client_id: client.id, name: 'Qatari Riyal', code: 'QAR', symbol: 'QAR', is_base: false, decimal_places: 2, created_by: clientUser.id },
+      { client_id: client.id, name: 'Saudi Riyal', code: 'SAR', symbol: 'SAR', is_base: false, decimal_places: 2, created_by: clientUser.id },
+      { client_id: client.id, name: 'United States Dollar', code: 'USD', symbol: '$', is_base: false, decimal_places: 2, created_by: clientUser.id }
+    ]
+  });
+
+  // 12. Company Profile
+  await prisma.companyProfile.upsert({
+    where: { client_id: client.id },
+    update: {},
+    create: {
+      client_id: client.id,
+      company_name: 'Optima',
+      cr_number: '2381271-1',
+      email: 'info@optima.com',
+      phone: '1712 3456',
+      mobile: '3456 7890',
+      fiscal_year: 'January - December',
+      fiscal_start_date: '01',
+      fiscal_period: '01 January - 31 December',
+      billing_country: 'Bahrain',
+      shipment_country: 'Bahrain',
+      default_language: 'English',
+      time_zone: 'UTC + 3:00',
+      date_format: 'dd MMM yyyy - 26 Jan 2026',
+      currency_format: '0.000',
+      updated_by: clientUser.id
+    }
   });
 
   console.log('✅ Seeding complete!');

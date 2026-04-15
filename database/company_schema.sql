@@ -618,6 +618,49 @@ CREATE TABLE client_currencies (
     UNIQUE(client_id, code)
 );
 
+CREATE TABLE company_profiles (
+    client_id INT PRIMARY KEY,
+    
+    company_name VARCHAR(255),
+    cr_number VARCHAR(100),
+    email VARCHAR(255),
+    phone VARCHAR(50),
+    mobile VARCHAR(50),
+    fiscal_year VARCHAR(100),
+    fiscal_start_date VARCHAR(10),
+    fiscal_period VARCHAR(100),
+    
+    -- Branding
+    logo_path VARCHAR(512),
+    
+    -- Billing Address
+    billing_attention VARCHAR(255),
+    billing_country VARCHAR(100),
+    billing_address TEXT,
+    billing_city VARCHAR(100),
+    
+    -- Shipment Address
+    shipment_attention VARCHAR(255),
+    shipment_country VARCHAR(100),
+    shipment_address TEXT,
+    shipment_city VARCHAR(100),
+    
+    -- Localization
+    default_language VARCHAR(50) DEFAULT 'English',
+    time_zone VARCHAR(100) DEFAULT 'UTC + 3:00',
+    date_format VARCHAR(100),
+    currency_format VARCHAR(50),
+    
+    -- Audit Columns
+    updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT NULL,
+    
+    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL
+);
+
+
+
 
 -- ==========================================
 -- 5. SEED DATA (INITIAL SETUP & TESTING)
@@ -737,3 +780,16 @@ INSERT INTO client_currencies (client_id, name, code, symbol, is_base, decimal_p
 (1, 'Qatari Riyal', 'QAR', 'QAR', FALSE, 2),
 (1, 'Saudi Riyal', 'SAR', 'SAR', FALSE, 2),
 (1, 'United States Dollar', 'USD', '$', FALSE, 2);
+
+INSERT INTO company_profiles (
+    client_id, company_name, cr_number, email, phone, mobile,
+    fiscal_year, fiscal_start_date, fiscal_period,
+    billing_country, shipment_country,
+    default_language, time_zone, date_format, currency_format
+) VALUES (
+    1, 'Optima', '2381271-1', 'info@optima.com', '1712 3456', '3456 7890',
+    'January - December', '01', '01 January - 31 December',
+    'Bahrain', 'Bahrain',
+    'English', 'UTC + 3:00', 'dd MMM yyyy - 26 Jan 2026', '0.000'
+);
+
