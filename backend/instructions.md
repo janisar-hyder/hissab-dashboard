@@ -243,6 +243,23 @@ Delete a specific VAT rate by its ID.
     }
     ```
 
+### G. List VAT Settings
+Fetch the global VAT configuration for the current tenant.
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/vat-compliance/settings`
+
+### H. Update VAT Settings
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/vat-compliance/settings`
+*   **Body (JSON)**:
+    ```json
+    {
+      "is_vat_registered": true,
+      "tax_registration_number": "100234567800003",
+      "vat_registered_on": "2019-01-01"
+    }
+    ```
+
 ---
 
 ## 🛠️ Error Reference
