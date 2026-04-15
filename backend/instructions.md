@@ -262,6 +262,64 @@ Fetch the global VAT configuration for the current tenant.
 
 ---
 
+## 🏢 5. Organization Module
+
+### A. List Sales Partners
+Fetch all sales partners for the current tenant.
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/organization/sales-partners`
+
+### B. Create Sales Partner
+*   **Method**: `POST`
+*   **URL**: `{{base_url}}/api/v1/organization/sales-partners`
+*   **Body (JSON)**:
+    ```json
+    {
+      "name": "Jack Thomas",
+      "commission": 15.00,
+      "description": "Premium partner",
+      "status": "Active"
+    }
+    ```
+
+### C. Update Sales Partner
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/organization/sales-partners/:id`
+*   **Body (JSON)**:
+    ```json
+    {
+      "commission": 12.00
+    }
+    ```
+
+### D. Bulk Delete Sales Partners
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/organization/sales-partners`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2]
+    }
+    ```
+
+### E. Single Delete
+Delete a specific sales partner by its ID.
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/organization/sales-partners/:id`
+
+### F. Bulk Status Update
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/organization/sales-partners/bulk-status`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1],
+      "status": "Inactive"
+    }
+    ```
+
+---
+
 ## 🛠️ Error Reference
 
 | Error Code | Meaning | Likely Cause |

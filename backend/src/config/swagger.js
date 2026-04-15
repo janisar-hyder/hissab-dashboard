@@ -25,6 +25,7 @@ const options = {
   apis: [
     './src/modules/inventory/*/*.routes.js',
     './src/modules/vat-compliance/*/*.routes.js',
+    './src/modules/organization/*/*.routes.js',
   ],
 };
 
