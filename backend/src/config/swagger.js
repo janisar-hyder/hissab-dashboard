@@ -24,7 +24,7 @@ const options = {
   // Path to the API docs (where we will add JSDoc comments)
   apis: [
     './src/modules/inventory/*/*.routes.js',
-    // add more paths as we create them
+    './src/modules/vat-compliance/*/*.routes.js',
   ],
 };
 

@@ -71,6 +71,7 @@ async function main() {
   await prisma.currency.deleteMany({ where: { client_id: client.id } });
   await prisma.chartOfAccount.deleteMany({ where: { client_id: client.id } });
   await prisma.inventoryCategory.deleteMany({ where: { client_id: client.id } });
+  await prisma.vatRate.deleteMany({ where: { client_id: client.id } });
 
   // 7. Chart of Accounts
   await prisma.chartOfAccount.createMany({
@@ -138,7 +139,17 @@ async function main() {
     ]
   });
 
-  // 12. Company Profile
+  // 12. VAT Rates
+  await prisma.vatRate.createMany({
+    data: [
+      { client_id: client.id, name: 'Standard Rate', rate: 5.00, status: 'Active', created_by: clientUser.id },
+      { client_id: client.id, name: 'Zero Rated', rate: 0.00, status: 'Active', created_by: clientUser.id },
+      { client_id: client.id, name: 'Exempt', rate: 0.00, status: 'Active', created_by: clientUser.id },
+      { client_id: client.id, name: 'Out of Scope', rate: 0.00, status: 'Active', created_by: clientUser.id }
+    ]
+  });
+
+  // 13. Company Profile
   await prisma.companyProfile.upsert({
     where: { client_id: client.id },
     update: {},

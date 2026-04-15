@@ -186,6 +186,67 @@ Delete a specific unit by its ID.
 
 
 
+---
+
+## ⚖️ 4. VAT & Compliance Module
+
+### A. List VAT Rates
+Fetch all VAT rates for the current tenant.
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/vat-compliance/vat-rates`
+
+### B. Create VAT Rate
+*   **Method**: `POST`
+*   **URL**: `{{base_url}}/api/v1/vat-compliance/vat-rates`
+*   **Body (JSON)**:
+    ```json
+    {
+      "name": "Standard Rate",
+      "rate": 15.00,
+      "status": "Active"
+    }
+    ```
+
+### C. Update VAT Rate
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/vat-compliance/vat-rates/:id`
+*   **Body (JSON)**:
+    ```json
+    {
+      "rate": 10.00
+    }
+    ```
+
+### D. Bulk Delete VAT Rates
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/vat-compliance/vat-rates`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2]
+    }
+    ```
+
+### E. Single Delete
+Delete a specific VAT rate by its ID.
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/vat-compliance/vat-rates/:id`
+
+### F. Bulk Status Update
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/vat-compliance/vat-rates/bulk-status`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1],
+      "status": "Inactive"
+    }
+    ```
+
+---
+
+## 🛠️ Error Reference
+
 | Error Code | Meaning | Likely Cause |
 | :--- | :--- | :--- |
 | **400 Bad Request** | Invalid Input | Missing required field (e.g., `name`) or DB constraint (e.g., Category linked to an Item). |
@@ -193,4 +254,4 @@ Delete a specific unit by its ID.
 | **500 Internal Error**| Server Crash | Check the terminal for error logs. |
 
 ---
-*Last Updated: 2026-04-12*
+*Last Updated: 2026-04-15*

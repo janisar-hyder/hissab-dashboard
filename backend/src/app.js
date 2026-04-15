@@ -6,6 +6,7 @@ const errorHandler = require('./middleware/errorHandler');
 const authenticate = require('./middleware/auth');
 
 const inventoryRoutes = require('./modules/inventory/inventory.routes');
+const vatComplianceRoutes = require('./modules/vat-compliance/vat-compliance.routes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 
@@ -23,6 +24,7 @@ app.use(express.json()); // Built-in body parser for JSON
 // 3. Application Routes
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/v1/inventory', inventoryRoutes);
+app.use('/api/v1/vat-compliance', vatComplianceRoutes);
 
 // Base Routes
 app.get('/', (req, res) => {
