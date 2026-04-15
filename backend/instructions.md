@@ -417,6 +417,30 @@ Fetch all currencies for the current tenant.
 
 ---
 
+### Q. Get Company Profile
+Fetch the company's profile details.
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/organization/profile`
+
+### R. Update Company Profile
+Update or initialize the company profile.
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/organization/profile`
+*   **Body (JSON)**:
+    ```json
+    {
+      "company_name": "Hissab Solutions",
+      "cr_number": "CR-123456789",
+      "email": "info@hissab.app",
+      "fiscal_year": "2024",
+      "time_zone": "UTC + 3:00",
+      "billing_address": "Main Street, Tech District",
+      "billing_city": "Dubai"
+    }
+    ```
+
+---
+
 ## 🛠️ Error Reference
 
 | Error Code | Meaning | Likely Cause |
