@@ -391,6 +391,8 @@ CREATE TABLE inventory_unit_of_measures (
 CREATE TABLE vat_settings (
     client_id INT PRIMARY KEY,
     is_vat_registered BOOLEAN DEFAULT FALSE,
+    tax_registration_number VARCHAR(100) NULL,
+    vat_registered_on DATE NULL,
     
     -- Audit Columns
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -552,6 +554,69 @@ CREATE TABLE customer_contacts (
     FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL
 );
 
+-- Sales Persons
+CREATE TABLE sales_persons (
+    id SERIAL PRIMARY KEY,
+    client_id INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    status VARCHAR(50) DEFAULT 'Active',
+    
+    -- Audit Columns
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by INT NULL,
+    updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT NULL,
+    
+    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    UNIQUE(client_id, name)
+);
+
+-- Sales Partners
+CREATE TABLE sales_partners (
+    id SERIAL PRIMARY KEY,
+    client_id INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    commission DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+    description TEXT,
+    status VARCHAR(50) DEFAULT 'Active',
+    
+    -- Audit Columns
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by INT NULL,
+    updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT NULL,
+    
+    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    UNIQUE(client_id, name)
+);
+
+-- Currencies
+CREATE TABLE client_currencies (
+    id SERIAL PRIMARY KEY,
+    client_id INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    code VARCHAR(10) NOT NULL,
+    symbol VARCHAR(10) NOT NULL,
+    is_base BOOLEAN DEFAULT FALSE,
+    decimal_places INT DEFAULT 2,
+    format VARCHAR(50),
+    
+    -- Audit Columns
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by INT NULL,
+    updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT NULL,
+    
+    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    UNIQUE(client_id, code)
+);
 
 
 -- ==========================================
@@ -630,7 +695,8 @@ INSERT INTO inventory_sub_categories (client_id, category_id, name, status) VALU
 (1, 2, 'Refrigerant Gas', 'Active');
 
 -- 10. VAT Configuration
-INSERT INTO vat_settings (client_id, is_vat_registered) VALUES (1, TRUE);
+INSERT INTO vat_settings (client_id, is_vat_registered, tax_registration_number, vat_registered_on) 
+VALUES (1, TRUE, '100234567800003', '2019-01-01');
 
 INSERT INTO vat_rates (client_id, name, rate, status) VALUES 
 (1, 'Standard Rate', 5.00, 'Active'),
@@ -644,3 +710,30 @@ INSERT INTO inventory_items (
 ) VALUES 
 (1, 'ITM-001', 'Split AC Unit 1.5 Ton', 'SAC-15-GULF', 1, 1, NULL, 250.000, 180.000, 1, 2, 3, 1, 25.000, 'Active'),
 (1, 'ITM-002', 'R410A Refrigerant', 'REF-410A-KG', 2, 2, 1, 15.500, 8.200, 1, 2, 3, 2, 120.000, 'Active');
+
+-- 12. Sales Persons
+INSERT INTO sales_persons (client_id, name, description, status) VALUES 
+(1, 'Aaliyah Khan', '-', 'Active'),
+(1, 'Liam Schmidt', 'Outsourced Person', 'Active'),
+(1, 'Zara Al-Farsi', '-', 'Active'),
+(1, 'Omar Dubois', '-', 'Inactive');
+
+-- 13. Sales Partners
+INSERT INTO sales_partners (client_id, name, commission, description, status) VALUES 
+(1, 'Jack Thomas', 10.00, '-', 'Active'),
+(1, 'Stellar Marketing', 5.00, 'Collaborating to enhance our offerings.', 'Active'),
+(1, 'Eco Innovations', 20.00, '-', 'Active'),
+(1, 'Noah Patel', 10.00, 'Working together for mutual success.', 'Inactive');
+
+-- 14. Currencies
+INSERT INTO client_currencies (client_id, name, code, symbol, is_base, decimal_places) VALUES 
+(1, 'Bahraini Dinar', 'BHD', 'BHD', TRUE, 3),
+(1, 'UAE Dirham', 'AED', 'AED', FALSE, 2),
+(1, 'Canadian Dollar', 'CAD', '$', FALSE, 2),
+(1, 'Euro', 'EUR', '€', FALSE, 2),
+(1, 'Pound Sterling', 'GBP', '£', FALSE, 2),
+(1, 'Pakistani Rupee', 'PKR', 'Rs.', FALSE, 0),
+(1, 'Kuwaiti Dinar', 'KWD', 'KWD', FALSE, 3),
+(1, 'Qatari Riyal', 'QAR', 'QAR', FALSE, 2),
+(1, 'Saudi Riyal', 'SAR', 'SAR', FALSE, 2),
+(1, 'United States Dollar', 'USD', '$', FALSE, 2);
