@@ -238,7 +238,6 @@ CREATE TABLE chart_of_accounts (
     id SERIAL PRIMARY KEY,
     client_id INT NOT NULL,
     name VARCHAR(255) NOT NULL,
-    code VARCHAR(50),
     type VARCHAR(100) NOT NULL,
     parent_id INT NULL,
     description TEXT,
@@ -254,8 +253,7 @@ CREATE TABLE chart_of_accounts (
     FOREIGN KEY (parent_id) REFERENCES chart_of_accounts(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
     FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
-    UNIQUE(client_id, name),
-    UNIQUE(client_id, code)
+    UNIQUE(client_id, name)
 );
 
 -- Vendors
@@ -693,21 +691,21 @@ INSERT INTO client_users (client_id, name, email, password_hash, role_id, status
 VALUES (1, 'Test Client Admin', 'admin@testcorp.com', 'Haha-1234', 1, 'Active');
 
 -- 6. Initial Chart of Accounts for Test Corp
-INSERT INTO chart_of_accounts (client_id, name, code, type, status) VALUES 
-(1, 'Sales', '4000', 'Income', 'Active'),
-(1, 'Cost of Goods Sold', '5000', 'Cost of Goods Sold', 'Active'),
-(1, 'Inventory Asset', '1200', 'Stock', 'Active');
+INSERT INTO chart_of_accounts (client_id, name, type, status) VALUES 
+(1, 'Sales', 'Income', 'Active'),
+(1, 'Cost of Goods Sold', 'Cost of Goods Sold', 'Active'),
+(1, 'Inventory Asset', 'Stock', 'Active');
 
 -- 7. Supplemental Chart of Accounts
-INSERT INTO chart_of_accounts (client_id, name, code, type, status) VALUES 
-(1, 'Main Operating Account', '1000', 'Bank', 'Active'),
-(1, 'Utilities Expense', '5100', 'Expense', 'Active'),
-(1, 'VAT Payable', '2100', 'Other Current Liability', 'Active');
+INSERT INTO chart_of_accounts (client_id, name, type, status) VALUES 
+(1, 'Main Operating Account', 'Bank', 'Active'),
+(1, 'Utilities Expense', 'Expense', 'Active'),
+(1, 'VAT Payable', 'Other Current Liability', 'Active');
 
 -- Child Accounts for Utilities Expense (Parent ID: 5)
-INSERT INTO chart_of_accounts (client_id, name, code, type, parent_id, status) VALUES 
-(1, 'Electricity Expense', '5110', 'Expense', 5, 'Active'),
-(1, 'Water Expense', '5120', 'Expense', 5, 'Active');
+INSERT INTO chart_of_accounts (client_id, name, type, parent_id, status) VALUES 
+(1, 'Electricity Expense', 'Expense', 5, 'Active'),
+(1, 'Water Expense', 'Expense', 5, 'Active');
 
 -- 8. Business Entities (Vendors & Customers)
 INSERT INTO purchase_vendors (client_id, name, type, email, phone, currency, status) VALUES 

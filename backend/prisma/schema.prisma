@@ -304,7 +304,6 @@ model ChartOfAccount {
   id           Int      @id @default(autoincrement())
   client_id    Int
   name         String   @db.VarChar(255)
-  code         String?  @db.VarChar(50)
   type         String   @db.VarChar(100)
   parent_id    Int?
   description  String?  @db.Text
@@ -327,7 +326,6 @@ model ChartOfAccount {
   inventoryItems InventoryItem[] @relation("InventoryAccount")
 
   @@unique([client_id, name])
-  @@unique([client_id, code])
   @@map("chart_of_accounts")
 }
 

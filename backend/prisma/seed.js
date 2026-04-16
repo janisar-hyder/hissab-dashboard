@@ -76,9 +76,9 @@ async function main() {
   // 7. Chart of Accounts
   await prisma.chartOfAccount.createMany({
     data: [
-      { client_id: client.id, name: 'Sales', code: '4000', type: 'Income', created_by: clientUser.id },
-      { client_id: client.id, name: 'Cost of Goods Sold', code: '5000', type: 'Cost of Goods Sold', created_by: clientUser.id },
-      { client_id: client.id, name: 'Inventory Asset', code: '1200', type: 'Stock', created_by: clientUser.id }
+      { client_id: client.id, name: 'Sales', type: 'Income', created_by: clientUser.id },
+      { client_id: client.id, name: 'Cost of Goods Sold', type: 'Cost of Goods Sold', created_by: clientUser.id },
+      { client_id: client.id, name: 'Inventory Asset', type: 'Stock', created_by: clientUser.id }
     ]
   });
 

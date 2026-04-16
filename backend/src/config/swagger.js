@@ -26,6 +26,7 @@ const options = {
     './src/modules/inventory/*/*.routes.js',
     './src/modules/vat-compliance/*/*.routes.js',
     './src/modules/organization/*/*.routes.js',
+    './src/modules/accounts/*/*.routes.js',
   ],
 };
 

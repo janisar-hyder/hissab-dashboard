@@ -441,6 +441,76 @@ Update or initialize the company profile.
 
 ---
 
+## 5. Accounts Module
+All routes are prefixed with `{{base_url}}/api/v1/accounts`
+
+### A. List Accounts
+Fetch the full Chart of Accounts.
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/accounts/chart-of-accounts`
+
+### B. Create Account
+*   **Method**: `POST`
+*   **URL**: `{{base_url}}/api/v1/accounts/chart-of-accounts`
+*   **Body (JSON)**:
+    ```json
+    {
+      "name": "Sales Income",
+      "type": "Income",
+      "description": "General sales revenue"
+    }
+    ```
+
+### C. Create Sub-Account (with Parent ID)
+*   **Method**: `POST`
+*   **URL**: `{{base_url}}/api/v1/accounts/chart-of-accounts`
+*   **Body (JSON)**:
+    ```json
+    {
+      "name": "Local Sales",
+      "type": "Income",
+      "parent_id": 1,
+      "description": "Revenue from local customers"
+    }
+    ```
+
+### D. Update Account
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/accounts/chart-of-accounts/:id`
+*   **Body (JSON)**:
+    ```json
+    {
+      "name": "General Sales Income"
+    }
+    ```
+
+### E. Bulk Status Update
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/accounts/chart-of-accounts/bulk-status`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2],
+      "status": "Inactive"
+    }
+    ```
+
+### F. Delete Single Account
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/accounts/chart-of-accounts/:id`
+
+### G. Bulk Delete Accounts
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/accounts/chart-of-accounts`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2]
+    }
+    ```
+
+---
+
 ## 🛠️ Error Reference
 
 | Error Code | Meaning | Likely Cause |
