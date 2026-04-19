@@ -66,6 +66,8 @@ async function main() {
   });
 
   // 6. Cleanup existing data for re-seeding
+  await prisma.purchaseVendorContact.deleteMany({ where: { vendor: { client_id: client.id } } });
+  await prisma.purchaseVendor.deleteMany({ where: { client_id: client.id } });
   await prisma.salesPerson.deleteMany({ where: { client_id: client.id } });
   await prisma.salesPartner.deleteMany({ where: { client_id: client.id } });
   await prisma.currency.deleteMany({ where: { client_id: client.id } });
@@ -139,7 +141,94 @@ async function main() {
     ]
   });
 
-  // 12. VAT Rates
+  // 12. Purchase Vendors & Contacts
+  const bhd = await prisma.currency.findFirst({ where: { client_id: client.id, code: 'BHD' } });
+  const usd = await prisma.currency.findFirst({ where: { client_id: client.id, code: 'USD' } });
+  const gbp = await prisma.currency.findFirst({ where: { client_id: client.id, code: 'GBP' } });
+
+  const vendor1 = await prisma.purchaseVendor.create({
+    data: {
+      client_id: client.id,
+      name: 'Gulf HVAC Supplies',
+      type: 'Business',
+      email: 'sales@gulfhvac.com',
+      phone: '+973 17111111',
+      currency_id: bhd?.id,
+      status: 'Active',
+      created_by: clientUser.id,
+      contacts: {
+        create: [
+          {
+            first_name: 'Ali',
+            last_name: 'Al-Mansoori',
+            email: 'ali@gulfhvac.com',
+            phone: '+973 33111111',
+            designation: 'Sales Manager',
+            created_by: clientUser.id
+          },
+          {
+            first_name: 'Ahmed',
+            last_name: 'Hassan',
+            email: 'ahmed@gulfhvac.com',
+            phone: '+973 33111122',
+            designation: 'Technical Lead',
+            created_by: clientUser.id
+          }
+        ]
+      }
+    }
+  });
+
+  await prisma.purchaseVendor.create({
+    data: {
+      client_id: client.id,
+      name: 'Global Electronics',
+      type: 'Business',
+      email: 'info@globalelec.com',
+      phone: '+1 555-0199',
+      currency_id: usd?.id,
+      status: 'Active',
+      created_by: clientUser.id,
+      contacts: {
+        create: [
+          {
+            first_name: 'John',
+            last_name: 'Doe',
+            email: 'j.doe@globalelec.com',
+            phone: '+1 555-0200',
+            designation: 'Regional Manager',
+            created_by: clientUser.id
+          }
+        ]
+      }
+    }
+  });
+
+  await prisma.purchaseVendor.create({
+    data: {
+      client_id: client.id,
+      name: 'Industrial Pumps Ltd',
+      type: 'Business',
+      email: 'support@indpumps.co.uk',
+      phone: '+44 20 7946 0958',
+      currency_id: gbp?.id,
+      status: 'Active',
+      created_by: clientUser.id,
+      contacts: {
+        create: [
+          {
+            first_name: 'Robert',
+            last_name: 'Brown',
+            email: 'r.brown@indpumps.co.uk',
+            phone: '+44 20 7946 0960',
+            designation: 'Service Manager',
+            created_by: clientUser.id
+          }
+        ]
+      }
+    }
+  });
+  // 13. VAT Rates
   await prisma.vatRate.createMany({
     data: [
       { client_id: client.id, name: 'Standard Rate', rate: 5.00, status: 'Active', created_by: clientUser.id },
@@ -149,7 +238,7 @@ async function main() {
     ]
   });
 
-  // 13. Company Profile
+  // 14. Company Profile
   await prisma.companyProfile.upsert({
     where: { client_id: client.id },
     update: {},

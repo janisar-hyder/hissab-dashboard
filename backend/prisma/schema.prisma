@@ -339,7 +339,7 @@ model PurchaseVendor {
   phone                   String?  @db.VarChar(50)
   mobile                  String?  @db.VarChar(50)
   tax_treatment           String?  @db.VarChar(100)
-  currency                String?  @default("BHD") @db.VarChar(10)
+  currency_id             Int?
   opening_balance         Decimal? @default(0.000) @db.Decimal(18, 3)
   payment_terms           String?  @db.VarChar(100)
   billing_attention       String?  @db.VarChar(255)
@@ -361,6 +361,7 @@ model PurchaseVendor {
 
   // Relations
   client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  currency      Currency?   @relation(fields: [currency_id], references: [id], onDelete: SetNull)
   createdByUser ClientUser? @relation("VendorCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
   updatedByUser ClientUser? @relation("VendorUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
   contacts      PurchaseVendorContact[]
@@ -560,7 +561,7 @@ model Customer {
   phone              String?  @db.VarChar(50)
   mobile             String?  @db.VarChar(50)
   tax_treatment      String?  @db.VarChar(100)
-  currency           String?  @default("BHD") @db.VarChar(10)
+  currency_id        Int?
   opening_balance    Decimal? @default(0.000) @db.Decimal(18, 3)
   source_of_supply   String?  @db.VarChar(255)
   payment_terms      String?  @db.VarChar(100)
@@ -582,6 +583,7 @@ model Customer {
 
   // Relations
   client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  currency      Currency?   @relation(fields: [currency_id], references: [id], onDelete: SetNull)
   createdByUser ClientUser? @relation("CustCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
   updatedByUser ClientUser? @relation("CustUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
   contacts      CustomerContact[]
@@ -670,6 +672,8 @@ model Currency {
   client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
   createdByUser ClientUser? @relation("CurrencyCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
   updatedByUser ClientUser? @relation("CurrencyUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+  purchaseVendors PurchaseVendor[]
+  customers       Customer[]
 
   @@unique([client_id, code])
   @@map("client_currencies")

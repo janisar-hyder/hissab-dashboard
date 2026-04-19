@@ -256,6 +256,29 @@ CREATE TABLE chart_of_accounts (
     UNIQUE(client_id, name)
 );
 
+-- Currencies
+CREATE TABLE client_currencies (
+    id SERIAL PRIMARY KEY,
+    client_id INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    code VARCHAR(10) NOT NULL,
+    symbol VARCHAR(10) NOT NULL,
+    is_base BOOLEAN DEFAULT FALSE,
+    decimal_places INT DEFAULT 2,
+    format VARCHAR(50),
+    
+    -- Audit Columns
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by INT NULL,
+    updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT NULL,
+    
+    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    UNIQUE(client_id, code)
+);
+
 -- Vendors
 CREATE TABLE purchase_vendors (
     id SERIAL PRIMARY KEY,
@@ -269,7 +292,7 @@ CREATE TABLE purchase_vendors (
     
     -- Additional info
     tax_treatment VARCHAR(100),
-    currency VARCHAR(10) DEFAULT 'BHD',
+    currency_id INT,
     opening_balance DECIMAL(18,3) DEFAULT 0.000,
     payment_terms VARCHAR(100),
     
@@ -297,6 +320,7 @@ CREATE TABLE purchase_vendors (
     updated_by INT NULL,
     
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+    FOREIGN KEY (currency_id) REFERENCES client_currencies(id) ON DELETE SET NULL,
     FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
     FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL
 );
@@ -498,7 +522,7 @@ CREATE TABLE customers (
     
     -- Additional info
     tax_treatment VARCHAR(100),
-    currency VARCHAR(10) DEFAULT 'BHD',
+    currency_id INT,
     opening_balance DECIMAL(18,3) DEFAULT 0.000,
     source_of_supply VARCHAR(255),
     payment_terms VARCHAR(100),
@@ -526,6 +550,7 @@ CREATE TABLE customers (
     updated_by INT NULL,
     
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+    FOREIGN KEY (currency_id) REFERENCES client_currencies(id) ON DELETE SET NULL,
     FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
     FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL
 );
@@ -591,29 +616,6 @@ CREATE TABLE sales_partners (
     FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
     FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
     UNIQUE(client_id, name)
-);
-
--- Currencies
-CREATE TABLE client_currencies (
-    id SERIAL PRIMARY KEY,
-    client_id INT NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    code VARCHAR(10) NOT NULL,
-    symbol VARCHAR(10) NOT NULL,
-    is_base BOOLEAN DEFAULT FALSE,
-    decimal_places INT DEFAULT 2,
-    format VARCHAR(50),
-    
-    -- Audit Columns
-    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT NULL,
-    updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_by INT NULL,
-    
-    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
-    FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
-    UNIQUE(client_id, code)
 );
 
 CREATE TABLE company_profiles (
@@ -707,22 +709,43 @@ INSERT INTO chart_of_accounts (client_id, name, type, parent_id, status) VALUES
 (1, 'Electricity Expense', 'Expense', 5, 'Active'),
 (1, 'Water Expense', 'Expense', 5, 'Active');
 
--- 8. Business Entities (Vendors & Customers)
-INSERT INTO purchase_vendors (client_id, name, type, email, phone, currency, status) VALUES 
-(1, 'Gulf HVAC Supplies', 'Business', 'sales@gulfhvac.com', '+973 17111111', 'BHD', 'Active'),
-(1, 'CoolingTech Parts', 'Business', 'orders@coolingtech.com', '+973 17222222', 'BHD', 'Active');
+-- 8. Currencies
+INSERT INTO client_currencies (client_id, name, code, symbol, is_base, decimal_places) VALUES 
+(1, 'Bahraini Dinar', 'BHD', 'BHD', TRUE, 3),
+(1, 'UAE Dirham', 'AED', 'AED', FALSE, 2),
+(1, 'Canadian Dollar', 'CAD', '$', FALSE, 2),
+(1, 'Euro', 'EUR', '€', FALSE, 2),
+(1, 'Pound Sterling', 'GBP', '£', FALSE, 2),
+(1, 'Pakistani Rupee', 'PKR', 'Rs.', FALSE, 0),
+(1, 'Kuwaiti Dinar', 'KWD', 'KWD', FALSE, 3),
+(1, 'Qatari Riyal', 'QAR', 'QAR', FALSE, 2),
+(1, 'Saudi Riyal', 'SAR', 'SAR', FALSE, 2),
+(1, 'United States Dollar', 'USD', '$', FALSE, 2);
+
+-- 9. Business Entities (Vendors & Customers)
+INSERT INTO purchase_vendors (client_id, name, type, email, phone, currency_id, status) VALUES 
+(1, 'Gulf HVAC Supplies', 'Business', 'sales@gulfhvac.com', '+973 17111111', 1, 'Active'),
+(1, 'CoolingTech Parts', 'Business', 'orders@coolingtech.com', '+973 17222222', 1, 'Active'),
+(1, 'Global Electronics', 'Business', 'info@globalelec.com', '+1 555-0199', 10, 'Active'),
+(1, 'Industrial Pumps Ltd', 'Business', 'support@indpumps.co.uk', '+44 20 7946 0958', 5, 'Active'),
+(1, 'Express Logistics', 'Business', 'dispatch@expresslog.com', '+973 17333333', 1, 'Active');
 
 INSERT INTO purchase_vendor_contacts (vendor_id, first_name, last_name, email, phone, designation) VALUES 
 (1, 'Ali', 'Al-Mansoori', 'ali@gulfhvac.com', '+973 33111111', 'Sales Manager'),
-(2, 'Sarah', 'Ahmed', 'sarah@coolingtech.com', '+973 33222222', 'Accountant');
+(1, 'Ahmed', 'Hassan', 'ahmed@gulfhvac.com', '+973 33111122', 'Technical Lead'),
+(2, 'Sarah', 'Ahmed', 'sarah@coolingtech.com', '+973 33222222', 'Accountant'),
+(3, 'John', 'Doe', 'j.doe@globalelec.com', '+1 555-0200', 'Regional Manager'),
+(3, 'Jane', 'Smith', 'j.smith@globalelec.com', '+1 555-0201', 'Procurement'),
+(4, 'Robert', 'Brown', 'r.brown@indpumps.co.uk', '+44 20 7946 0960', 'Service Manager'),
+(5, 'Mohammed', 'Isa', 'm.isa@expresslog.com', '+973 33444444', 'Fleet Supervisor');
 
-INSERT INTO customers (client_id, name, type, email, phone, currency, is_active) VALUES 
-(1, 'Royal Tower Management', 'Business', 'info@royaltower.bh', '+973 17333333', 'BHD', TRUE);
+INSERT INTO customers (client_id, name, type, email, phone, currency_id, is_active) VALUES 
+(1, 'Royal Tower Management', 'Business', 'info@royaltower.bh', '+973 17333333', 1, TRUE);
 
 INSERT INTO customer_contacts (customer_id, first_name, last_name, email, phone, designation) VALUES 
 (1, 'Hassan', 'Yusuf', 'h.yusuf@royaltower.bh', '+973 33555555', 'Facility Manager');
 
--- 9. Inventory Foundations (UOM & Categories)
+-- 10. Inventory Foundations (UOM & Categories)
 INSERT INTO inventory_unit_of_measures (client_id, name, status) VALUES 
 (1, 'Pieces', 'Active'),
 (1, 'Kilograms', 'Active'),
@@ -735,7 +758,9 @@ INSERT INTO inventory_categories (client_id, name, status) VALUES
 INSERT INTO inventory_sub_categories (client_id, category_id, name, status) VALUES 
 (1, 2, 'Refrigerant Gas', 'Active');
 
--- 10. VAT Configuration
+(1, 2, 'Refrigerant Gas', 'Active');
+
+-- 11. VAT Configuration
 INSERT INTO vat_settings (client_id, is_vat_registered, tax_registration_number, vat_registered_on) 
 VALUES (1, TRUE, '100234567800003', '2019-01-01');
 
@@ -743,7 +768,9 @@ INSERT INTO vat_rates (client_id, name, rate, status) VALUES
 (1, 'Standard Rate', 5.00, 'Active'),
 (1, 'Zero Rated', 0.00, 'Active');
 
--- 11. Relational Inventory Items
+(1, 'Zero Rated', 0.00, 'Active');
+
+-- 12. Relational Inventory Items
 INSERT INTO inventory_items (
     client_id, item_code, name, sku, uom_id, category_id, sub_category_id, 
     sales_rate, purchase_cost, sales_account_id, purchase_account_id, inventory_account_id, 
@@ -752,32 +779,23 @@ INSERT INTO inventory_items (
 (1, 'ITM-001', 'Split AC Unit 1.5 Ton', 'SAC-15-GULF', 1, 1, NULL, 250.000, 180.000, 1, 2, 3, 1, 25.000, 'Active'),
 (1, 'ITM-002', 'R410A Refrigerant', 'REF-410A-KG', 2, 2, 1, 15.500, 8.200, 1, 2, 3, 2, 120.000, 'Active');
 
--- 12. Sales Persons
+(1, 'ITM-002', 'R410A Refrigerant', 'REF-410A-KG', 2, 2, 1, 15.500, 8.200, 1, 2, 3, 2, 120.000, 'Active');
+
+-- 13. Sales Persons
 INSERT INTO sales_persons (client_id, name, description, status) VALUES 
 (1, 'Aaliyah Khan', '-', 'Active'),
 (1, 'Liam Schmidt', 'Outsourced Person', 'Active'),
 (1, 'Zara Al-Farsi', '-', 'Active'),
 (1, 'Omar Dubois', '-', 'Inactive');
 
--- 13. Sales Partners
+(1, 'Omar Dubois', '-', 'Inactive');
+
+-- 14. Sales Partners
 INSERT INTO sales_partners (client_id, name, commission, description, status) VALUES 
 (1, 'Jack Thomas', 10.00, '-', 'Active'),
 (1, 'Stellar Marketing', 5.00, 'Collaborating to enhance our offerings.', 'Active'),
 (1, 'Eco Innovations', 20.00, '-', 'Active'),
 (1, 'Noah Patel', 10.00, 'Working together for mutual success.', 'Inactive');
-
--- 14. Currencies
-INSERT INTO client_currencies (client_id, name, code, symbol, is_base, decimal_places) VALUES 
-(1, 'Bahraini Dinar', 'BHD', 'BHD', TRUE, 3),
-(1, 'UAE Dirham', 'AED', 'AED', FALSE, 2),
-(1, 'Canadian Dollar', 'CAD', '$', FALSE, 2),
-(1, 'Euro', 'EUR', '€', FALSE, 2),
-(1, 'Pound Sterling', 'GBP', '£', FALSE, 2),
-(1, 'Pakistani Rupee', 'PKR', 'Rs.', FALSE, 0),
-(1, 'Kuwaiti Dinar', 'KWD', 'KWD', FALSE, 3),
-(1, 'Qatari Riyal', 'QAR', 'QAR', FALSE, 2),
-(1, 'Saudi Riyal', 'SAR', 'SAR', FALSE, 2),
-(1, 'United States Dollar', 'USD', '$', FALSE, 2);
 
 INSERT INTO company_profiles (
     client_id, company_name, cr_number, email, phone, mobile,
