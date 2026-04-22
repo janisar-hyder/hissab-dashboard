@@ -71,6 +71,65 @@ Update the status of multiple categories at once.
 
 ---
 
+### G. List Items
+Fetch all inventory items.
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/inventory/items`
+
+### H. Create Item
+*   **Method**: `POST`
+*   **URL**: `{{base_url}}/api/v1/inventory/items`
+*   **Headers**: `Content-Type: application/json`
+*   **Body (JSON)**:
+    ```json
+    {
+      "item_code": "ITM-001",
+      "name": "Split AC 1.5 Ton",
+      "uom_id": 1,
+      "category_id": 1,
+      "sales_rate": 250.00,
+      "purchase_cost": 200.00,
+      "status": "Active"
+    }
+    ```
+
+### I. Update Item
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/inventory/items/:id`
+*   **Body (JSON)**:
+    ```json
+    {
+      "sales_rate": 260.00
+    }
+    ```
+
+### J. Bulk Delete Items
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/inventory/items`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2]
+    }
+    ```
+
+### K. Single Delete Item
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/inventory/items/:id`
+
+### L. Bulk Status Update Items
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/inventory/items/bulk-status`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2],
+      "status": "Inactive"
+    }
+    ```
+
+---
+
 ## 📂 2. Sub-Category Module
 Managed sub-categories linked to parent categories.
 
@@ -502,6 +561,280 @@ Fetch the full Chart of Accounts.
 ### G. Bulk Delete Accounts
 *   **Method**: `DELETE`
 *   **URL**: `{{base_url}}/api/v1/accounts/chart-of-accounts`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2]
+    }
+    ```
+
+---
+
+## 🛍️ 6. Purchases Module
+
+### A. List Vendors
+Fetch all vendors.
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/purchases/vendors`
+
+### B. Create Vendor
+*   **Method**: `POST`
+*   **URL**: `{{base_url}}/api/v1/purchases/vendors`
+*   **Headers**: `Content-Type: application/json`
+*   **Body (JSON)**:
+    ```json
+    {
+      "name": "Supplier Inc.",
+      "email": "supplier@example.com",
+      "phone": "+1234567890",
+      "currency_id": 1,
+      "status": "Active"
+    }
+    ```
+
+### C. Get Vendor by ID
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/purchases/vendors/:id`
+
+### D. Update Vendor
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/purchases/vendors/:id`
+*   **Body (JSON)**:
+    ```json
+    {
+      "email": "new.email@example.com"
+    }
+    ```
+
+### E. Bulk Status Update
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/purchases/vendors/bulk-status`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2],
+      "status": "Inactive"
+    }
+    ```
+
+### F. Delete Single Vendor
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/purchases/vendors/:id`
+
+### G. Bulk Delete Vendors
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/purchases/vendors`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2]
+    }
+    ```
+
+---
+
+## 📇 7. Contacts Module
+
+### A. List Vendor Contacts
+Fetch vendor contacts. Can be filtered by vendor ID.
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/contacts/vendor-contacts?vendorId=1`
+
+### B. Create Vendor Contact
+*   **Method**: `POST`
+*   **URL**: `{{base_url}}/api/v1/contacts/vendor-contacts`
+*   **Headers**: `Content-Type: application/json`
+*   **Body (JSON)**:
+    ```json
+    {
+      "vendor_id": 1,
+      "salutation": "Mr.",
+      "first_name": "John",
+      "last_name": "Doe",
+      "email": "john.doe@example.com",
+      "phone": "+1234567890",
+      "mobile": "+0987654321",
+      "designation": "Manager"
+    }
+    ```
+
+### C. Update Vendor Contact
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/contacts/vendor-contacts/:id`
+*   **Body (JSON)**:
+    ```json
+    {
+      "designation": "Senior Manager"
+    }
+    ```
+
+### D. Delete Single Vendor Contact
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/contacts/vendor-contacts/:id`
+
+### E. Bulk Delete Vendor Contacts
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/contacts/vendor-contacts`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2]
+    }
+    ```
+
+---
+
+## 📈 8. Sales Module
+
+### A. List Customers
+Fetch all customers.
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/sales/customers`
+
+### B. Create Customer
+*   **Method**: `POST`
+*   **URL**: `{{base_url}}/api/v1/sales/customers`
+*   **Headers**: `Content-Type: application/json`
+*   **Body (JSON)**:
+    ```json
+    {
+      "name": "Acme Corp",
+      "email": "contact@acme.com",
+      "phone": "+1987654321",
+      "currency_id": 1,
+      "is_active": true
+    }
+    ```
+
+### C. Get Customer by ID
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/sales/customers/:id`
+
+### D. Update Customer
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/sales/customers/:id`
+*   **Body (JSON)**:
+    ```json
+    {
+      "email": "new.contact@acme.com"
+    }
+    ```
+
+### E. Bulk Status Update
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/sales/customers/bulk-status`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2],
+      "is_active": false
+    }
+    ```
+
+### F. Delete Single Customer
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/sales/customers/:id`
+
+### G. Bulk Delete Customers
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/sales/customers`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2]
+    }
+    ```
+
+---
+
+## 📇 9. Contacts Module
+
+### A. List Vendor Contacts
+Fetch vendor contacts. Can be filtered by vendor ID.
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/contacts/vendor-contacts?vendorId=1`
+
+### B. Create Vendor Contact
+*   **Method**: `POST`
+*   **URL**: `{{base_url}}/api/v1/contacts/vendor-contacts`
+*   **Headers**: `Content-Type: application/json`
+*   **Body (JSON)**:
+    ```json
+    {
+      "vendor_id": 1,
+      "salutation": "Mr.",
+      "first_name": "John",
+      "last_name": "Doe",
+      "email": "john.doe@example.com",
+      "phone": "+1234567890",
+      "mobile": "+0987654321",
+      "designation": "Manager"
+    }
+    ```
+
+### C. Update Vendor Contact
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/contacts/vendor-contacts/:id`
+*   **Body (JSON)**:
+    ```json
+    {
+      "designation": "Senior Manager"
+    }
+    ```
+
+### D. Delete Single Vendor Contact
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/contacts/vendor-contacts/:id`
+
+### E. Bulk Delete Vendor Contacts
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/contacts/vendor-contacts`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2]
+    }
+    ```
+
+### F. List Customer Contacts
+Fetch customer contacts. Can be filtered by customer ID.
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/contacts/customer-contacts?customerId=1`
+
+### G. Create Customer Contact
+*   **Method**: `POST`
+*   **URL**: `{{base_url}}/api/v1/contacts/customer-contacts`
+*   **Headers**: `Content-Type: application/json`
+*   **Body (JSON)**:
+    ```json
+    {
+      "customer_id": 1,
+      "salutation": "Ms.",
+      "first_name": "Jane",
+      "last_name": "Smith",
+      "email": "jane.smith@acme.com",
+      "phone": "+1987654321",
+      "designation": "Director"
+    }
+    ```
+
+### H. Update Customer Contact
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/contacts/customer-contacts/:id`
+*   **Body (JSON)**:
+    ```json
+    {
+      "designation": "VP"
+    }
+    ```
+
+### I. Delete Single Customer Contact
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/contacts/customer-contacts/:id`
+
+### J. Bulk Delete Customer Contacts
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/contacts/customer-contacts`
 *   **Body (JSON)**:
     ```json
     {

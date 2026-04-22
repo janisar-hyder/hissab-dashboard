@@ -10,6 +10,7 @@ const vatComplianceRoutes = require('./modules/vat-compliance/vat-compliance.rou
 const organizationRoutes = require('./modules/organization/organization.routes');
 const accountRoutes = require('./modules/accounts/accounts.routes');
 const purchasesRoutes = require('./modules/purchases/purchases.routes');
+const salesRoutes = require('./modules/sales/sales.routes');
 const contactsRoutes = require('./modules/contacts/contacts.routes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
@@ -32,6 +33,7 @@ app.use('/api/v1/vat-compliance', vatComplianceRoutes);
 app.use('/api/v1/organization', organizationRoutes);
 app.use('/api/v1/accounts', accountRoutes);
 app.use('/api/v1/purchases', purchasesRoutes);
+app.use('/api/v1/sales', salesRoutes);
 app.use('/api/v1/contacts', contactsRoutes);
 
 // Base Routes

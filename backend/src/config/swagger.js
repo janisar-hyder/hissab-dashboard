@@ -28,6 +28,7 @@ const options = {
     './src/modules/organization/*/*.routes.js',
     './src/modules/accounts/*/*.routes.js',
     './src/modules/purchases/*/*.routes.js',
+    './src/modules/sales/*/*.routes.js',
     './src/modules/contacts/*.routes.js',
   ],
 };

@@ -66,6 +66,9 @@ async function main() {
   });
 
   // 6. Cleanup existing data for re-seeding
+  await prisma.inventoryItem.deleteMany({ where: { client_id: client.id } });
+  await prisma.customerContact.deleteMany({ where: { customer: { client_id: client.id } } });
+  await prisma.customer.deleteMany({ where: { client_id: client.id } });
   await prisma.purchaseVendorContact.deleteMany({ where: { vendor: { client_id: client.id } } });
   await prisma.purchaseVendor.deleteMany({ where: { client_id: client.id } });
   await prisma.salesPerson.deleteMany({ where: { client_id: client.id } });
@@ -73,6 +76,8 @@ async function main() {
   await prisma.currency.deleteMany({ where: { client_id: client.id } });
   await prisma.chartOfAccount.deleteMany({ where: { client_id: client.id } });
   await prisma.inventoryCategory.deleteMany({ where: { client_id: client.id } });
+  await prisma.inventorySubCategory.deleteMany({ where: { client_id: client.id } });
+  await prisma.inventoryUnitOfMeasure.deleteMany({ where: { client_id: client.id } });
   await prisma.vatRate.deleteMany({ where: { client_id: client.id } });
 
   // 7. Chart of Accounts
@@ -84,11 +89,125 @@ async function main() {
     ]
   });
 
-  // 7. Inventory Categories
-  await prisma.inventoryCategory.createMany({
+  // 7. Inventory Categories & Units
+  const category1 = await prisma.inventoryCategory.create({
+    data: { client_id: client.id, name: 'AC Units', status: 'Active', created_by: clientUser.id }
+  });
+  
+  const category2 = await prisma.inventoryCategory.create({
+    data: { client_id: client.id, name: 'Consumables', status: 'Active', created_by: clientUser.id }
+  });
+
+  const unitNos = await prisma.inventoryUnitOfMeasure.create({
+    data: { client_id: client.id, name: 'Nos', status: 'Active', created_by: clientUser.id }
+  });
+
+  const unitMeters = await prisma.inventoryUnitOfMeasure.create({
+    data: { client_id: client.id, name: 'Meters', status: 'Active', created_by: clientUser.id }
+  });
+
+  const unitKg = await prisma.inventoryUnitOfMeasure.create({
+    data: { client_id: client.id, name: 'Kg', status: 'Active', created_by: clientUser.id }
+  });
+
+  const unitCbm = await prisma.inventoryUnitOfMeasure.create({
+    data: { client_id: client.id, name: 'CBM', status: 'Active', created_by: clientUser.id }
+  });
+
+  const subCategory1 = await prisma.inventorySubCategory.create({
+    data: { client_id: client.id, name: 'Wall Mounted', category_id: category1.id, status: 'Active', created_by: clientUser.id }
+  });
+
+  const salesAccount = await prisma.chartOfAccount.findFirst({ where: { client_id: client.id, name: 'Sales' } });
+  const cogsAccount = await prisma.chartOfAccount.findFirst({ where: { client_id: client.id, name: 'Cost of Goods Sold' } });
+  const stockAccount = await prisma.chartOfAccount.findFirst({ where: { client_id: client.id, name: 'Inventory Asset' } });
+
+  // 12. Purchase Vendors & Contacts (Need to fetch vendor before item for vendor_id)
+  const bhd = await prisma.currency.findFirst({ where: { client_id: client.id, code: 'BHD' } });
+  const usd = await prisma.currency.findFirst({ where: { client_id: client.id, code: 'USD' } });
+  const gbp = await prisma.currency.findFirst({ where: { client_id: client.id, code: 'GBP' } });
+
+  const vendor1 = await prisma.purchaseVendor.create({
+    data: {
+      client_id: client.id,
+      name: 'Gulf HVAC Supplies',
+      type: 'Business',
+      email: 'sales@gulfhvac.com',
+      phone: '+973 17111111',
+      currency_id: bhd?.id,
+      status: 'Active',
+      created_by: clientUser.id,
+      contacts: {
+        create: [
+          {
+            first_name: 'Ali',
+            last_name: 'Al-Mansoori',
+            email: 'ali@gulfhvac.com',
+            phone: '+973 33111111',
+            designation: 'Sales Manager',
+            created_by: clientUser.id
+          }
+        ]
+      }
+    }
+  });
+
+  // 7.5 Inventory Items
+  await prisma.inventoryItem.createMany({
     data: [
-      { client_id: client.id, name: 'AC Units', status: 'Active', created_by: clientUser.id },
-      { client_id: client.id, name: 'Consumables', status: 'Active', created_by: clientUser.id }
+      {
+        client_id: client.id,
+        item_code: 'FULL-001',
+        name: 'Premium Air Purifier AC',
+        sku: 'PREM-AC-100',
+        description: 'A comprehensive product with all details populated',
+        uom_id: unitNos.id,
+        category_id: category1.id,
+        sub_category_id: subCategory1.id,
+        sales_rate: 450.000,
+        vat_preference: 'Taxable',
+        sales_account_id: salesAccount?.id,
+        sales_description: 'Sales of Premium AC Units',
+        purchase_cost: 320.000,
+        reorder_point: 5,
+        purchase_account_id: cogsAccount?.id,
+        purchase_description: 'Purchase of Premium AC Units',
+        inventory_account_id: stockAccount?.id,
+        stock_in_hand: 15.000,
+        status: 'Active',
+        warranty_period: '2 Years',
+        shelf_life: '10 Years',
+        vendor_id: vendor1.id,
+        weight_per_unit: 45.500,
+        weight_uom_id: unitKg.id,
+        valuation_method: 'FIFO',
+        volume_per_unit: 1.500,
+        volume_uom_id: unitCbm.id,
+        inventory_description: 'Store carefully, avoid moisture',
+        created_by: clientUser.id
+      },
+      {
+        client_id: client.id,
+        item_code: 'AC-001',
+        name: 'Split AC 1.5 Ton',
+        uom_id: unitNos.id,
+        category_id: category1.id,
+        sales_rate: 250.000,
+        purchase_cost: 180.000,
+        status: 'Active',
+        created_by: clientUser.id
+      },
+      {
+        client_id: client.id,
+        item_code: 'CBL-001',
+        name: 'Copper Cable 4mm',
+        uom_id: unitMeters.id,
+        category_id: category2.id,
+        sales_rate: 1.500,
+        purchase_cost: 1.000,
+        status: 'Active',
+        created_by: clientUser.id
+      }
     ]
   });
 
@@ -141,43 +260,6 @@ async function main() {
     ]
   });
 
-  // 12. Purchase Vendors & Contacts
-  const bhd = await prisma.currency.findFirst({ where: { client_id: client.id, code: 'BHD' } });
-  const usd = await prisma.currency.findFirst({ where: { client_id: client.id, code: 'USD' } });
-  const gbp = await prisma.currency.findFirst({ where: { client_id: client.id, code: 'GBP' } });
-
-  const vendor1 = await prisma.purchaseVendor.create({
-    data: {
-      client_id: client.id,
-      name: 'Gulf HVAC Supplies',
-      type: 'Business',
-      email: 'sales@gulfhvac.com',
-      phone: '+973 17111111',
-      currency_id: bhd?.id,
-      status: 'Active',
-      created_by: clientUser.id,
-      contacts: {
-        create: [
-          {
-            first_name: 'Ali',
-            last_name: 'Al-Mansoori',
-            email: 'ali@gulfhvac.com',
-            phone: '+973 33111111',
-            designation: 'Sales Manager',
-            created_by: clientUser.id
-          },
-          {
-            first_name: 'Ahmed',
-            last_name: 'Hassan',
-            email: 'ahmed@gulfhvac.com',
-            phone: '+973 33111122',
-            designation: 'Technical Lead',
-            created_by: clientUser.id
-          }
-        ]
-      }
-    }
-  });
 
   await prisma.purchaseVendor.create({
     data: {
@@ -228,6 +310,58 @@ async function main() {
       }
     }
   });
+
+  // 12.5 Customers & Contacts
+  await prisma.customer.create({
+    data: {
+      client_id: client.id,
+      name: 'Alpha Retailers',
+      type: 'Business',
+      email: 'contact@alpharetail.com',
+      phone: '+973 17222222',
+      currency_id: bhd?.id,
+      is_active: true,
+      created_by: clientUser.id,
+      contacts: {
+        create: [
+          {
+            first_name: 'Sara',
+            last_name: 'Salman',
+            email: 'sara@alpharetail.com',
+            phone: '+973 33222222',
+            designation: 'Procurement Officer',
+            created_by: clientUser.id
+          }
+        ]
+      }
+    }
+  });
+
+  await prisma.customer.create({
+    data: {
+      client_id: client.id,
+      name: 'Beta Tech Solutions',
+      type: 'Business',
+      email: 'billing@betatech.com',
+      phone: '+1 800-123-4567',
+      currency_id: usd?.id,
+      is_active: true,
+      created_by: clientUser.id,
+      contacts: {
+        create: [
+          {
+            first_name: 'Michael',
+            last_name: 'Chang',
+            email: 'm.chang@betatech.com',
+            phone: '+1 800-123-4568',
+            designation: 'Director',
+            created_by: clientUser.id
+          }
+        ]
+      }
+    }
+  });
+
   // 13. VAT Rates
   await prisma.vatRate.createMany({
     data: [
