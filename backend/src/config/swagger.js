@@ -10,6 +10,10 @@ const options = {
     },
     servers: [
       {
+        url: '/',
+        description: 'Current Environment (Dynamic)',
+      },
+      {
         url: 'http://localhost:3000',
         description: 'Local Development Server',
       },

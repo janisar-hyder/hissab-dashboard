@@ -618,6 +618,161 @@ CREATE TABLE sales_partners (
     UNIQUE(client_id, name)
 );
 
+-- Quotations
+CREATE TABLE quotations (
+    id SERIAL PRIMARY KEY,
+    client_id INT NOT NULL,
+    quotation_number VARCHAR(100) NOT NULL,
+    customer_id INT NOT NULL,
+    
+    quotation_date DATE NOT NULL,
+    expiry_date DATE,
+    reference_number VARCHAR(255),
+    
+    sales_person_id INT,
+    sales_partner_id INT,
+    
+    currency_id INT NOT NULL,
+    exchange_rate DECIMAL(18,6) DEFAULT 1.0,
+    
+    status VARCHAR(50) DEFAULT 'Draft', -- Draft, Sent, Accepted, Rejected, Invoiced, Expired
+    
+    -- Discount Settings
+    discount_level VARCHAR(50) DEFAULT 'Line Item Level', -- 'Transaction Level' or 'Line Item Level'
+    discount_amount DECIMAL(18,3) DEFAULT 0.000,          -- Header discount value
+    discount_type VARCHAR(20) DEFAULT 'Fixed',            -- 'Fixed' or 'Percentage'
+    
+    -- Computed Totals
+    sub_total DECIMAL(18,3) DEFAULT 0.000,
+    total_discount DECIMAL(18,3) DEFAULT 0.000,
+    total_vat DECIMAL(18,3) DEFAULT 0.000,
+    grand_total DECIMAL(18,3) DEFAULT 0.000,
+    
+    customer_notes TEXT,
+    terms_and_conditions TEXT,
+    attachments JSONB, -- Store as JSON array of paths/urls
+    
+    -- Audit Columns
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by INT NULL,
+    updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT NULL,
+    
+    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT,
+    FOREIGN KEY (sales_person_id) REFERENCES sales_persons(id) ON DELETE SET NULL,
+    FOREIGN KEY (sales_partner_id) REFERENCES sales_partners(id) ON DELETE SET NULL,
+    FOREIGN KEY (currency_id) REFERENCES client_currencies(id) ON DELETE RESTRICT,
+    FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    UNIQUE(client_id, quotation_number)
+);
+
+-- Quotation Line Items (The Linking Table)
+CREATE TABLE quotation_items (
+    id SERIAL PRIMARY KEY,
+    quotation_id INT NOT NULL,
+    
+    item_id INT NOT NULL, -- Links directly to inventory_items
+    description TEXT,     -- Specific description for this quote (optional)
+    
+    quantity DECIMAL(18,3) NOT NULL,
+    uom_id INT NOT NULL,
+    rate DECIMAL(18,3) NOT NULL,
+    
+    discount_amount DECIMAL(18,3) DEFAULT 0.000,
+    discount_type VARCHAR(20) DEFAULT 'Fixed', -- Fixed, Percentage
+    
+    tax_rate_id INT,
+    tax_amount DECIMAL(18,3) DEFAULT 0.000,
+    
+    line_total DECIMAL(18,3) NOT NULL,
+    
+    FOREIGN KEY (quotation_id) REFERENCES quotations(id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE RESTRICT,
+    FOREIGN KEY (uom_id) REFERENCES inventory_unit_of_measures(id) ON DELETE RESTRICT,
+    FOREIGN KEY (tax_rate_id) REFERENCES vat_rates(id) ON DELETE SET NULL
+);
+
+-- Invoices
+CREATE TABLE invoices (
+    id SERIAL PRIMARY KEY,
+    client_id INT NOT NULL,
+    invoice_number VARCHAR(100) NOT NULL,
+    customer_id INT NOT NULL,
+    quotation_id INT, -- Optional link to a quotation
+    
+    invoice_date DATE NOT NULL,
+    due_date DATE,
+    reference_number VARCHAR(255),
+    
+    sales_person_id INT,
+    sales_partner_id INT,
+    
+    currency_id INT NOT NULL,
+    exchange_rate DECIMAL(18,6) DEFAULT 1.0,
+    
+    status VARCHAR(50) DEFAULT 'Draft', -- Draft, Sent, Partially Paid, Paid, Overdue, Void
+    
+    -- Discount Settings
+    discount_level VARCHAR(50) DEFAULT 'Line Item Level', -- 'Transaction Level' or 'Line Item Level'
+    discount_amount DECIMAL(18,3) DEFAULT 0.000,          -- Header discount value
+    discount_type VARCHAR(20) DEFAULT 'Fixed',            -- 'Fixed' or 'Percentage'
+    
+    -- Computed Totals
+    sub_total DECIMAL(18,3) DEFAULT 0.000,
+    total_discount DECIMAL(18,3) DEFAULT 0.000,
+    total_vat DECIMAL(18,3) DEFAULT 0.000,
+    grand_total DECIMAL(18,3) DEFAULT 0.000,
+    balance_due DECIMAL(18,3) DEFAULT 0.000,
+    
+    customer_notes TEXT,
+    terms_and_conditions TEXT,
+    attachments JSONB, -- Store as JSON array of paths/urls
+    
+    -- Audit Columns
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by INT NULL,
+    updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT NULL,
+    
+    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT,
+    FOREIGN KEY (quotation_id) REFERENCES quotations(id) ON DELETE SET NULL,
+    FOREIGN KEY (sales_person_id) REFERENCES sales_persons(id) ON DELETE SET NULL,
+    FOREIGN KEY (sales_partner_id) REFERENCES sales_partners(id) ON DELETE SET NULL,
+    FOREIGN KEY (currency_id) REFERENCES client_currencies(id) ON DELETE RESTRICT,
+    FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    UNIQUE(client_id, invoice_number)
+);
+
+-- Invoice Line Items (The Linking Table)
+CREATE TABLE invoice_items (
+    id SERIAL PRIMARY KEY,
+    invoice_id INT NOT NULL,
+    
+    item_id INT NOT NULL, -- Links directly to inventory_items
+    description TEXT,     -- Specific description for this invoice (optional)
+    
+    quantity DECIMAL(18,3) NOT NULL,
+    uom_id INT NOT NULL,
+    rate DECIMAL(18,3) NOT NULL,
+    
+    discount_amount DECIMAL(18,3) DEFAULT 0.000,
+    discount_type VARCHAR(20) DEFAULT 'Fixed', -- Fixed, Percentage
+    
+    tax_rate_id INT,
+    tax_amount DECIMAL(18,3) DEFAULT 0.000,
+    
+    line_total DECIMAL(18,3) NOT NULL,
+    
+    FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE RESTRICT,
+    FOREIGN KEY (uom_id) REFERENCES inventory_unit_of_measures(id) ON DELETE RESTRICT,
+    FOREIGN KEY (tax_rate_id) REFERENCES vat_rates(id) ON DELETE SET NULL
+);
+
 CREATE TABLE company_profiles (
     client_id INT PRIMARY KEY,
     
@@ -670,9 +825,9 @@ CREATE TABLE company_profiles (
 -- 1. Global Super Admin Role
 INSERT INTO super_admin_roles (name, status) VALUES ('Admin', 'Active');
 
--- 2. Global Sys Admin User (Haha-1234)
+-- 2. Global Sys Admin User (ABCD-1234)
 INSERT INTO super_admin_users (name, email, password_hash, role_id) 
-VALUES ('Sys Admin', 'admin@erp.com', 'Haha-1234', 1);
+VALUES ('Sys Admin', 'admin@erp.com', 'ABCD-1234', 1);
 
 -- B. CLIENT SIDE SEEDING
 -- 3. Test Client (Managed by Super Admin ID 1)

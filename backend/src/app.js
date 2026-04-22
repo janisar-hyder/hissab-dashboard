@@ -18,7 +18,11 @@ const swaggerSpec = require('./config/swagger');
 const app = express();
 
 // 1. Global Security Middleware
-app.use(helmet()); // Sets various HTTP headers for security
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable CSP to allow Swagger UI to load assets
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: false
+}));
 app.use(cors());   // Enables Cross-Origin Resource Sharing for the Angular frontend
 app.use(authenticate); // Centralized tenancy & user context provider
 
