@@ -11,7 +11,7 @@ exports.getVendors = async (req, res, next) => {
     const vendors = await prisma.purchaseVendor.findMany({
       where: { 
         client_id: clientId,
-        deleted_at: null 
+        deleted_date: null 
       },
       orderBy: { name: 'asc' },
       include: {
@@ -52,7 +52,7 @@ exports.getVendorById = async (req, res, next) => {
       where: { 
         id: parseInt(id),
         client_id: clientId,
-        deleted_at: null
+        deleted_date: null
       },
       include: {
         currency: true,
@@ -218,7 +218,8 @@ exports.deleteVendors = async (req, res, next) => {
         client_id: clientId
       },
       data: {
-        deleted_at: new Date(),
+        deleted_date: new Date(),
+        deleted_by: userId,
         updated_by: userId,
         updated_date: new Date(),
         is_active: false,

@@ -5,6 +5,9 @@
     - If you are setting up for the first time, run: `npx prisma migrate dev`
     - This will build all your tables automatically.
     - To seed base test data, run: `node prisma/seed.js`
+8.  **Prisma Studio (Database UI)**:
+    - To see your database tables in a visual editor, run: `npm run db:studio`
+    - This will open a browser window at `http://localhost:5555`.
 
 ---
 
@@ -744,6 +747,133 @@ Fetch all customers.
       "ids": [1, 2]
     }
     ```
+
+---
+
+## 📝 10. Quotations Module
+
+### A. List Quotations
+Fetch all quotations.
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/sales/quotations`
+
+### B. Create Quotation
+*   **Method**: `POST`
+*   **URL**: `{{base_url}}/api/v1/sales/quotations`
+*   **Body (JSON)**:
+    ```json
+    {
+      "quotation_number": "QT-1001",
+      "customer_id": 1,
+      "quotation_date": "2026-05-03",
+      "currency_id": 1,
+      "discount_level": "Line Item Level",
+      "sub_total": 500,
+      "grand_total": 525,
+      "details": [
+        {
+          "item_id": 1,
+          "quantity": 2,
+          "rate": 250,
+          "vat_rate_id": 1,
+          "line_total": 525
+        }
+      ]
+    }
+    ```
+
+### C. Update Quotation
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/sales/quotations/:id`
+
+### D. Delete Quotation
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/sales/quotations/:id`
+
+### E. Bulk Status Update
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/sales/quotations/bulk-status`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2],
+      "status": "Accepted"
+    }
+    ```
+
+### F. Bulk Delete
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/sales/quotations`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2]
+    }
+    ```
+
+---
+
+## 🧾 11. Invoices Module
+
+### A. List Invoices
+Fetch all invoices.
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/sales/invoices`
+
+### B. Create Invoice
+*   **Method**: `POST`
+*   **URL**: `{{base_url}}/api/v1/sales/invoices`
+*   **Body (JSON)**:
+    ```json
+    {
+      "invoice_number": "INV-1001",
+      "customer_id": 1,
+      "invoice_date": "2026-05-03",
+      "currency_id": 1,
+      "sales_partner_id": 1,
+      "commission_percentage": 10,
+      "grand_total": 1050,
+      "details": [
+        {
+          "item_id": 1,
+          "quantity": 4,
+          "rate": 250,
+          "vat_rate_id": 1,
+          "line_total": 1050
+        }
+      ]
+    }
+    ```
+
+### C. Update Invoice
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/sales/invoices/:id`
+
+### D. Delete Invoice
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/sales/invoices/:id`
+
+### E. Bulk Status Update
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/sales/invoices/bulk-status`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2],
+      "status": "Paid"
+    }
+    ```
+
+### F. Bulk Delete
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/sales/invoices`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2]
+    }
+    ```
+
 
 ---
 

@@ -67,6 +67,10 @@ async function main() {
 
   // 6. Cleanup existing data for re-seeding
   await prisma.inventoryItem.deleteMany({ where: { client_id: client.id } });
+  await prisma.quotationDetail.deleteMany({ where: { quotation: { client_id: client.id } } });
+  await prisma.quotation.deleteMany({ where: { client_id: client.id } });
+  await prisma.invoiceDetail.deleteMany({ where: { invoice: { client_id: client.id } } });
+  await prisma.invoice.deleteMany({ where: { client_id: client.id } });
   await prisma.customerContact.deleteMany({ where: { customer: { client_id: client.id } } });
   await prisma.customer.deleteMany({ where: { client_id: client.id } });
   await prisma.purchaseVendorContact.deleteMany({ where: { vendor: { client_id: client.id } } });
@@ -114,6 +118,38 @@ async function main() {
     data: { client_id: client.id, name: 'CBM', status: 'Active', created_by: clientUser.id }
   });
 
+  // 7.5 Currencies
+  await prisma.currency.createMany({
+    data: [
+      { client_id: client.id, name: 'Bahraini Dinar', code: 'BHD', symbol: 'BHD', is_base: true, decimal_places: 3, created_by: clientUser.id },
+      { client_id: client.id, name: 'UAE Dirham', code: 'AED', symbol: 'AED', is_base: false, decimal_places: 2, created_by: clientUser.id },
+      { client_id: client.id, name: 'Canadian Dollar', code: 'CAD', symbol: '$', is_base: false, decimal_places: 2, created_by: clientUser.id },
+      { client_id: client.id, name: 'Euro', code: 'EUR', symbol: '€', is_base: false, decimal_places: 2, created_by: clientUser.id },
+      { client_id: client.id, name: 'Pound Sterling', code: 'GBP', symbol: '£', is_base: false, decimal_places: 2, created_by: clientUser.id },
+      { client_id: client.id, name: 'Pakistani Rupee', code: 'PKR', symbol: 'Rs.', is_base: false, decimal_places: 0, created_by: clientUser.id },
+      { client_id: client.id, name: 'Kuwaiti Dinar', code: 'KWD', symbol: 'KWD', is_base: false, decimal_places: 3, created_by: clientUser.id },
+      { client_id: client.id, name: 'Qatari Riyal', code: 'QAR', symbol: 'QAR', is_base: false, decimal_places: 2, created_by: clientUser.id },
+      { client_id: client.id, name: 'Saudi Riyal', code: 'SAR', symbol: 'SAR', is_base: false, decimal_places: 2, created_by: clientUser.id },
+      { client_id: client.id, name: 'United States Dollar', code: 'USD', symbol: '$', is_base: false, decimal_places: 2, created_by: clientUser.id }
+    ]
+  });
+
+  const bhd = await prisma.currency.findFirst({ where: { client_id: client.id, code: 'BHD' } });
+  const usd = await prisma.currency.findFirst({ where: { client_id: client.id, code: 'USD' } });
+  const gbp = await prisma.currency.findFirst({ where: { client_id: client.id, code: 'GBP' } });
+
+  // 7.6 VAT Rates
+  const standardVat = await prisma.vatRate.create({
+    data: { client_id: client.id, name: 'Standard Rate', rate: 5.00, status: 'Active', created_by: clientUser.id }
+  });
+  await prisma.vatRate.createMany({
+    data: [
+      { client_id: client.id, name: 'Zero Rated', rate: 0.00, status: 'Active', created_by: clientUser.id },
+      { client_id: client.id, name: 'Exempt', rate: 0.00, status: 'Active', created_by: clientUser.id },
+      { client_id: client.id, name: 'Out of Scope', rate: 0.00, status: 'Active', created_by: clientUser.id }
+    ]
+  });
+
   const subCategory1 = await prisma.inventorySubCategory.create({
     data: { client_id: client.id, name: 'Wall Mounted', category_id: category1.id, status: 'Active', created_by: clientUser.id }
   });
@@ -122,11 +158,7 @@ async function main() {
   const cogsAccount = await prisma.chartOfAccount.findFirst({ where: { client_id: client.id, name: 'Cost of Goods Sold' } });
   const stockAccount = await prisma.chartOfAccount.findFirst({ where: { client_id: client.id, name: 'Inventory Asset' } });
 
-  // 12. Purchase Vendors & Contacts (Need to fetch vendor before item for vendor_id)
-  const bhd = await prisma.currency.findFirst({ where: { client_id: client.id, code: 'BHD' } });
-  const usd = await prisma.currency.findFirst({ where: { client_id: client.id, code: 'USD' } });
-  const gbp = await prisma.currency.findFirst({ where: { client_id: client.id, code: 'GBP' } });
-
+  // 12. Purchase Vendors & Contacts
   const vendor1 = await prisma.purchaseVendor.create({
     data: {
       client_id: client.id,
@@ -152,63 +184,67 @@ async function main() {
     }
   });
 
-  // 7.5 Inventory Items
-  await prisma.inventoryItem.createMany({
-    data: [
-      {
-        client_id: client.id,
-        item_code: 'FULL-001',
-        name: 'Premium Air Purifier AC',
-        sku: 'PREM-AC-100',
-        description: 'A comprehensive product with all details populated',
-        uom_id: unitNos.id,
-        category_id: category1.id,
-        sub_category_id: subCategory1.id,
-        sales_rate: 450.000,
-        vat_preference: 'Taxable',
-        sales_account_id: salesAccount?.id,
-        sales_description: 'Sales of Premium AC Units',
-        purchase_cost: 320.000,
-        reorder_point: 5,
-        purchase_account_id: cogsAccount?.id,
-        purchase_description: 'Purchase of Premium AC Units',
-        inventory_account_id: stockAccount?.id,
-        stock_in_hand: 15.000,
-        status: 'Active',
-        warranty_period: '2 Years',
-        shelf_life: '10 Years',
-        vendor_id: vendor1.id,
-        weight_per_unit: 45.500,
-        weight_uom_id: unitKg.id,
-        valuation_method: 'FIFO',
-        volume_per_unit: 1.500,
-        volume_uom_id: unitCbm.id,
-        inventory_description: 'Store carefully, avoid moisture',
-        created_by: clientUser.id
-      },
-      {
-        client_id: client.id,
-        item_code: 'AC-001',
-        name: 'Split AC 1.5 Ton',
-        uom_id: unitNos.id,
-        category_id: category1.id,
-        sales_rate: 250.000,
-        purchase_cost: 180.000,
-        status: 'Active',
-        created_by: clientUser.id
-      },
-      {
-        client_id: client.id,
-        item_code: 'CBL-001',
-        name: 'Copper Cable 4mm',
-        uom_id: unitMeters.id,
-        category_id: category2.id,
-        sales_rate: 1.500,
-        purchase_cost: 1.000,
-        status: 'Active',
-        created_by: clientUser.id
-      }
-    ]
+  // 12.5 Inventory Items
+  const item1 = await prisma.inventoryItem.create({
+    data: {
+      client_id: client.id,
+      item_code: 'FULL-001',
+      name: 'Premium Air Purifier AC',
+      sku: 'PREM-AC-100',
+      description: 'A comprehensive product with all details populated',
+      uom_id: unitNos.id,
+      category_id: category1.id,
+      sub_category_id: subCategory1.id,
+      sales_rate: 450.000,
+      vat_rate_id: standardVat.id,
+      sales_account_id: salesAccount?.id,
+      sales_description: 'Sales of Premium AC Units',
+      purchase_cost: 320.000,
+      reorder_point: 5,
+      purchase_account_id: cogsAccount?.id,
+      purchase_description: 'Purchase of Premium AC Units',
+      inventory_account_id: stockAccount?.id,
+      stock_in_hand: 15.000,
+      status: 'Active',
+      warranty_period: '2 Years',
+      shelf_life: '10 Years',
+      vendor_id: vendor1.id,
+      weight_per_unit: 45.500,
+      weight_uom_id: unitKg.id,
+      valuation_method: 'FIFO',
+      volume_per_unit: 1.500,
+      volume_uom_id: unitCbm.id,
+      inventory_description: 'Store carefully, avoid moisture',
+      created_by: clientUser.id
+    }
+  });
+
+  const item2 = await prisma.inventoryItem.create({
+    data: {
+      client_id: client.id,
+      item_code: 'AC-001',
+      name: 'Split AC 1.5 Ton',
+      uom_id: unitNos.id,
+      category_id: category1.id,
+      sales_rate: 250.000,
+      purchase_cost: 180.000,
+      status: 'Active',
+      created_by: clientUser.id
+    }
+  });
+
+  const item3 = await prisma.inventoryItem.create({
+    data: {
+      client_id: client.id,
+      item_code: 'CBL-001',
+      name: 'Copper Cable 4mm',
+      uom_id: unitMeters.id,
+      category_id: category2.id,
+      sales_rate: 1.500,
+      purchase_cost: 1.000,
+      status: 'Active',
+      created_by: clientUser.id
+    }
   });
 
   // 8. VAT Settings
@@ -224,43 +260,30 @@ async function main() {
     }
   });
 
-  // 9. Sales Persons
+  // 9. Sales Persons & Partners
+  const salesPerson1 = await prisma.salesPerson.create({
+    data: { client_id: client.id, name: 'Aaliyah Khan', description: 'Focuses on the Middle East market.', status: 'Active', created_by: clientUser.id }
+  });
   await prisma.salesPerson.createMany({
     data: [
-      { client_id: client.id, name: 'Aaliyah Khan', description: 'Focuses on the Middle East market.', status: 'Active', created_by: clientUser.id },
       { client_id: client.id, name: 'Liam Schmidt', description: 'Expert in European client relations.', status: 'Active', created_by: clientUser.id },
       { client_id: client.id, name: 'Zara Al-Farsi', description: 'Specializes in high-tech sales.', status: 'Active', created_by: clientUser.id },
       { client_id: client.id, name: 'Omar Dubois', description: 'Handles corporate accounts.', status: 'Active', created_by: clientUser.id }
     ]
   });
 
-  // 10. Sales Partners
+  const salesPartner1 = await prisma.salesPartner.create({
+    data: { client_id: client.id, name: 'Jack Thomas', commission: 10.00, description: '-', status: 'Active', created_by: clientUser.id }
+  });
   await prisma.salesPartner.createMany({
     data: [
-      { client_id: client.id, name: 'Jack Thomas', commission: 10.00, description: '-', status: 'Active', created_by: clientUser.id },
       { client_id: client.id, name: 'Stellar Marketing', commission: 5.00, description: 'Collaborating to enhance our offerings.', status: 'Active', created_by: clientUser.id },
       { client_id: client.id, name: 'Eco Innovations', commission: 20.00, description: '-', status: 'Active', created_by: clientUser.id },
       { client_id: client.id, name: 'Noah Patel', commission: 10.00, description: 'Working together for mutual success.', status: 'Inactive', created_by: clientUser.id }
     ]
   });
 
-  // 11. Currencies
-  await prisma.currency.createMany({
-    data: [
-      { client_id: client.id, name: 'Bahraini Dinar', code: 'BHD', symbol: 'BHD', is_base: true, decimal_places: 3, created_by: clientUser.id },
-      { client_id: client.id, name: 'UAE Dirham', code: 'AED', symbol: 'AED', is_base: false, decimal_places: 2, created_by: clientUser.id },
-      { client_id: client.id, name: 'Canadian Dollar', code: 'CAD', symbol: '$', is_base: false, decimal_places: 2, created_by: clientUser.id },
-      { client_id: client.id, name: 'Euro', code: 'EUR', symbol: '€', is_base: false, decimal_places: 2, created_by: clientUser.id },
-      { client_id: client.id, name: 'Pound Sterling', code: 'GBP', symbol: '£', is_base: false, decimal_places: 2, created_by: clientUser.id },
-      { client_id: client.id, name: 'Pakistani Rupee', code: 'PKR', symbol: 'Rs.', is_base: false, decimal_places: 0, created_by: clientUser.id },
-      { client_id: client.id, name: 'Kuwaiti Dinar', code: 'KWD', symbol: 'KWD', is_base: false, decimal_places: 3, created_by: clientUser.id },
-      { client_id: client.id, name: 'Qatari Riyal', code: 'QAR', symbol: 'QAR', is_base: false, decimal_places: 2, created_by: clientUser.id },
-      { client_id: client.id, name: 'Saudi Riyal', code: 'SAR', symbol: 'SAR', is_base: false, decimal_places: 2, created_by: clientUser.id },
-      { client_id: client.id, name: 'United States Dollar', code: 'USD', symbol: '$', is_base: false, decimal_places: 2, created_by: clientUser.id }
-    ]
-  });
-
-
+  // 12. Purchase Vendors
   await prisma.purchaseVendor.create({
     data: {
       client_id: client.id,
@@ -286,33 +309,8 @@ async function main() {
     }
   });
 
-  await prisma.purchaseVendor.create({
-    data: {
-      client_id: client.id,
-      name: 'Industrial Pumps Ltd',
-      type: 'Business',
-      email: 'support@indpumps.co.uk',
-      phone: '+44 20 7946 0958',
-      currency_id: gbp?.id,
-      status: 'Active',
-      created_by: clientUser.id,
-      contacts: {
-        create: [
-          {
-            first_name: 'Robert',
-            last_name: 'Brown',
-            email: 'r.brown@indpumps.co.uk',
-            phone: '+44 20 7946 0960',
-            designation: 'Service Manager',
-            created_by: clientUser.id
-          }
-        ]
-      }
-    }
-  });
-
-  // 12.5 Customers & Contacts
-  await prisma.customer.create({
+  // 13. Customers & Contacts
+  const customer1 = await prisma.customer.create({
     data: {
       client_id: client.id,
       name: 'Alpha Retailers',
@@ -337,7 +335,7 @@ async function main() {
     }
   });
 
-  await prisma.customer.create({
+  const customer2 = await prisma.customer.create({
     data: {
       client_id: client.id,
       name: 'Beta Tech Solutions',
@@ -362,17 +360,86 @@ async function main() {
     }
   });
 
-  // 13. VAT Rates
-  await prisma.vatRate.createMany({
-    data: [
-      { client_id: client.id, name: 'Standard Rate', rate: 5.00, status: 'Active', created_by: clientUser.id },
-      { client_id: client.id, name: 'Zero Rated', rate: 0.00, status: 'Active', created_by: clientUser.id },
-      { client_id: client.id, name: 'Exempt', rate: 0.00, status: 'Active', created_by: clientUser.id },
-      { client_id: client.id, name: 'Out of Scope', rate: 0.00, status: 'Active', created_by: clientUser.id }
-    ]
+  // 14. Sales Transactions (Quotations)
+  const quotation1 = await prisma.quotation.create({
+    data: {
+      client_id: client.id,
+      quotation_number: 'QT-2026-001',
+      customer_id: customer1.id,
+      quotation_date: new Date(),
+      expiry_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      currency_id: bhd.id,
+      sales_person_id: salesPerson1.id,
+      status: 'Sent',
+      discount_level: 'Line Item Level',
+      sub_total: 700.000,
+      total_vat: 35.000,
+      grand_total: 735.000,
+      created_by: clientUser.id,
+      details: {
+        create: [
+          {
+            item_id: item1.id,
+            quantity: 1,
+            rate: 450.000,
+            vat_rate_id: standardVat.id,
+            line_total: 472.500
+          },
+          {
+            item_id: item2.id,
+            quantity: 1,
+            rate: 250.000,
+            vat_rate_id: standardVat.id,
+            line_total: 262.500
+          }
+        ]
+      }
+    }
   });
 
-  // 14. Company Profile
+  // 15. Invoices
+  await prisma.invoice.create({
+    data: {
+      client_id: client.id,
+      invoice_number: 'INV-2026-001',
+      customer_id: customer1.id,
+      quotation_id: quotation1.id,
+      invoice_date: new Date(),
+      due_date: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
+      currency_id: bhd.id,
+      sales_person_id: salesPerson1.id,
+      sales_partner_id: salesPartner1.id,
+      commission_percentage: 10.00,
+      commission_amount: 70.000,
+      status: 'Sent',
+      discount_level: 'Line Item Level',
+      sub_total: 700.000,
+      total_vat: 35.000,
+      grand_total: 735.000,
+      balance_due: 735.000,
+      created_by: clientUser.id,
+      details: {
+        create: [
+          {
+            item_id: item1.id,
+            quantity: 1,
+            rate: 450.000,
+            vat_rate_id: standardVat.id,
+            line_total: 472.500
+          },
+          {
+            item_id: item2.id,
+            quantity: 1,
+            rate: 250.000,
+            vat_rate_id: standardVat.id,
+            line_total: 262.500
+          }
+        ]
+      }
+    }
+  });
+
+  // 16. Company Profile
   await prisma.companyProfile.upsert({
     where: { client_id: client.id },
     update: {},
@@ -383,14 +450,17 @@ async function main() {
       email: 'info@optima.com',
       phone: '1712 3456',
       mobile: '3456 7890',
+      account_manager_name: 'John Wilson',
+      account_manager_email: 'john.wilson@erp.com',
+      account_manager_phone: '+973 33445566',
       fiscal_year: 'January - December',
       fiscal_start_date: '01',
       fiscal_period: '01 January - 31 December',
-      billing_country: 'Bahrain',
-      shipment_country: 'Bahrain',
+      billing_address_country: 'Bahrain',
+      shipment_address_country: 'Bahrain',
       default_language: 'English',
       time_zone: 'UTC + 3:00',
-      date_format: 'dd MMM yyyy - 26 Jan 2026',
+      date_format: 'dd MMM yyyy',
       currency_format: '0.000',
       updated_by: clientUser.id
     }

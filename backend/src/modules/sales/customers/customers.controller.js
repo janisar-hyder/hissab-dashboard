@@ -11,7 +11,7 @@ exports.getCustomers = async (req, res, next) => {
     const customers = await prisma.customer.findMany({
       where: { 
         client_id: clientId,
-        deleted_at: null 
+        deleted_date: null 
       },
       orderBy: { name: 'asc' },
       include: {
@@ -52,7 +52,7 @@ exports.getCustomerById = async (req, res, next) => {
       where: { 
         id: parseInt(id),
         client_id: clientId,
-        deleted_at: null
+        deleted_date: null
       },
       include: {
         currency: true,
@@ -214,7 +214,8 @@ exports.deleteCustomers = async (req, res, next) => {
         client_id: clientId
       },
       data: {
-        deleted_at: new Date(),
+        deleted_date: new Date(),
+        deleted_by: userId,
         updated_by: userId,
         updated_date: new Date(),
         is_active: false

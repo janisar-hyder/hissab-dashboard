@@ -9,7 +9,10 @@ exports.getItems = async (req, res, next) => {
     const { clientId } = req.user;
 
     const items = await prisma.inventoryItem.findMany({
-      where: { client_id: clientId },
+      where: { 
+        client_id: clientId,
+        deleted_date: null
+      },
       orderBy: { name: 'asc' },
       include: {
         category: { select: { name: true } },
@@ -40,7 +43,8 @@ exports.getItemById = async (req, res, next) => {
     const item = await prisma.inventoryItem.findFirst({
       where: { 
         id: parseInt(id),
-        client_id: clientId
+        client_id: clientId,
+        deleted_date: null
       },
       include: {
         category: true,
@@ -50,6 +54,7 @@ exports.getItemById = async (req, res, next) => {
         purchaseAccount: true,
         inventoryAccount: true,
         vendor: true,
+        vatRate: true,
         weightUom: true,
         volumeUom: true
       }
@@ -201,10 +206,15 @@ exports.deleteItems = async (req, res, next) => {
       throw error;
     }
 
-    const deleteCount = await prisma.inventoryItem.deleteMany({
+    const deleteCount = await prisma.inventoryItem.updateMany({
       where: {
         id: { in: ids },
         client_id: clientId
+      },
+      data: {
+        deleted_date: new Date(),
+        deleted_by: req.user.userId,
+        status: 'Inactive'
       }
     });
 

@@ -12,7 +12,9 @@ CREATE TABLE super_admin_roles (
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by INT NULL,
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_by INT NULL
+    updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL
 );
 
 -- Super Admin Role Permissions (Modular access per platform role)
@@ -30,6 +32,8 @@ CREATE TABLE super_admin_role_permissions (
     created_by INT NULL,
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
     
     FOREIGN KEY (role_id) REFERENCES super_admin_roles(id) ON DELETE CASCADE
 );
@@ -48,17 +52,22 @@ CREATE TABLE super_admin_users (
     created_by INT NULL, -- self-referential
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
 
     FOREIGN KEY (role_id) REFERENCES super_admin_roles(id) ON DELETE SET NULL,
     FOREIGN KEY (created_by) REFERENCES super_admin_users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES super_admin_users(id) ON DELETE SET NULL
+    FOREIGN KEY (updated_by) REFERENCES super_admin_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES super_admin_users(id) ON DELETE SET NULL
 );
 
 -- Now link audit columns for super_admin_roles/permissions back to super_admin_users
 ALTER TABLE super_admin_roles ADD FOREIGN KEY (created_by) REFERENCES super_admin_users(id) ON DELETE SET NULL;
 ALTER TABLE super_admin_roles ADD FOREIGN KEY (updated_by) REFERENCES super_admin_users(id) ON DELETE SET NULL;
+ALTER TABLE super_admin_roles ADD FOREIGN KEY (deleted_by) REFERENCES super_admin_users(id) ON DELETE SET NULL;
 ALTER TABLE super_admin_role_permissions ADD FOREIGN KEY (created_by) REFERENCES super_admin_users(id) ON DELETE SET NULL;
 ALTER TABLE super_admin_role_permissions ADD FOREIGN KEY (updated_by) REFERENCES super_admin_users(id) ON DELETE SET NULL;
+ALTER TABLE super_admin_role_permissions ADD FOREIGN KEY (deleted_by) REFERENCES super_admin_users(id) ON DELETE SET NULL;
 
 
 -- ==========================================
@@ -105,7 +114,8 @@ CREATE TABLE clients (
     
     -- Soft Delete & Status
     is_active BOOLEAN DEFAULT TRUE,
-    deleted_at TIMESTAMP NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
     
     -- Audit Columns (Links to Super Admin Users)
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -115,7 +125,8 @@ CREATE TABLE clients (
 
     FOREIGN KEY (account_manager_id) REFERENCES super_admin_users(id) ON DELETE SET NULL,
     FOREIGN KEY (created_by) REFERENCES super_admin_users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES super_admin_users(id) ON DELETE SET NULL
+    FOREIGN KEY (updated_by) REFERENCES super_admin_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES super_admin_users(id) ON DELETE SET NULL
 );
 
 
@@ -135,6 +146,8 @@ CREATE TABLE client_roles (
     created_by INT NULL,
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
 
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
     UNIQUE(client_id, name)
@@ -155,6 +168,8 @@ CREATE TABLE client_role_permissions (
     created_by INT NULL,
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
     
     FOREIGN KEY (role_id) REFERENCES client_roles(id) ON DELETE CASCADE
 );
@@ -174,17 +189,24 @@ CREATE TABLE client_users (
     created_by INT NULL, -- self-referential
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
 
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
     FOREIGN KEY (role_id) REFERENCES client_roles(id) ON DELETE SET NULL,
     FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
     FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL,
     UNIQUE(client_id, email) -- Email unique per client
 );
 
 -- Now we link audit cols for client_roles back to client_users
 ALTER TABLE client_roles ADD FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL;
 ALTER TABLE client_roles ADD FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL;
+ALTER TABLE client_roles ADD FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL;
+ALTER TABLE client_role_permissions ADD FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL;
+ALTER TABLE client_role_permissions ADD FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL;
+ALTER TABLE client_role_permissions ADD FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL;
 
 
 -- ==========================================
@@ -206,10 +228,13 @@ CREATE TABLE client_contacts (
     created_by INT NULL,
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
     
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL
 );
 
 -- Client Permissions (Client-level subscription rights)
@@ -227,10 +252,13 @@ CREATE TABLE client_permissions (
     created_by INT NULL,
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
     
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL
 );
 
 -- Chart of Accounts
@@ -248,11 +276,14 @@ CREATE TABLE chart_of_accounts (
     created_by INT NULL,
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
     
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
     FOREIGN KEY (parent_id) REFERENCES chart_of_accounts(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
     FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL,
     UNIQUE(client_id, name)
 );
 
@@ -272,10 +303,13 @@ CREATE TABLE client_currencies (
     created_by INT NULL,
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
     
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
     FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL,
     UNIQUE(client_id, code)
 );
 
@@ -297,21 +331,22 @@ CREATE TABLE purchase_vendors (
     payment_terms VARCHAR(100),
     
     -- Billing Address
-    billing_attention VARCHAR(255),
-    billing_country VARCHAR(100),
-    billing_address TEXT,
-    billing_city VARCHAR(100),
+    billing_address_attention VARCHAR(255),
+    billing_address_country VARCHAR(100),
+    billing_address_details TEXT,
+    billing_address_city VARCHAR(100),
     
     -- Shipment Address
-    shipment_attention VARCHAR(255),
-    shipment_country VARCHAR(100),
-    shipment_address TEXT,
-    shipment_city VARCHAR(100),
+    shipment_address_attention VARCHAR(255),
+    shipment_address_country VARCHAR(100),
+    shipment_address_details TEXT,
+    shipment_address_city VARCHAR(100),
     
     remarks TEXT,
     status VARCHAR(50) DEFAULT 'Active',
     is_active BOOLEAN DEFAULT TRUE,
-    deleted_at TIMESTAMP NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
     
     -- Audit Columns
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -322,7 +357,8 @@ CREATE TABLE purchase_vendors (
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
     FOREIGN KEY (currency_id) REFERENCES client_currencies(id) ON DELETE SET NULL,
     FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL
 );
 
 -- Vendor Contacts
@@ -334,7 +370,6 @@ CREATE TABLE purchase_vendor_contacts (
     last_name VARCHAR(100),
     email VARCHAR(255),
     phone VARCHAR(50),
-    mobile VARCHAR(50),
     designation VARCHAR(150),
     
     -- Audit Columns
@@ -342,10 +377,13 @@ CREATE TABLE purchase_vendor_contacts (
     created_by INT NULL,
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
     
     FOREIGN KEY (vendor_id) REFERENCES purchase_vendors(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL
 );
 
 -- Inventory Categories
@@ -361,10 +399,13 @@ CREATE TABLE inventory_categories (
     created_by INT NULL,
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
     
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
     FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL,
     UNIQUE(client_id, name)
 );
 
@@ -382,11 +423,14 @@ CREATE TABLE inventory_sub_categories (
     created_by INT NULL,
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
     
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES inventory_categories(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
     FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL,
     UNIQUE(client_id, category_id, name)
 );
 
@@ -402,10 +446,13 @@ CREATE TABLE inventory_unit_of_measures (
     created_by INT NULL,
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
     
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
     FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL,
     UNIQUE(client_id, name)
 );
 
@@ -419,9 +466,12 @@ CREATE TABLE vat_settings (
     -- Audit Columns
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
     
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
-    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL
 );
 
 -- VAT Rates
@@ -460,7 +510,7 @@ CREATE TABLE inventory_items (
     
     -- Sales Information
     sales_rate DECIMAL(18,3),
-    vat_preference VARCHAR(50), -- taxable, non-taxable, exempt
+    vat_rate_id INT, -- Links to vat_rates
     sales_account_id INT,
     sales_description TEXT,
     
@@ -491,6 +541,8 @@ CREATE TABLE inventory_items (
     created_by INT NULL,
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
     
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
     FOREIGN KEY (uom_id) REFERENCES inventory_unit_of_measures(id) ON DELETE RESTRICT,
@@ -502,8 +554,10 @@ CREATE TABLE inventory_items (
     FOREIGN KEY (vendor_id) REFERENCES purchase_vendors(id) ON DELETE SET NULL,
     FOREIGN KEY (weight_uom_id) REFERENCES inventory_unit_of_measures(id) ON DELETE SET NULL,
     FOREIGN KEY (volume_uom_id) REFERENCES inventory_unit_of_measures(id) ON DELETE SET NULL,
+    FOREIGN KEY (vat_rate_id) REFERENCES vat_rates(id) ON DELETE SET NULL,
     FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
     FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL,
     
     UNIQUE(client_id, item_code),
     UNIQUE(client_id, sku)
@@ -528,20 +582,21 @@ CREATE TABLE customers (
     payment_terms VARCHAR(100),
     
     -- Billing Address
-    billing_attention VARCHAR(255),
-    billing_country VARCHAR(100),
-    billing_address TEXT,
-    billing_city VARCHAR(100),
+    billing_address_attention VARCHAR(255),
+    billing_address_country VARCHAR(100),
+    billing_address_details TEXT,
+    billing_address_city VARCHAR(100),
     
     -- Shipment Address
-    shipment_attention VARCHAR(255),
-    shipment_country VARCHAR(100),
-    shipment_address TEXT,
-    shipment_city VARCHAR(100),
+    shipment_address_attention VARCHAR(255),
+    shipment_address_country VARCHAR(100),
+    shipment_address_details TEXT,
+    shipment_address_city VARCHAR(100),
     
     remarks TEXT,
     is_active BOOLEAN DEFAULT TRUE,
-    deleted_at TIMESTAMP NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
     
     -- Audit Columns
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -552,7 +607,8 @@ CREATE TABLE customers (
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
     FOREIGN KEY (currency_id) REFERENCES client_currencies(id) ON DELETE SET NULL,
     FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL
 );
 
 -- Customer Contacts
@@ -571,10 +627,13 @@ CREATE TABLE customer_contacts (
     created_by INT NULL,
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
     
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL
 );
 
 -- Sales Persons
@@ -590,10 +649,13 @@ CREATE TABLE sales_persons (
     created_by INT NULL,
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
     
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
     FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL,
     UNIQUE(client_id, name)
 );
 
@@ -611,10 +673,13 @@ CREATE TABLE sales_partners (
     created_by INT NULL,
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
     
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
     FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL,
     UNIQUE(client_id, name)
 );
 
@@ -630,10 +695,7 @@ CREATE TABLE quotations (
     reference_number VARCHAR(255),
     
     sales_person_id INT,
-    sales_partner_id INT,
-    
     currency_id INT NOT NULL,
-    exchange_rate DECIMAL(18,6) DEFAULT 1.0,
     
     status VARCHAR(50) DEFAULT 'Draft', -- Draft, Sent, Accepted, Rejected, Invoiced, Expired
     
@@ -657,19 +719,21 @@ CREATE TABLE quotations (
     created_by INT NULL,
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
     
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT,
     FOREIGN KEY (sales_person_id) REFERENCES sales_persons(id) ON DELETE SET NULL,
-    FOREIGN KEY (sales_partner_id) REFERENCES sales_partners(id) ON DELETE SET NULL,
     FOREIGN KEY (currency_id) REFERENCES client_currencies(id) ON DELETE RESTRICT,
     FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
     FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL,
     UNIQUE(client_id, quotation_number)
 );
 
--- Quotation Line Items (The Linking Table)
-CREATE TABLE quotation_items (
+-- Quotation Details (Line Items)
+CREATE TABLE quotation_details (
     id SERIAL PRIMARY KEY,
     quotation_id INT NOT NULL,
     
@@ -677,21 +741,28 @@ CREATE TABLE quotation_items (
     description TEXT,     -- Specific description for this quote (optional)
     
     quantity DECIMAL(18,3) NOT NULL,
-    uom_id INT NOT NULL,
     rate DECIMAL(18,3) NOT NULL,
     
-    discount_amount DECIMAL(18,3) DEFAULT 0.000,
-    discount_type VARCHAR(20) DEFAULT 'Fixed', -- Fixed, Percentage
+    discount_amount DECIMAL(18,3) DEFAULT 0.000, -- Line-level discount value
     
-    tax_rate_id INT,
-    tax_amount DECIMAL(18,3) DEFAULT 0.000,
+    vat_rate_id INT,
     
     line_total DECIMAL(18,3) NOT NULL,
     
+    -- Audit Columns
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by INT NULL,
+    updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
+    
     FOREIGN KEY (quotation_id) REFERENCES quotations(id) ON DELETE CASCADE,
     FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE RESTRICT,
-    FOREIGN KEY (uom_id) REFERENCES inventory_unit_of_measures(id) ON DELETE RESTRICT,
-    FOREIGN KEY (tax_rate_id) REFERENCES vat_rates(id) ON DELETE SET NULL
+    FOREIGN KEY (vat_rate_id) REFERENCES vat_rates(id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL
 );
 
 -- Invoices
@@ -704,13 +775,16 @@ CREATE TABLE invoices (
     
     invoice_date DATE NOT NULL,
     due_date DATE,
+    payment_terms VARCHAR(100),
     reference_number VARCHAR(255),
     
     sales_person_id INT,
-    sales_partner_id INT,
-    
     currency_id INT NOT NULL,
-    exchange_rate DECIMAL(18,6) DEFAULT 1.0,
+    
+    -- Commission (Sales Partner)
+    sales_partner_id INT,
+    commission_percentage DECIMAL(5,2) DEFAULT 0.00,
+    commission_amount DECIMAL(18,3) DEFAULT 0.000,
     
     status VARCHAR(50) DEFAULT 'Draft', -- Draft, Sent, Partially Paid, Paid, Overdue, Void
     
@@ -735,6 +809,8 @@ CREATE TABLE invoices (
     created_by INT NULL,
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
     
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT,
@@ -744,11 +820,12 @@ CREATE TABLE invoices (
     FOREIGN KEY (currency_id) REFERENCES client_currencies(id) ON DELETE RESTRICT,
     FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
     FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL,
     UNIQUE(client_id, invoice_number)
 );
 
--- Invoice Line Items (The Linking Table)
-CREATE TABLE invoice_items (
+-- Invoice Details (Line Items)
+CREATE TABLE invoice_details (
     id SERIAL PRIMARY KEY,
     invoice_id INT NOT NULL,
     
@@ -756,21 +833,28 @@ CREATE TABLE invoice_items (
     description TEXT,     -- Specific description for this invoice (optional)
     
     quantity DECIMAL(18,3) NOT NULL,
-    uom_id INT NOT NULL,
     rate DECIMAL(18,3) NOT NULL,
     
-    discount_amount DECIMAL(18,3) DEFAULT 0.000,
-    discount_type VARCHAR(20) DEFAULT 'Fixed', -- Fixed, Percentage
+    discount_amount DECIMAL(18,3) DEFAULT 0.000, -- Line-level discount value
     
-    tax_rate_id INT,
-    tax_amount DECIMAL(18,3) DEFAULT 0.000,
+    vat_rate_id INT,
     
     line_total DECIMAL(18,3) NOT NULL,
     
+    -- Audit Columns
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by INT NULL,
+    updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
+    
     FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE,
     FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE RESTRICT,
-    FOREIGN KEY (uom_id) REFERENCES inventory_unit_of_measures(id) ON DELETE RESTRICT,
-    FOREIGN KEY (tax_rate_id) REFERENCES vat_rates(id) ON DELETE SET NULL
+    FOREIGN KEY (vat_rate_id) REFERENCES vat_rates(id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL
 );
 
 CREATE TABLE company_profiles (
@@ -781,6 +865,12 @@ CREATE TABLE company_profiles (
     email VARCHAR(255),
     phone VARCHAR(50),
     mobile VARCHAR(50),
+    
+    -- Account Manager Details
+    account_manager_name VARCHAR(255),
+    account_manager_email VARCHAR(255),
+    account_manager_phone VARCHAR(50),
+    
     fiscal_year VARCHAR(100),
     fiscal_start_date VARCHAR(10),
     fiscal_period VARCHAR(100),
@@ -789,16 +879,16 @@ CREATE TABLE company_profiles (
     logo_path VARCHAR(512),
     
     -- Billing Address
-    billing_attention VARCHAR(255),
-    billing_country VARCHAR(100),
-    billing_address TEXT,
-    billing_city VARCHAR(100),
+    billing_address_attention VARCHAR(255),
+    billing_address_country VARCHAR(100),
+    billing_address_details TEXT,
+    billing_address_city VARCHAR(100),
     
     -- Shipment Address
-    shipment_attention VARCHAR(255),
-    shipment_country VARCHAR(100),
-    shipment_address TEXT,
-    shipment_city VARCHAR(100),
+    shipment_address_attention VARCHAR(255),
+    shipment_address_country VARCHAR(100),
+    shipment_address_details TEXT,
+    shipment_address_city VARCHAR(100),
     
     -- Localization
     default_language VARCHAR(50) DEFAULT 'English',
@@ -809,9 +899,12 @@ CREATE TABLE company_profiles (
     -- Audit Columns
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
     
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
-    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL
 );
 
 
@@ -878,12 +971,12 @@ INSERT INTO client_currencies (client_id, name, code, symbol, is_base, decimal_p
 (1, 'United States Dollar', 'USD', '$', FALSE, 2);
 
 -- 9. Business Entities (Vendors & Customers)
-INSERT INTO purchase_vendors (client_id, name, type, email, phone, currency_id, status) VALUES 
-(1, 'Gulf HVAC Supplies', 'Business', 'sales@gulfhvac.com', '+973 17111111', 1, 'Active'),
-(1, 'CoolingTech Parts', 'Business', 'orders@coolingtech.com', '+973 17222222', 1, 'Active'),
-(1, 'Global Electronics', 'Business', 'info@globalelec.com', '+1 555-0199', 10, 'Active'),
-(1, 'Industrial Pumps Ltd', 'Business', 'support@indpumps.co.uk', '+44 20 7946 0958', 5, 'Active'),
-(1, 'Express Logistics', 'Business', 'dispatch@expresslog.com', '+973 17333333', 1, 'Active');
+INSERT INTO purchase_vendors (client_id, name, type, email, phone, currency_id, billing_address_country, shipment_address_country, status) VALUES 
+(1, 'Gulf HVAC Supplies', 'Business', 'sales@gulfhvac.com', '+973 17111111', 1, 'Bahrain', 'Bahrain', 'Active'),
+(1, 'CoolingTech Parts', 'Business', 'orders@coolingtech.com', '+973 17222222', 1, 'Bahrain', 'Bahrain', 'Active'),
+(1, 'Global Electronics', 'Business', 'info@globalelec.com', '+1 555-0199', 10, 'USA', 'USA', 'Active'),
+(1, 'Industrial Pumps Ltd', 'Business', 'support@indpumps.co.uk', '+44 20 7946 0958', 5, 'UK', 'UK', 'Active'),
+(1, 'Express Logistics', 'Business', 'dispatch@expresslog.com', '+973 17333333', 1, 'Bahrain', 'Bahrain', 'Active');
 
 INSERT INTO purchase_vendor_contacts (vendor_id, first_name, last_name, email, phone, designation) VALUES 
 (1, 'Ali', 'Al-Mansoori', 'ali@gulfhvac.com', '+973 33111111', 'Sales Manager'),
@@ -894,8 +987,8 @@ INSERT INTO purchase_vendor_contacts (vendor_id, first_name, last_name, email, p
 (4, 'Robert', 'Brown', 'r.brown@indpumps.co.uk', '+44 20 7946 0960', 'Service Manager'),
 (5, 'Mohammed', 'Isa', 'm.isa@expresslog.com', '+973 33444444', 'Fleet Supervisor');
 
-INSERT INTO customers (client_id, name, type, email, phone, currency_id, is_active) VALUES 
-(1, 'Royal Tower Management', 'Business', 'info@royaltower.bh', '+973 17333333', 1, TRUE);
+INSERT INTO customers (client_id, name, type, email, phone, currency_id, billing_address_country, shipment_address_country, is_active) VALUES 
+(1, 'Royal Tower Management', 'Business', 'info@royaltower.bh', '+973 17333333', 1, 'Bahrain', 'Bahrain', TRUE);
 
 INSERT INTO customer_contacts (customer_id, first_name, last_name, email, phone, designation) VALUES 
 (1, 'Hassan', 'Yusuf', 'h.yusuf@royaltower.bh', '+973 33555555', 'Facility Manager');
@@ -911,8 +1004,7 @@ INSERT INTO inventory_categories (client_id, name, status) VALUES
 (1, 'Consumables', 'Active');
 
 INSERT INTO inventory_sub_categories (client_id, category_id, name, status) VALUES 
-(1, 2, 'Refrigerant Gas', 'Active');
-
+(1, 1, 'Split Units', 'Active'),
 (1, 2, 'Refrigerant Gas', 'Active');
 
 -- 11. VAT Configuration
@@ -923,26 +1015,20 @@ INSERT INTO vat_rates (client_id, name, rate, status) VALUES
 (1, 'Standard Rate', 5.00, 'Active'),
 (1, 'Zero Rated', 0.00, 'Active');
 
-(1, 'Zero Rated', 0.00, 'Active');
-
 -- 12. Relational Inventory Items
 INSERT INTO inventory_items (
     client_id, item_code, name, sku, uom_id, category_id, sub_category_id, 
     sales_rate, purchase_cost, sales_account_id, purchase_account_id, inventory_account_id, 
-    vendor_id, stock_in_hand, status
+    vendor_id, stock_in_hand, vat_rate_id, status
 ) VALUES 
-(1, 'ITM-001', 'Split AC Unit 1.5 Ton', 'SAC-15-GULF', 1, 1, NULL, 250.000, 180.000, 1, 2, 3, 1, 25.000, 'Active'),
-(1, 'ITM-002', 'R410A Refrigerant', 'REF-410A-KG', 2, 2, 1, 15.500, 8.200, 1, 2, 3, 2, 120.000, 'Active');
-
-(1, 'ITM-002', 'R410A Refrigerant', 'REF-410A-KG', 2, 2, 1, 15.500, 8.200, 1, 2, 3, 2, 120.000, 'Active');
+(1, 'ITM-001', 'Split AC Unit 1.5 Ton', 'SAC-15-GULF', 1, 1, 1, 250.000, 180.000, 1, 2, 3, 1, 25.000, 1, 'Active'),
+(1, 'ITM-002', 'R410A Refrigerant', 'REF-410A-KG', 2, 2, 2, 15.500, 8.200, 1, 2, 3, 2, 120.000, 1, 'Active');
 
 -- 13. Sales Persons
 INSERT INTO sales_persons (client_id, name, description, status) VALUES 
 (1, 'Aaliyah Khan', '-', 'Active'),
 (1, 'Liam Schmidt', 'Outsourced Person', 'Active'),
 (1, 'Zara Al-Farsi', '-', 'Active'),
-(1, 'Omar Dubois', '-', 'Inactive');
-
 (1, 'Omar Dubois', '-', 'Inactive');
 
 -- 14. Sales Partners
@@ -954,11 +1040,13 @@ INSERT INTO sales_partners (client_id, name, commission, description, status) VA
 
 INSERT INTO company_profiles (
     client_id, company_name, cr_number, email, phone, mobile,
+    account_manager_name, account_manager_email, account_manager_phone,
     fiscal_year, fiscal_start_date, fiscal_period,
-    billing_country, shipment_country,
+    billing_address_country, shipment_address_country,
     default_language, time_zone, date_format, currency_format
 ) VALUES (
     1, 'Optima', '2381271-1', 'info@optima.com', '1712 3456', '3456 7890',
+    'Jane Doe', 'jane.doe@hissab.com', '+973 33000000',
     'January - December', '01', '01 January - 31 December',
     'Bahrain', 'Bahrain',
     'English', 'UTC + 3:00', 'dd MMM yyyy - 26 Jan 2026', '0.000'
