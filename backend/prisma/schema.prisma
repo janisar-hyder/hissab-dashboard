@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,565 +7,534 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 1. PLATFORM ADMINISTRATION
-
 model SuperAdminRole {
-  id           Int      @id @default(autoincrement())
-  name         String   @unique @db.VarChar(100)
-  status       String?  @default("Active") @db.VarChar(50)
-  created_date DateTime @default(now())
-  created_by   Int?
-  updated_date DateTime @default(now()) @updatedAt
-  updated_by   Int?
-
-  // Relations
-  permissions SuperAdminRolePermission[]
-  users       SuperAdminUser[]          @relation("Role")
-
-  createdByUser SuperAdminUser? @relation("RoleCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser SuperAdminUser? @relation("RoleUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+  id            Int                        @id @default(autoincrement())
+  name          String                     @unique @db.VarChar(100)
+  status        String?                    @default("Active") @db.VarChar(50)
+  created_date  DateTime                   @default(now())
+  created_by    Int?
+  updated_date  DateTime                   @default(now()) @updatedAt
+  updated_by    Int?
+  permissions   SuperAdminRolePermission[]
+  createdByUser SuperAdminUser?            @relation("RoleCreatedBy", fields: [created_by], references: [id])
+  updatedByUser SuperAdminUser?            @relation("RoleUpdatedBy", fields: [updated_by], references: [id])
+  users         SuperAdminUser[]           @relation("Role")
 
   @@map("super_admin_roles")
 }
 
 model SuperAdminRolePermission {
-  id           Int      @id @default(autoincrement())
-  role_id      Int
-  module_name  String   @db.VarChar(150)
-  can_create   Boolean? @default(false)
-  can_view     Boolean? @default(true)
-  can_update   Boolean? @default(false)
-  can_delete   Boolean? @default(false)
-  created_date DateTime @default(now())
-  created_by   Int?
-  updated_date DateTime @default(now()) @updatedAt
-  updated_by   Int?
-
-  // Relations
+  id            Int             @id @default(autoincrement())
+  role_id       Int
+  module_name   String          @db.VarChar(150)
+  can_create    Boolean?        @default(false)
+  can_view      Boolean?        @default(true)
+  can_update    Boolean?        @default(false)
+  can_delete    Boolean?        @default(false)
+  created_date  DateTime        @default(now())
+  created_by    Int?
+  updated_date  DateTime        @default(now()) @updatedAt
+  updated_by    Int?
+  createdByUser SuperAdminUser? @relation("PermCreatedBy", fields: [created_by], references: [id])
   role          SuperAdminRole  @relation(fields: [role_id], references: [id], onDelete: Cascade)
-  createdByUser SuperAdminUser? @relation("PermCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser SuperAdminUser? @relation("PermUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+  updatedByUser SuperAdminUser? @relation("PermUpdatedBy", fields: [updated_by], references: [id])
 
   @@map("super_admin_role_permissions")
 }
 
 model SuperAdminUser {
-  id            Int      @id @default(autoincrement())
-  name          String   @db.VarChar(255)
-  email         String   @unique @db.VarChar(255)
-  password_hash String   @db.VarChar(255)
-  role_id       Int?
-  status        String?  @default("Active") @db.VarChar(50)
-  created_date  DateTime @default(now())
-  created_by    Int?
-  updated_date  DateTime @default(now()) @updatedAt
-  updated_by    Int?
-
-  // Relations
-  role          SuperAdminRole? @relation("Role", fields: [role_id], references: [id], onDelete: SetNull)
-  createdByUser SuperAdminUser? @relation("SelfCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser SuperAdminUser? @relation("SelfUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
-
-  // Reverse relations to satisfy self-references
-  createdSuperAdminUsers SuperAdminUser[] @relation("SelfCreatedBy")
-  updatedSuperAdminUsers SuperAdminUser[] @relation("SelfUpdatedBy")
-
-  // Audit trails for roles/perms
-  createdRoles       SuperAdminRole[]           @relation("RoleCreatedBy")
-  updatedRoles       SuperAdminRole[]           @relation("RoleUpdatedBy")
-  createdPermissions SuperAdminRolePermission[] @relation("PermCreatedBy")
-  updatedPermissions SuperAdminRolePermission[] @relation("PermUpdatedBy")
-
-  // Client Management relations
-  managedClients        Client[] @relation("AccountManager")
-  createdClients        Client[] @relation("ClientCreatedBy")
-  updatedClients        Client[] @relation("ClientUpdatedBy")
+  id                     Int                        @id @default(autoincrement())
+  name                   String                     @db.VarChar(255)
+  email                  String                     @unique @db.VarChar(255)
+  password_hash          String                     @db.VarChar(255)
+  role_id                Int?
+  status                 String?                    @default("Active") @db.VarChar(50)
+  created_date           DateTime                   @default(now())
+  created_by             Int?
+  updated_date           DateTime                   @default(now()) @updatedAt
+  updated_by             Int?
+  managedClients         Client[]                   @relation("AccountManager")
+  createdClients         Client[]                   @relation("ClientCreatedBy")
+  updatedClients         Client[]                   @relation("ClientUpdatedBy")
+  createdPermissions     SuperAdminRolePermission[] @relation("PermCreatedBy")
+  updatedPermissions     SuperAdminRolePermission[] @relation("PermUpdatedBy")
+  createdRoles           SuperAdminRole[]           @relation("RoleCreatedBy")
+  updatedRoles           SuperAdminRole[]           @relation("RoleUpdatedBy")
+  createdByUser          SuperAdminUser?            @relation("SelfCreatedBy", fields: [created_by], references: [id])
+  createdSuperAdminUsers SuperAdminUser[]           @relation("SelfCreatedBy")
+  role                   SuperAdminRole?            @relation("Role", fields: [role_id], references: [id])
+  updatedByUser          SuperAdminUser?            @relation("SelfUpdatedBy", fields: [updated_by], references: [id])
+  updatedSuperAdminUsers SuperAdminUser[]           @relation("SelfUpdatedBy")
 
   @@map("super_admin_users")
 }
 
-// 2. CLIENT MANAGEMENT
-
 model Client {
-  id                      Int      @id @default(autoincrement())
-  client_num              String   @unique @db.VarChar(50)
-  name                    String   @db.VarChar(255)
-  cr_num                  String   @db.VarChar(100)
-  email                   String?  @db.VarChar(255)
-  phone                   String?  @db.VarChar(50)
-  mobile                  String?  @db.VarChar(50)
+  id                      Int                      @id @default(autoincrement())
+  client_num              String                   @unique @db.VarChar(50)
+  name                    String                   @db.VarChar(255)
+  cr_num                  String                   @db.VarChar(100)
+  email                   String?                  @db.VarChar(255)
+  phone                   String?                  @db.VarChar(50)
+  mobile                  String?                  @db.VarChar(50)
   account_manager_id      Int?
-  billing_cycle           String?  @db.VarChar(50)
-  sub_model               String?  @db.VarChar(50)
-  num_users               Int?     @default(1)
-  sub_start_date          DateTime? @db.Date
-  sub_end_date            DateTime? @db.Date
-  hosting                 String?  @db.VarChar(50)
-  amount                  Decimal? @db.Decimal(18, 3)
-  annual_maintenance_cost Decimal? @db.Decimal(18, 3)
-  cloud_charges           Decimal? @db.Decimal(18, 3)
-  default_language        String?  @default("English") @db.VarChar(50)
-  time_zone               String?  @default("UTC+3:00") @db.VarChar(100)
-  date_format             String?  @db.VarChar(50)
-  time_format             String?  @db.VarChar(50)
-  base_currency           String?  @default("BHD") @db.VarChar(10)
-  currency_format         String?  @db.VarChar(50)
-  logo_path               String?  @db.VarChar(512)
-  client_admin_username   String   @db.VarChar(255)
-  client_admin_password   String   @db.VarChar(255)
-  remarks                 String?  @db.Text
-  is_active               Boolean? @default(true)
+  billing_cycle           String?                  @db.VarChar(50)
+  sub_model               String?                  @db.VarChar(50)
+  num_users               Int?                     @default(1)
+  sub_start_date          DateTime?                @db.Date
+  sub_end_date            DateTime?                @db.Date
+  hosting                 String?                  @db.VarChar(50)
+  amount                  Decimal?                 @db.Decimal(18, 3)
+  annual_maintenance_cost Decimal?                 @db.Decimal(18, 3)
+  cloud_charges           Decimal?                 @db.Decimal(18, 3)
+  default_language        String?                  @default("English") @db.VarChar(50)
+  time_zone               String?                  @default("UTC+3:00") @db.VarChar(100)
+  date_format             String?                  @db.VarChar(50)
+  time_format             String?                  @db.VarChar(50)
+  base_currency           String?                  @default("BHD") @db.VarChar(10)
+  currency_format         String?                  @db.VarChar(50)
+  logo_path               String?                  @db.VarChar(512)
+  client_admin_username   String                   @db.VarChar(255)
+  client_admin_password   String                   @db.VarChar(255)
+  remarks                 String?
+  is_active               Boolean?                 @default(true)
   deleted_at              DateTime?
-  created_date            DateTime @default(now())
+  created_date            DateTime                 @default(now())
   created_by              Int?
-  updated_date            DateTime @default(now()) @updatedAt
+  updated_date            DateTime                 @default(now()) @updatedAt
   updated_by              Int?
-
-  // Relations
-  accountManager SuperAdminUser? @relation("AccountManager", fields: [account_manager_id], references: [id], onDelete: SetNull)
-  createdByUser  SuperAdminUser? @relation("ClientCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser  SuperAdminUser? @relation("ClientUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
-
-  // Business Data relations
-  clientRoles      ClientRole[]
-  clientUsers      ClientUser[]
-  clientContacts   ClientContact[]
-  permissions      ClientPermission[]
-  chartOfAccounts  ChartOfAccount[]
-  purchaseVendors  PurchaseVendor[]
-  categories       InventoryCategory[]
-  subCategories    InventorySubCategory[]
-  uoms             InventoryUnitOfMeasure[]
-  vatSettings      VatSetting?
-  vatRates         VatRate[]
-  inventoryItems   InventoryItem[]
-  customers        Customer[]
-  salesPersons     SalesPerson[]
-  salesPartners    SalesPartner[]
-  currencies       Currency[]
-  companyProfile   CompanyProfile?
-  quotations       Quotation[]
-  invoices         Invoice[]
+  chartOfAccounts         ChartOfAccount[]
+  clientContacts          ClientContact[]
+  currencies              Currency[]
+  permissions             ClientPermission[]
+  clientRoles             ClientRole[]
+  clientUsers             ClientUser[]
+  accountManager          SuperAdminUser?          @relation("AccountManager", fields: [account_manager_id], references: [id])
+  createdByUser           SuperAdminUser?          @relation("ClientCreatedBy", fields: [created_by], references: [id])
+  updatedByUser           SuperAdminUser?          @relation("ClientUpdatedBy", fields: [updated_by], references: [id])
+  companyProfile          CompanyProfile?
+  customers               Customer[]
+  categories              InventoryCategory[]
+  inventoryItems          InventoryItem[]
+  subCategories           InventorySubCategory[]
+  uoms                    InventoryUnitOfMeasure[]
+  invoices                Invoice[]
+  purchaseVendors         PurchaseVendor[]
+  quotations              Quotation[]
+  salesPartners           SalesPartner[]
+  salesPersons            SalesPerson[]
+  vatRates                VatRate[]
+  vatSettings             VatSetting?
+  recurringInvoices       RecurringInvoice[]
+  deliveryNotes           DeliveryNote[]
+  receipts                Receipt[]
+  creditNotes             CreditNote[]
 
   @@map("clients")
 }
 
-// 3. CLIENT OPERATIONS
-
 model ClientRole {
-  id           Int      @id @default(autoincrement())
-  client_id    Int
-  name         String   @db.VarChar(100)
-  status       String?  @default("Active") @db.VarChar(50)
-  created_date DateTime @default(now())
-  created_by   Int?
-  updated_date DateTime @default(now()) @updatedAt
-  updated_by   Int?
-
-  // Relations
-  client        Client        @relation(fields: [client_id], references: [id], onDelete: Cascade)
-  createdByUser ClientUser?   @relation("CRoleCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser ClientUser?   @relation("CRoleUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+  id            Int                    @id @default(autoincrement())
+  client_id     Int
+  name          String                 @db.VarChar(100)
+  status        String?                @default("Active") @db.VarChar(50)
+  created_date  DateTime               @default(now())
+  created_by    Int?
+  updated_date  DateTime               @default(now()) @updatedAt
+  updated_by    Int?
   permissions   ClientRolePermission[]
-  users         ClientUser[]   @relation("UserRole")
+  client        Client                 @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser ClientUser?            @relation("CRoleCreatedBy", fields: [created_by], references: [id])
+  updatedByUser ClientUser?            @relation("CRoleUpdatedBy", fields: [updated_by], references: [id])
+  users         ClientUser[]           @relation("UserRole")
 
   @@unique([client_id, name])
   @@map("client_roles")
 }
 
 model ClientRolePermission {
-  id           Int      @id @default(autoincrement())
+  id           Int        @id @default(autoincrement())
   role_id      Int
-  module_name  String   @db.VarChar(150)
-  can_create   Boolean? @default(false)
-  can_view     Boolean? @default(true)
-  can_update   Boolean? @default(false)
-  can_delete   Boolean? @default(false)
-  created_date DateTime @default(now())
+  module_name  String     @db.VarChar(150)
+  can_create   Boolean?   @default(false)
+  can_view     Boolean?   @default(true)
+  can_update   Boolean?   @default(false)
+  can_delete   Boolean?   @default(false)
+  created_date DateTime   @default(now())
   created_by   Int?
-  updated_date DateTime @default(now()) @updatedAt
+  updated_date DateTime   @default(now()) @updatedAt
   updated_by   Int?
-
-  // Relations
-  role ClientRole @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  role         ClientRole @relation(fields: [role_id], references: [id], onDelete: Cascade)
 
   @@map("client_role_permissions")
 }
 
 model ClientUser {
-  id            Int      @id @default(autoincrement())
-  client_id     Int
-  name          String   @db.VarChar(255)
-  email         String   @db.VarChar(255)
-  password_hash String   @db.VarChar(255)
-  role_id       Int?
-  status        String?  @default("Active") @db.VarChar(50)
-  created_date  DateTime @default(now())
-  created_by    Int?
-  updated_date  DateTime @default(now()) @updatedAt
-  updated_by    Int?
-
-  // Relations
-  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
-  role          ClientRole? @relation("UserRole", fields: [role_id], references: [id], onDelete: SetNull)
-  createdByUser ClientUser? @relation("SelfCUserCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser ClientUser? @relation("SelfCUserUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
-
-  // Reverse relations
-  createdClientUsers ClientUser[] @relation("SelfCUserCreatedBy")
-  updatedClientUsers ClientUser[] @relation("SelfCUserUpdatedBy")
-
-  // Audit traits for other models
-  createdCRoles       ClientRole[]            @relation("CRoleCreatedBy")
-  updatedCRoles       ClientRole[]            @relation("CRoleUpdatedBy")
-  createdCContacts    ClientContact[]         @relation("CContactCreatedBy")
-  updatedCContacts    ClientContact[]         @relation("CContactUpdatedBy")
-  createdCPerms       ClientPermission[]      @relation("CPermCreatedBy")
-  updatedCPerms       ClientPermission[]      @relation("CPermUpdatedBy")
-  createdCOAs         ChartOfAccount[]        @relation("COACreatedBy")
-  updatedCOAs         ChartOfAccount[]        @relation("COAUpdatedBy")
-  createdVendors      PurchaseVendor[]        @relation("VendorCreatedBy")
-  updatedVendors      PurchaseVendor[]        @relation("VendorUpdatedBy")
-  createdVContacts    PurchaseVendorContact[] @relation("VContactCreatedBy")
-  updatedVContacts    PurchaseVendorContact[] @relation("VContactUpdatedBy")
-  createdCategories   InventoryCategory[]     @relation("CatCreatedBy")
-  updatedCategories   InventoryCategory[]     @relation("CatUpdatedBy")
-  createdSubCats      InventorySubCategory[]  @relation("SubCatCreatedBy")
-  updatedSubCats      InventorySubCategory[]  @relation("SubCatUpdatedBy")
-  createdUOMs         InventoryUnitOfMeasure[] @relation("UOMCreatedBy")
-  updatedUOMs         InventoryUnitOfMeasure[] @relation("UOMUpdatedBy")
-  updatedVatSettings  VatSetting[]            @relation("VatSettUpdatedBy")
-  createdVatRates     VatRate[]               @relation("VatRateCreatedBy")
-  updatedVatRates     VatRate[]               @relation("VatRateUpdatedBy")
-  createdItems        InventoryItem[]         @relation("ItemCreatedBy")
-  updatedItems        InventoryItem[]         @relation("ItemUpdatedBy")
-  createdCustomers    Customer[]              @relation("CustCreatedBy")
-  updatedCustomers    Customer[]              @relation("CustUpdatedBy")
-  createdCustContacts CustomerContact[]       @relation("CustContCreatedBy")
-  updatedCustContacts CustomerContact[]       @relation("CustContUpdatedBy")
-  createdSalesPersons SalesPerson[]           @relation("SalesPersonCreatedBy")
-  updatedSalesPersons SalesPerson[]           @relation("SalesPersonUpdatedBy")
-  createdSalesPartners SalesPartner[]         @relation("SalesPartnerCreatedBy")
-  updatedSalesPartners SalesPartner[]         @relation("SalesPartnerUpdatedBy")
-  createdCurrencies    Currency[]             @relation("CurrencyCreatedBy")
-  updatedCurrencies    Currency[]             @relation("CurrencyUpdatedBy")
-  updatedCompanyProfiles CompanyProfile[]     @relation("CompProfUpdatedBy")
-  deletedVendors       PurchaseVendor[]       @relation("VendorDeletedBy")
-  deletedCustomers     Customer[]             @relation("CustDeletedBy")
-  deletedItems         InventoryItem[]        @relation("ItemDeletedBy")
-  createdQuotations    Quotation[]            @relation("QuotCreatedBy")
-  updatedQuotations    Quotation[]            @relation("QuotUpdatedBy")
-  deletedQuotations    Quotation[]            @relation("QuotDeletedBy")
-  createdQuotDetails   QuotationDetail[]      @relation("QDetCreatedBy")
-  updatedQuotDetails   QuotationDetail[]      @relation("QDetUpdatedBy")
-  createdInvoices      Invoice[]              @relation("InvCreatedBy")
-  updatedInvoices      Invoice[]              @relation("InvUpdatedBy")
-  deletedInvoices      Invoice[]              @relation("InvDeletedBy")
-  createdInvDetails    InvoiceDetail[]        @relation("IDetCreatedBy")
-  updatedInvDetails    InvoiceDetail[]        @relation("IDetUpdatedBy")
+  id                       Int                      @id @default(autoincrement())
+  client_id                Int
+  name                     String                   @db.VarChar(255)
+  email                    String                   @db.VarChar(255)
+  password_hash            String                   @db.VarChar(255)
+  role_id                  Int?
+  status                   String?                  @default("Active") @db.VarChar(50)
+  created_date             DateTime                 @default(now())
+  created_by               Int?
+  updated_date             DateTime                 @default(now()) @updatedAt
+  updated_by               Int?
+  createdCOAs              ChartOfAccount[]         @relation("COACreatedBy")
+  updatedCOAs              ChartOfAccount[]         @relation("COAUpdatedBy")
+  createdCContacts         ClientContact[]          @relation("CContactCreatedBy")
+  updatedCContacts         ClientContact[]          @relation("CContactUpdatedBy")
+  createdCurrencies        Currency[]               @relation("CurrencyCreatedBy")
+  updatedCurrencies        Currency[]               @relation("CurrencyUpdatedBy")
+  createdCPerms            ClientPermission[]       @relation("CPermCreatedBy")
+  updatedCPerms            ClientPermission[]       @relation("CPermUpdatedBy")
+  createdCRoles            ClientRole[]             @relation("CRoleCreatedBy")
+  updatedCRoles            ClientRole[]             @relation("CRoleUpdatedBy")
+  client                   Client                   @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser            ClientUser?              @relation("SelfCUserCreatedBy", fields: [created_by], references: [id])
+  createdClientUsers       ClientUser[]             @relation("SelfCUserCreatedBy")
+  role                     ClientRole?              @relation("UserRole", fields: [role_id], references: [id])
+  updatedByUser            ClientUser?              @relation("SelfCUserUpdatedBy", fields: [updated_by], references: [id])
+  updatedClientUsers       ClientUser[]             @relation("SelfCUserUpdatedBy")
+  updatedCompanyProfiles   CompanyProfile[]         @relation("CompProfUpdatedBy")
+  createdCustContacts      CustomerContact[]        @relation("CustContCreatedBy")
+  updatedCustContacts      CustomerContact[]        @relation("CustContUpdatedBy")
+  createdCustomers         Customer[]               @relation("CustCreatedBy")
+  deletedCustomers         Customer[]               @relation("CustDeletedBy")
+  updatedCustomers         Customer[]               @relation("CustUpdatedBy")
+  createdCategories        InventoryCategory[]      @relation("CatCreatedBy")
+  updatedCategories        InventoryCategory[]      @relation("CatUpdatedBy")
+  createdItems             InventoryItem[]          @relation("ItemCreatedBy")
+  deletedItems             InventoryItem[]          @relation("ItemDeletedBy")
+  updatedItems             InventoryItem[]          @relation("ItemUpdatedBy")
+  createdSubCats           InventorySubCategory[]   @relation("SubCatCreatedBy")
+  updatedSubCats           InventorySubCategory[]   @relation("SubCatUpdatedBy")
+  createdUOMs              InventoryUnitOfMeasure[] @relation("UOMCreatedBy")
+  updatedUOMs              InventoryUnitOfMeasure[] @relation("UOMUpdatedBy")
+  createdInvDetails        InvoiceDetail[]          @relation("IDetCreatedBy")
+  updatedInvDetails        InvoiceDetail[]          @relation("IDetUpdatedBy")
+  createdRecurringInvoices RecurringInvoice[]       @relation("RecInvCreatedBy")
+  updatedRecurringInvoices RecurringInvoice[]       @relation("RecInvUpdatedBy")
+  deletedRecurringInvoices RecurringInvoice[]       @relation("RecInvDeletedBy")
+  createdRecInvDetails     RecurringInvoiceDetail[] @relation("RIDetCreatedBy")
+  updatedRecInvDetails     RecurringInvoiceDetail[] @relation("RIDetUpdatedBy")
+  createdDeliveryNotes     DeliveryNote[]           @relation("DNoteCreatedBy")
+  updatedDeliveryNotes     DeliveryNote[]           @relation("DNoteUpdatedBy")
+  deletedDeliveryNotes     DeliveryNote[]           @relation("DNoteDeletedBy")
+  createdDNoteDetails      DeliveryNoteDetail[]     @relation("DNDetCreatedBy")
+  updatedDNoteDetails      DeliveryNoteDetail[]     @relation("DNDetUpdatedBy")
+  createdReceipts          Receipt[]                @relation("ReceiptCreatedBy")
+  updatedReceipts          Receipt[]                @relation("ReceiptUpdatedBy")
+  deletedReceipts          Receipt[]                @relation("ReceiptDeletedBy")
+  createdCreditNotes       CreditNote[]             @relation("CreditNoteCreatedBy")
+  updatedCreditNotes       CreditNote[]             @relation("CreditNoteUpdatedBy")
+  deletedCreditNotes       CreditNote[]             @relation("CreditNoteDeletedBy")
+  createdCreditNoteDetails CreditNoteDetail[]       @relation("CNDetCreatedBy")
+  updatedCreditNoteDetails CreditNoteDetail[]       @relation("CNDetUpdatedBy")
+  createdInvoices          Invoice[]                @relation("InvCreatedBy")
+  deletedInvoices          Invoice[]                @relation("InvDeletedBy")
+  updatedInvoices          Invoice[]                @relation("InvUpdatedBy")
+  createdVContacts         PurchaseVendorContact[]  @relation("VContactCreatedBy")
+  updatedVContacts         PurchaseVendorContact[]  @relation("VContactUpdatedBy")
+  createdVendors           PurchaseVendor[]         @relation("VendorCreatedBy")
+  deletedVendors           PurchaseVendor[]         @relation("VendorDeletedBy")
+  updatedVendors           PurchaseVendor[]         @relation("VendorUpdatedBy")
+  createdQuotDetails       QuotationDetail[]        @relation("QDetCreatedBy")
+  updatedQuotDetails       QuotationDetail[]        @relation("QDetUpdatedBy")
+  createdQuotations        Quotation[]              @relation("QuotCreatedBy")
+  deletedQuotations        Quotation[]              @relation("QuotDeletedBy")
+  updatedQuotations        Quotation[]              @relation("QuotUpdatedBy")
+  createdSalesPartners     SalesPartner[]           @relation("SalesPartnerCreatedBy")
+  updatedSalesPartners     SalesPartner[]           @relation("SalesPartnerUpdatedBy")
+  createdSalesPersons      SalesPerson[]            @relation("SalesPersonCreatedBy")
+  updatedSalesPersons      SalesPerson[]            @relation("SalesPersonUpdatedBy")
+  createdVatRates          VatRate[]                @relation("VatRateCreatedBy")
+  updatedVatRates          VatRate[]                @relation("VatRateUpdatedBy")
+  updatedVatSettings       VatSetting[]             @relation("VatSettUpdatedBy")
 
   @@unique([client_id, email])
   @@map("client_users")
 }
 
-// 4. BUSINESS DATA
-
 model ClientContact {
-  id           Int      @id @default(autoincrement())
-  client_id    Int
-  first_name   String?  @db.VarChar(100)
-  last_name    String?  @db.VarChar(100)
-  email        String?  @db.VarChar(255)
-  phone        String?  @db.VarChar(50)
-  designation  String?  @db.VarChar(150)
-  created_date DateTime @default(now())
-  created_by   Int?
-  updated_date DateTime @default(now()) @updatedAt
-  updated_by   Int?
-
-  // Relations
+  id            Int         @id @default(autoincrement())
+  client_id     Int
+  first_name    String?     @db.VarChar(100)
+  last_name     String?     @db.VarChar(100)
+  email         String?     @db.VarChar(255)
+  phone         String?     @db.VarChar(50)
+  designation   String?     @db.VarChar(150)
+  created_date  DateTime    @default(now())
+  created_by    Int?
+  updated_date  DateTime    @default(now()) @updatedAt
+  updated_by    Int?
   client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
-  createdByUser ClientUser? @relation("CContactCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser ClientUser? @relation("CContactUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+  createdByUser ClientUser? @relation("CContactCreatedBy", fields: [created_by], references: [id])
+  updatedByUser ClientUser? @relation("CContactUpdatedBy", fields: [updated_by], references: [id])
 
   @@map("client_contacts")
 }
 
 model ClientPermission {
-  id           Int      @id @default(autoincrement())
-  client_id    Int
-  module_name  String   @db.VarChar(150)
-  can_create   Boolean? @default(false)
-  can_view     Boolean? @default(true)
-  can_update   Boolean? @default(false)
-  can_delete   Boolean? @default(false)
-  created_date DateTime @default(now())
-  created_by   Int?
-  updated_date DateTime @default(now()) @updatedAt
-  updated_by   Int?
-
-  // Relations
+  id            Int         @id @default(autoincrement())
+  client_id     Int
+  module_name   String      @db.VarChar(150)
+  can_create    Boolean?    @default(false)
+  can_view      Boolean?    @default(true)
+  can_update    Boolean?    @default(false)
+  can_delete    Boolean?    @default(false)
+  created_date  DateTime    @default(now())
+  created_by    Int?
+  updated_date  DateTime    @default(now()) @updatedAt
+  updated_by    Int?
   client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
-  createdByUser ClientUser? @relation("CPermCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser ClientUser? @relation("CPermUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+  createdByUser ClientUser? @relation("CPermCreatedBy", fields: [created_by], references: [id])
+  updatedByUser ClientUser? @relation("CPermUpdatedBy", fields: [updated_by], references: [id])
 
   @@map("client_permissions")
 }
 
 model ChartOfAccount {
-  id           Int      @id @default(autoincrement())
-  client_id    Int
-  name         String   @db.VarChar(255)
-  type         String   @db.VarChar(100)
-  parent_id    Int?
-  description  String?  @db.Text
-  status       String?  @default("Active") @db.VarChar(50)
-  created_date DateTime @default(now())
-  created_by   Int?
-  updated_date DateTime @default(now()) @updatedAt
-  updated_by   Int?
-
-  // Relations
-  client         Client           @relation(fields: [client_id], references: [id], onDelete: Cascade)
-  parent         ChartOfAccount?  @relation("COAParent", fields: [parent_id], references: [id], onDelete: Cascade)
-  children       ChartOfAccount[] @relation("COAParent")
-  createdByUser  ClientUser?      @relation("COACreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser  ClientUser?      @relation("COAUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
-
-  // Usage in Items
-  salesItems     InventoryItem[] @relation("SalesAccount")
-  purchaseItems  InventoryItem[] @relation("PurchaseAccount")
-  inventoryItems InventoryItem[] @relation("InventoryAccount")
+  id                Int                @id @default(autoincrement())
+  client_id         Int
+  name              String             @db.VarChar(255)
+  type              String             @db.VarChar(100)
+  parent_id         Int?
+  description       String?
+  status            String?            @default("Active") @db.VarChar(50)
+  created_date      DateTime           @default(now())
+  created_by        Int?
+  updated_date      DateTime           @default(now()) @updatedAt
+  updated_by        Int?
+  client            Client             @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser     ClientUser?        @relation("COACreatedBy", fields: [created_by], references: [id])
+  parent            ChartOfAccount?    @relation("COAParent", fields: [parent_id], references: [id], onDelete: Cascade)
+  children          ChartOfAccount[]   @relation("COAParent")
+  updatedByUser     ClientUser?        @relation("COAUpdatedBy", fields: [updated_by], references: [id])
+  inventoryItems    InventoryItem[]    @relation("InventoryAccount")
+  recurringInvoices RecurringInvoice[] @relation("ReceivableAccount")
+  receipts          Receipt[]          @relation("DepositAccount")
+  purchaseItems     InventoryItem[]    @relation("PurchaseAccount")
+  salesItems        InventoryItem[]    @relation("SalesAccount")
 
   @@unique([client_id, name])
   @@map("chart_of_accounts")
 }
 
 model PurchaseVendor {
-  id                          Int      @id @default(autoincrement())
-  client_id                   Int
-  name                        String   @db.VarChar(255)
-  type                        String?  @db.VarChar(50)
-  primary_contact             String?  @db.VarChar(255)
-  email                       String?  @db.VarChar(255)
-  phone                       String?  @db.VarChar(50)
-  tax_treatment               String?  @db.VarChar(100)
-  currency_id                 Int?
-  opening_balance             Decimal? @default(0.000) @db.Decimal(18, 3)
-  payment_terms               String?  @db.VarChar(100)
-  billing_address_attention   String?  @db.VarChar(255)
-  billing_address_country     String?  @db.VarChar(100)
-  billing_address_details     String?  @db.Text
-  billing_address_city        String?  @db.VarChar(100)
-  shipment_address_attention  String?  @db.VarChar(255)
-  shipment_address_country    String?  @db.VarChar(100)
-  shipment_address_details    String?  @db.Text
-  shipment_address_city       String?  @db.VarChar(100)
-  remarks                     String?  @db.Text
-  status                      String?  @default("Active") @db.VarChar(50)
-  is_active                   Boolean? @default(true)
-  deleted_date                DateTime?
-  deleted_by                  Int?
-  created_date                DateTime @default(now())
-  created_by                  Int?
-  updated_date                DateTime @default(now()) @updatedAt
-  updated_by                  Int?
-
-  // Relations
-  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
-  currency      Currency?   @relation(fields: [currency_id], references: [id], onDelete: SetNull)
-  createdByUser ClientUser? @relation("VendorCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser ClientUser? @relation("VendorUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
-  deletedByUser ClientUser? @relation("VendorDeletedBy", fields: [deleted_by], references: [id], onDelete: SetNull)
-  contacts      PurchaseVendorContact[]
-  items         InventoryItem[]
+  id                         Int                     @id @default(autoincrement())
+  client_id                  Int
+  name                       String                  @db.VarChar(255)
+  type                       String?                 @db.VarChar(50)
+  primary_contact            String?                 @db.VarChar(255)
+  email                      String?                 @db.VarChar(255)
+  phone                      String?                 @db.VarChar(50)
+  tax_treatment              String?                 @db.VarChar(100)
+  opening_balance            Decimal?                @default(0.000) @db.Decimal(18, 3)
+  payment_terms              String?                 @db.VarChar(100)
+  remarks                    String?
+  status                     String?                 @default("Active") @db.VarChar(50)
+  is_active                  Boolean?                @default(true)
+  created_date               DateTime                @default(now())
+  created_by                 Int?
+  updated_date               DateTime                @default(now()) @updatedAt
+  updated_by                 Int?
+  currency_id                Int?
+  billing_address_attention  String?                 @db.VarChar(255)
+  billing_address_city       String?                 @db.VarChar(100)
+  billing_address_country    String?                 @db.VarChar(100)
+  billing_address_details    String?
+  deleted_by                 Int?
+  deleted_date               DateTime?
+  shipment_address_attention String?                 @db.VarChar(255)
+  shipment_address_city      String?                 @db.VarChar(100)
+  shipment_address_country   String?                 @db.VarChar(100)
+  shipment_address_details   String?
+  items                      InventoryItem[]
+  contacts                   PurchaseVendorContact[]
+  client                     Client                  @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser              ClientUser?             @relation("VendorCreatedBy", fields: [created_by], references: [id])
+  currency                   Currency?               @relation(fields: [currency_id], references: [id])
+  deletedByUser              ClientUser?             @relation("VendorDeletedBy", fields: [deleted_by], references: [id])
+  updatedByUser              ClientUser?             @relation("VendorUpdatedBy", fields: [updated_by], references: [id])
 
   @@map("purchase_vendors")
 }
 
 model PurchaseVendorContact {
-  id           Int      @id @default(autoincrement())
-  vendor_id    Int
-  salutation   String?  @db.VarChar(20)
-  first_name   String?  @db.VarChar(100)
-  last_name    String?  @db.VarChar(100)
-  email        String?  @db.VarChar(255)
-  phone        String?  @db.VarChar(50)
-  designation  String?  @db.VarChar(150)
-  created_date DateTime @default(now())
-  created_by   Int?
-  updated_date DateTime @default(now()) @updatedAt
-  updated_by   Int?
-
-  // Relations
+  id            Int            @id @default(autoincrement())
+  vendor_id     Int
+  salutation    String?        @db.VarChar(20)
+  first_name    String?        @db.VarChar(100)
+  last_name     String?        @db.VarChar(100)
+  email         String?        @db.VarChar(255)
+  phone         String?        @db.VarChar(50)
+  designation   String?        @db.VarChar(150)
+  created_date  DateTime       @default(now())
+  created_by    Int?
+  updated_date  DateTime       @default(now()) @updatedAt
+  updated_by    Int?
+  createdByUser ClientUser?    @relation("VContactCreatedBy", fields: [created_by], references: [id])
+  updatedByUser ClientUser?    @relation("VContactUpdatedBy", fields: [updated_by], references: [id])
   vendor        PurchaseVendor @relation(fields: [vendor_id], references: [id], onDelete: Cascade)
-  createdByUser ClientUser?    @relation("VContactCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser ClientUser?    @relation("VContactUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
 
   @@map("purchase_vendor_contacts")
 }
 
 model InventoryCategory {
-  id           Int      @id @default(autoincrement())
-  client_id    Int
-  name         String   @db.VarChar(255)
-  description  String?  @db.Text
-  status       String?  @default("Active") @db.VarChar(50)
-  created_date DateTime @default(now())
-  created_by   Int?
-  updated_date DateTime @default(now()) @updatedAt
-  updated_by   Int?
-
-  // Relations
-  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
-  createdByUser ClientUser? @relation("CatCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser ClientUser? @relation("CatUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
-  subCategories InventorySubCategory[]
+  id            Int                    @id @default(autoincrement())
+  client_id     Int
+  name          String                 @db.VarChar(255)
+  description   String?
+  status        String?                @default("Active") @db.VarChar(50)
+  created_date  DateTime               @default(now())
+  created_by    Int?
+  updated_date  DateTime               @default(now()) @updatedAt
+  updated_by    Int?
+  client        Client                 @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser ClientUser?            @relation("CatCreatedBy", fields: [created_by], references: [id])
+  updatedByUser ClientUser?            @relation("CatUpdatedBy", fields: [updated_by], references: [id])
   items         InventoryItem[]
+  subCategories InventorySubCategory[]
 
   @@unique([client_id, name])
   @@map("inventory_categories")
 }
 
 model InventorySubCategory {
-  id           Int      @id @default(autoincrement())
-  client_id    Int
-  category_id  Int
-  name         String   @db.VarChar(255)
-  description  String?  @db.Text
-  status       String?  @default("Active") @db.VarChar(50)
-  created_date DateTime @default(now())
-  created_by   Int?
-  updated_date DateTime @default(now()) @updatedAt
-  updated_by   Int?
-
-  // Relations
-  client        Client            @relation(fields: [client_id], references: [id], onDelete: Cascade)
-  category      InventoryCategory @relation(fields: [category_id], references: [id], onDelete: Cascade)
-  createdByUser ClientUser?       @relation("SubCatCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser ClientUser?       @relation("SubCatUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+  id            Int               @id @default(autoincrement())
+  client_id     Int
+  category_id   Int
+  name          String            @db.VarChar(255)
+  description   String?
+  status        String?           @default("Active") @db.VarChar(50)
+  created_date  DateTime          @default(now())
+  created_by    Int?
+  updated_date  DateTime          @default(now()) @updatedAt
+  updated_by    Int?
   items         InventoryItem[]
+  category      InventoryCategory @relation(fields: [category_id], references: [id], onDelete: Cascade)
+  client        Client            @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser ClientUser?       @relation("SubCatCreatedBy", fields: [created_by], references: [id])
+  updatedByUser ClientUser?       @relation("SubCatUpdatedBy", fields: [updated_by], references: [id])
 
   @@unique([client_id, category_id, name])
   @@map("inventory_sub_categories")
 }
 
 model InventoryUnitOfMeasure {
-  id           Int      @id @default(autoincrement())
-  client_id    Int
-  name         String   @db.VarChar(100)
-  status       String?  @default("Active") @db.VarChar(50)
-  created_date DateTime @default(now())
-  created_by   Int?
-  updated_date DateTime @default(now()) @updatedAt
-  updated_by   Int?
-
-  // Relations
-  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
-  createdByUser ClientUser? @relation("UOMCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser ClientUser? @relation("UOMUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
-  
-  // Usage in items
-  baseItems    InventoryItem[] @relation("BaseUOM")
-  weightItems  InventoryItem[] @relation("WeightUOM")
-  volumeItems  InventoryItem[] @relation("VolumeUOM")
+  id            Int             @id @default(autoincrement())
+  client_id     Int
+  name          String          @db.VarChar(100)
+  status        String?         @default("Active") @db.VarChar(50)
+  created_date  DateTime        @default(now())
+  created_by    Int?
+  updated_date  DateTime        @default(now()) @updatedAt
+  updated_by    Int?
+  baseItems     InventoryItem[] @relation("BaseUOM")
+  volumeItems   InventoryItem[] @relation("VolumeUOM")
+  weightItems   InventoryItem[] @relation("WeightUOM")
+  client        Client          @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser ClientUser?     @relation("UOMCreatedBy", fields: [created_by], references: [id])
+  updatedByUser ClientUser?     @relation("UOMUpdatedBy", fields: [updated_by], references: [id])
 
   @@unique([client_id, name])
   @@map("inventory_unit_of_measures")
 }
 
 model VatSetting {
-  client_id               Int       @id
-  is_vat_registered       Boolean?  @default(false)
-  tax_registration_number String?   @db.VarChar(100)
-  vat_registered_on       DateTime? @db.Date
-  updated_date            DateTime  @default(now()) @updatedAt
+  client_id               Int         @id
+  is_vat_registered       Boolean?    @default(false)
+  updated_date            DateTime    @default(now()) @updatedAt
   updated_by              Int?
-
-  // Relations
-  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
-  updatedByUser ClientUser? @relation("VatSettUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+  tax_registration_number String?     @db.VarChar(100)
+  vat_registered_on       DateTime?   @db.Date
+  client                  Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  updatedByUser           ClientUser? @relation("VatSettUpdatedBy", fields: [updated_by], references: [id])
 
   @@map("vat_settings")
 }
 
 model VatRate {
-  id           Int      @id @default(autoincrement())
-  client_id    Int
-  name         String   @db.VarChar(100)
-  rate         Decimal  @db.Decimal(5, 2)
-  status       String?  @default("Active") @db.VarChar(50)
-  created_date DateTime @default(now())
-  created_by   Int?
-  updated_date DateTime @default(now()) @updatedAt
-  updated_by   Int?
-
-  // Relations
-  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
-  createdByUser ClientUser? @relation("VatRateCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser ClientUser? @relation("VatRateUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
-  inventoryItems    InventoryItem[]
-  quotationDetails  QuotationDetail[]
-  invoiceDetails    InvoiceDetail[]
+  id                      Int                      @id @default(autoincrement())
+  client_id               Int
+  name                    String                   @db.VarChar(100)
+  rate                    Decimal                  @db.Decimal(5, 2)
+  status                  String?                  @default("Active") @db.VarChar(50)
+  created_date            DateTime                 @default(now())
+  created_by              Int?
+  updated_date            DateTime                 @default(now()) @updatedAt
+  updated_by              Int?
+  inventoryItems          InventoryItem[]
+  invoiceDetails          InvoiceDetail[]
+  quotationDetails        QuotationDetail[]
+  recurringInvoiceDetails RecurringInvoiceDetail[]
+  deliveryNoteDetails     DeliveryNoteDetail[]
+  creditNoteDetails       CreditNoteDetail[]
+  client                  Client                   @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser           ClientUser?              @relation("VatRateCreatedBy", fields: [created_by], references: [id])
+  updatedByUser           ClientUser?              @relation("VatRateUpdatedBy", fields: [updated_by], references: [id])
 
   @@unique([client_id, name])
   @@map("vat_rates")
 }
 
 model InventoryItem {
-  id                   Int      @id @default(autoincrement())
-  client_id            Int
-  item_code            String   @db.VarChar(50)
-  name                 String   @db.VarChar(255)
-  sku                  String?  @db.VarChar(100)
-  description          String?  @db.Text
-  uom_id               Int
-  category_id          Int
-  sub_category_id      Int?
-  sales_rate           Decimal? @db.Decimal(18, 3)
-  vat_rate_id          Int?
-  sales_account_id     Int?
-  sales_description    String?  @db.Text
-  purchase_cost        Decimal? @db.Decimal(18, 3)
-  reorder_point        Int?     @default(0)
-  purchase_account_id  Int?
-  purchase_description String?  @db.Text
-  inventory_account_id Int?
-  stock_in_hand        Decimal? @default(0) @db.Decimal(18, 3)
-  status               String?  @default("Active") @db.VarChar(50)
-  warranty_period      String?  @db.VarChar(100)
-  shelf_life           String?  @db.VarChar(100)
-  vendor_id            Int?
-  weight_per_unit      Decimal? @db.Decimal(18, 3)
-  weight_uom_id        Int?
-  valuation_method     String?  @db.VarChar(50)
-  volume_per_unit      Decimal? @db.Decimal(18, 3)
-  volume_uom_id        Int?
-  inventory_description String? @db.Text
-  deleted_date         DateTime?
-  deleted_by           Int?
-  created_date         DateTime @default(now())
-  created_by           Int?
-  updated_date         DateTime @default(now()) @updatedAt
-  updated_by           Int?
-
-  // Relations
-  client           Client           @relation(fields: [client_id], references: [id], onDelete: Cascade)
-  uom              InventoryUnitOfMeasure @relation("BaseUOM", fields: [uom_id], references: [id], onDelete: Restrict)
-  category         InventoryCategory      @relation(fields: [category_id], references: [id], onDelete: Restrict)
-  subCategory      InventorySubCategory?  @relation(fields: [sub_category_id], references: [id], onDelete: SetNull)
-  vatRate          VatRate?               @relation(fields: [vat_rate_id], references: [id], onDelete: SetNull)
-  salesAccount     ChartOfAccount?        @relation("SalesAccount", fields: [sales_account_id], references: [id], onDelete: SetNull)
-  purchaseAccount  ChartOfAccount?        @relation("PurchaseAccount", fields: [purchase_account_id], references: [id], onDelete: SetNull)
-  inventoryAccount ChartOfAccount?        @relation("InventoryAccount", fields: [inventory_account_id], references: [id], onDelete: SetNull)
-  vendor           PurchaseVendor?       @relation(fields: [vendor_id], references: [id], onDelete: SetNull)
-  weightUom        InventoryUnitOfMeasure? @relation("WeightUOM", fields: [weight_uom_id], references: [id], onDelete: SetNull)
-  volumeUom        InventoryUnitOfMeasure? @relation("VolumeUOM", fields: [volume_uom_id], references: [id], onDelete: SetNull)
-  createdByUser    ClientUser?            @relation("ItemCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser    ClientUser?            @relation("ItemUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
-  deletedByUser    ClientUser?            @relation("ItemDeletedBy", fields: [deleted_by], references: [id], onDelete: SetNull)
-  quotationDetails QuotationDetail[]
-  invoiceDetails   InvoiceDetail[]
+  id                      Int                      @id @default(autoincrement())
+  client_id               Int
+  item_code               String                   @db.VarChar(50)
+  name                    String                   @db.VarChar(255)
+  sku                     String?                  @db.VarChar(100)
+  description             String?
+  uom_id                  Int
+  category_id             Int
+  sub_category_id         Int?
+  sales_rate              Decimal?                 @db.Decimal(18, 3)
+  sales_account_id        Int?
+  sales_description       String?
+  purchase_cost           Decimal?                 @db.Decimal(18, 3)
+  reorder_point           Int?                     @default(0)
+  purchase_account_id     Int?
+  purchase_description    String?
+  inventory_account_id    Int?
+  stock_in_hand           Decimal?                 @default(0) @db.Decimal(18, 3)
+  status                  String?                  @default("Active") @db.VarChar(50)
+  warranty_period         String?                  @db.VarChar(100)
+  shelf_life              String?                  @db.VarChar(100)
+  vendor_id               Int?
+  weight_per_unit         Decimal?                 @db.Decimal(18, 3)
+  weight_uom_id           Int?
+  valuation_method        String?                  @db.VarChar(50)
+  volume_per_unit         Decimal?                 @db.Decimal(18, 3)
+  volume_uom_id           Int?
+  inventory_description   String?
+  created_date            DateTime                 @default(now())
+  created_by              Int?
+  updated_date            DateTime                 @default(now()) @updatedAt
+  updated_by              Int?
+  deleted_by              Int?
+  deleted_date            DateTime?
+  vat_rate_id             Int?
+  category                InventoryCategory        @relation(fields: [category_id], references: [id])
+  client                  Client                   @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser           ClientUser?              @relation("ItemCreatedBy", fields: [created_by], references: [id])
+  deletedByUser           ClientUser?              @relation("ItemDeletedBy", fields: [deleted_by], references: [id])
+  inventoryAccount        ChartOfAccount?          @relation("InventoryAccount", fields: [inventory_account_id], references: [id])
+  purchaseAccount         ChartOfAccount?          @relation("PurchaseAccount", fields: [purchase_account_id], references: [id])
+  salesAccount            ChartOfAccount?          @relation("SalesAccount", fields: [sales_account_id], references: [id])
+  subCategory             InventorySubCategory?    @relation(fields: [sub_category_id], references: [id])
+  uom                     InventoryUnitOfMeasure   @relation("BaseUOM", fields: [uom_id], references: [id])
+  updatedByUser           ClientUser?              @relation("ItemUpdatedBy", fields: [updated_by], references: [id])
+  vatRate                 VatRate?                 @relation(fields: [vat_rate_id], references: [id])
+  vendor                  PurchaseVendor?          @relation(fields: [vendor_id], references: [id])
+  volumeUom               InventoryUnitOfMeasure?  @relation("VolumeUOM", fields: [volume_uom_id], references: [id])
+  weightUom               InventoryUnitOfMeasure?  @relation("WeightUOM", fields: [weight_uom_id], references: [id])
+  invoiceDetails          InvoiceDetail[]
+  quotationDetails        QuotationDetail[]
+  recurringInvoiceDetails RecurringInvoiceDetail[]
+  deliveryNoteDetails     DeliveryNoteDetail[]
+  creditNoteDetails       CreditNoteDetail[]
 
   @@unique([client_id, item_code])
   @@unique([client_id, sku])
@@ -576,276 +542,405 @@ model InventoryItem {
 }
 
 model Customer {
-  id                          Int      @id @default(autoincrement())
-  client_id                   Int
-  name                        String   @db.VarChar(255)
-  type                        String?  @db.VarChar(50)
-  primary_contact             String?  @db.VarChar(255)
-  email                       String?  @db.VarChar(255)
-  phone                       String?  @db.VarChar(50)
-  tax_treatment               String?  @db.VarChar(100)
-  currency_id                 Int?
-  opening_balance             Decimal? @default(0.000) @db.Decimal(18, 3)
-  source_of_supply            String?  @db.VarChar(255)
-  payment_terms               String?  @db.VarChar(100)
-  billing_address_attention   String?  @db.VarChar(255)
-  billing_address_country     String?  @db.VarChar(100)
-  billing_address_details     String?  @db.Text
-  billing_address_city        String?  @db.VarChar(100)
-  shipment_address_attention  String?  @db.VarChar(255)
-  shipment_address_country    String?  @db.VarChar(100)
-  shipment_address_details    String?  @db.Text
-  shipment_address_city       String?  @db.VarChar(100)
-  remarks                     String?  @db.Text
-  is_active                   Boolean? @default(true)
-  deleted_date                DateTime?
-  deleted_by                  Int?
-  created_date                DateTime @default(now())
-  created_by                  Int?
-  updated_date                DateTime @default(now()) @updatedAt
-  updated_by                  Int?
-
-  // Relations
-  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
-  currency      Currency?   @relation(fields: [currency_id], references: [id], onDelete: SetNull)
-  createdByUser ClientUser? @relation("CustCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser ClientUser? @relation("CustUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
-  deletedByUser ClientUser? @relation("CustDeletedBy", fields: [deleted_by], references: [id], onDelete: SetNull)
-  contacts      CustomerContact[]
-  quotations    Quotation[]
-  invoices      Invoice[]
+  id                         Int                @id @default(autoincrement())
+  client_id                  Int
+  name                       String             @db.VarChar(255)
+  type                       String?            @db.VarChar(50)
+  primary_contact            String?            @db.VarChar(255)
+  email                      String?            @db.VarChar(255)
+  phone                      String?            @db.VarChar(50)
+  tax_treatment              String?            @db.VarChar(100)
+  opening_balance            Decimal?           @default(0.000) @db.Decimal(18, 3)
+  source_of_supply           String?            @db.VarChar(255)
+  payment_terms              String?            @db.VarChar(100)
+  remarks                    String?
+  is_active                  Boolean?           @default(true)
+  created_date               DateTime           @default(now())
+  created_by                 Int?
+  updated_date               DateTime           @default(now()) @updatedAt
+  updated_by                 Int?
+  currency_id                Int?
+  billing_address_attention  String?            @db.VarChar(255)
+  billing_address_city       String?            @db.VarChar(100)
+  billing_address_country    String?            @db.VarChar(100)
+  billing_address_details    String?
+  deleted_by                 Int?
+  deleted_date               DateTime?
+  shipment_address_attention String?            @db.VarChar(255)
+  shipment_address_city      String?            @db.VarChar(100)
+  shipment_address_country   String?            @db.VarChar(100)
+  shipment_address_details   String?
+  contacts                   CustomerContact[]
+  client                     Client             @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser              ClientUser?        @relation("CustCreatedBy", fields: [created_by], references: [id])
+  currency                   Currency?          @relation(fields: [currency_id], references: [id])
+  deletedByUser              ClientUser?        @relation("CustDeletedBy", fields: [deleted_by], references: [id])
+  updatedByUser              ClientUser?        @relation("CustUpdatedBy", fields: [updated_by], references: [id])
+  invoices                   Invoice[]
+  recurringInvoices          RecurringInvoice[]
+  deliveryNotes              DeliveryNote[]
+  receipts                   Receipt[]
+  creditNotes                CreditNote[]
+  quotations                 Quotation[]
 
   @@map("customers")
 }
 
 model CustomerContact {
-  id           Int      @id @default(autoincrement())
-  customer_id  Int
-  salutation   String?  @db.VarChar(20)
-  first_name   String?  @db.VarChar(100)
-  last_name    String?  @db.VarChar(100)
-  email        String?  @db.VarChar(255)
-  phone        String?  @db.VarChar(50)
-  designation  String?  @db.VarChar(150)
-  created_date DateTime @default(now())
-  created_by   Int?
-  updated_date DateTime @default(now()) @updatedAt
-  updated_by   Int?
-
-  // Relations
+  id            Int         @id @default(autoincrement())
+  customer_id   Int
+  salutation    String?     @db.VarChar(20)
+  first_name    String?     @db.VarChar(100)
+  last_name     String?     @db.VarChar(100)
+  email         String?     @db.VarChar(255)
+  phone         String?     @db.VarChar(50)
+  designation   String?     @db.VarChar(150)
+  created_date  DateTime    @default(now())
+  created_by    Int?
+  updated_date  DateTime    @default(now()) @updatedAt
+  updated_by    Int?
+  createdByUser ClientUser? @relation("CustContCreatedBy", fields: [created_by], references: [id])
   customer      Customer    @relation(fields: [customer_id], references: [id], onDelete: Cascade)
-  createdByUser ClientUser? @relation("CustContCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser ClientUser? @relation("CustContUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+  updatedByUser ClientUser? @relation("CustContUpdatedBy", fields: [updated_by], references: [id])
 
   @@map("customer_contacts")
 }
 
 model SalesPerson {
-  id           Int      @id @default(autoincrement())
-  client_id    Int
-  name         String   @db.VarChar(255)
-  description  String?  @db.Text
-  status       String?  @default("Active") @db.VarChar(50)
-  created_date DateTime @default(now())
-  created_by   Int?
-  updated_date DateTime @default(now()) @updatedAt
-  updated_by   Int?
-
-  // Relations
-  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
-  createdByUser ClientUser? @relation("SalesPersonCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser ClientUser? @relation("SalesPersonUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
-  quotations    Quotation[]
+  id            Int         @id @default(autoincrement())
+  client_id     Int
+  name          String      @db.VarChar(255)
+  description   String?
+  status        String?     @default("Active") @db.VarChar(50)
+  created_date  DateTime    @default(now())
+  created_by    Int?
+  updated_date  DateTime    @default(now()) @updatedAt
+  updated_by    Int?
   invoices      Invoice[]
+  quotations    Quotation[]
+  creditNotes   CreditNote[]
+  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser ClientUser? @relation("SalesPersonCreatedBy", fields: [created_by], references: [id])
+  updatedByUser ClientUser? @relation("SalesPersonUpdatedBy", fields: [updated_by], references: [id])
 
   @@unique([client_id, name])
   @@map("sales_persons")
 }
 
 model SalesPartner {
-  id           Int      @id @default(autoincrement())
-  client_id    Int
-  name         String   @db.VarChar(255)
-  commission   Decimal  @default(0.00) @db.Decimal(5, 2)
-  description  String?  @db.Text
-  status       String?  @default("Active") @db.VarChar(50)
-  created_date DateTime @default(now())
-  created_by   Int?
-  updated_date DateTime @default(now()) @updatedAt
-  updated_by   Int?
-
-  // Relations
-  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
-  createdByUser ClientUser? @relation("SalesPartnerCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser ClientUser? @relation("SalesPartnerUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
-  invoices      Invoice[]
+  id                Int                @id @default(autoincrement())
+  client_id         Int
+  name              String             @db.VarChar(255)
+  commission        Decimal            @default(0.00) @db.Decimal(5, 2)
+  description       String?
+  status            String?            @default("Active") @db.VarChar(50)
+  created_date      DateTime           @default(now())
+  created_by        Int?
+  updated_date      DateTime           @default(now()) @updatedAt
+  updated_by        Int?
+  invoices          Invoice[]
+  recurringInvoices RecurringInvoice[]
+  client            Client             @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser     ClientUser?        @relation("SalesPartnerCreatedBy", fields: [created_by], references: [id])
+  updatedByUser     ClientUser?        @relation("SalesPartnerUpdatedBy", fields: [updated_by], references: [id])
 
   @@unique([client_id, name])
   @@map("sales_partners")
 }
 
 model Currency {
-  id             Int      @id @default(autoincrement())
-  client_id      Int
-  name           String   @db.VarChar(255)
-  code           String   @db.VarChar(10)
-  symbol         String   @db.VarChar(10)
-  is_base        Boolean? @default(false)
-  decimal_places Int?     @default(2)
-  format         String?  @db.VarChar(50)
-  created_date   DateTime @default(now())
-  created_by     Int?
-  updated_date   DateTime @default(now()) @updatedAt
-  updated_by     Int?
-
-  // Relations
-  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
-  createdByUser ClientUser? @relation("CurrencyCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser ClientUser? @relation("CurrencyUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
-  purchaseVendors PurchaseVendor[]
+  id              Int              @id @default(autoincrement())
+  client_id       Int
+  name            String           @db.VarChar(255)
+  code            String           @db.VarChar(10)
+  symbol          String           @db.VarChar(10)
+  is_base         Boolean?         @default(false)
+  decimal_places  Int?             @default(2)
+  format          String?          @db.VarChar(50)
+  created_date    DateTime         @default(now())
+  created_by      Int?
+  updated_date    DateTime         @default(now()) @updatedAt
+  updated_by      Int?
+  client          Client           @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser   ClientUser?      @relation("CurrencyCreatedBy", fields: [created_by], references: [id])
+  updatedByUser   ClientUser?      @relation("CurrencyUpdatedBy", fields: [updated_by], references: [id])
   customers       Customer[]
-  quotations      Quotation[]
   invoices        Invoice[]
+  purchaseVendors PurchaseVendor[]
+  quotations      Quotation[]
+  creditNotes     CreditNote[]
 
   @@unique([client_id, code])
   @@map("client_currencies")
 }
 
 model CompanyProfile {
-  client_id                   Int      @id
-  company_name                String?  @db.VarChar(255)
-  cr_number                   String?  @db.VarChar(100)
-  email                       String?  @db.VarChar(255)
-  phone                       String?  @db.VarChar(50)
-  mobile                      String?  @db.VarChar(50)
-  account_manager_name        String?  @db.VarChar(255)
-  account_manager_email       String?  @db.VarChar(255)
-  account_manager_phone       String?  @db.VarChar(50)
-  fiscal_year                 String?  @db.VarChar(100)
-  fiscal_start_date           String?  @db.VarChar(10)
-  fiscal_period               String?  @db.VarChar(100)
-  logo_path                   String?  @db.VarChar(512)
-  billing_address_attention   String?  @db.VarChar(255)
-  billing_address_country     String?  @db.VarChar(100)
-  billing_address_details     String?  @db.Text
-  billing_address_city        String?  @db.VarChar(100)
-  shipment_address_attention  String?  @db.VarChar(255)
-  shipment_address_country    String?  @db.VarChar(100)
-  shipment_address_details    String?  @db.Text
-  shipment_address_city       String?  @db.VarChar(100)
-  default_language            String?  @default("English") @db.VarChar(50)
-  time_zone                   String?  @default("UTC + 3:00") @db.VarChar(100)
-  date_format                 String?  @db.VarChar(100)
-  currency_format             String?  @db.VarChar(50)
-  updated_date                DateTime @default(now()) @updatedAt
-  updated_by                  Int?
-
-  // Relations
-  client        Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
-  updatedByUser ClientUser? @relation("CompProfUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+  client_id                  Int         @id
+  company_name               String?     @db.VarChar(255)
+  cr_number                  String?     @db.VarChar(100)
+  email                      String?     @db.VarChar(255)
+  phone                      String?     @db.VarChar(50)
+  mobile                     String?     @db.VarChar(50)
+  fiscal_year                String?     @db.VarChar(100)
+  fiscal_start_date          String?     @db.VarChar(10)
+  fiscal_period              String?     @db.VarChar(100)
+  logo_path                  String?     @db.VarChar(512)
+  default_language           String?     @default("English") @db.VarChar(50)
+  time_zone                  String?     @default("UTC + 3:00") @db.VarChar(100)
+  date_format                String?     @db.VarChar(100)
+  currency_format            String?     @db.VarChar(50)
+  updated_date               DateTime    @default(now()) @updatedAt
+  updated_by                 Int?
+  account_manager_email      String?     @db.VarChar(255)
+  account_manager_name       String?     @db.VarChar(255)
+  account_manager_phone      String?     @db.VarChar(50)
+  billing_address_attention  String?     @db.VarChar(255)
+  billing_address_city       String?     @db.VarChar(100)
+  billing_address_country    String?     @db.VarChar(100)
+  billing_address_details    String?
+  shipment_address_attention String?     @db.VarChar(255)
+  shipment_address_city      String?     @db.VarChar(100)
+  shipment_address_country   String?     @db.VarChar(100)
+  shipment_address_details   String?
+  client                     Client      @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  updatedByUser              ClientUser? @relation("CompProfUpdatedBy", fields: [updated_by], references: [id])
 
   @@map("company_profiles")
 }
 
-// 5. SALES TRANSACTIONS
-
 model Quotation {
-  id               Int      @id @default(autoincrement())
-  client_id        Int
-  quotation_number String   @db.VarChar(100)
-  customer_id      Int
-  quotation_date   DateTime @db.Date
-  expiry_date      DateTime? @db.Date
-  reference_number String?  @db.VarChar(255)
-  sales_person_id  Int?
-  currency_id      Int
-  status           String?  @default("Draft") @db.VarChar(50)
-  discount_level   String?  @default("Line Item Level") @db.VarChar(50)
-  discount_amount  Decimal? @default(0.000) @db.Decimal(18, 3)
-  discount_type    String?  @default("Fixed") @db.VarChar(20)
-  sub_total        Decimal? @default(0.000) @db.Decimal(18, 3)
-  total_discount   Decimal? @default(0.000) @db.Decimal(18, 3)
-  total_vat        Decimal? @default(0.000) @db.Decimal(18, 3)
-  grand_total      Decimal? @default(0.000) @db.Decimal(18, 3)
-  customer_notes   String?  @db.Text
-  terms_and_conditions String? @db.Text
-  attachments      Json?
-  created_date     DateTime @default(now())
-  created_by       Int?
-  updated_date     DateTime @default(now()) @updatedAt
-  updated_by       Int?
-  deleted_date     DateTime?
-  deleted_by       Int?
-
-  // Relations
-  client        Client       @relation(fields: [client_id], references: [id], onDelete: Cascade)
-  customer      Customer     @relation(fields: [customer_id], references: [id], onDelete: Restrict)
-  salesPerson   SalesPerson? @relation(fields: [sales_person_id], references: [id], onDelete: SetNull)
-  currency      Currency     @relation(fields: [currency_id], references: [id], onDelete: Restrict)
-  createdByUser ClientUser?  @relation("QuotCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser ClientUser?  @relation("QuotUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
-  deletedByUser ClientUser?  @relation("QuotDeletedBy", fields: [deleted_by], references: [id], onDelete: SetNull)
-  details       QuotationDetail[]
-  invoices      Invoice[]
+  id                   Int               @id @default(autoincrement())
+  client_id            Int
+  quotation_number     String            @db.VarChar(100)
+  customer_id          Int
+  quotation_date       DateTime          @db.Date
+  expiry_date          DateTime?         @db.Date
+  reference_number     String?           @db.VarChar(255)
+  sales_person_id      Int?
+  currency_id          Int
+  status               String?           @default("Draft") @db.VarChar(50)
+  discount_level       String?           @default("Line Item Level") @db.VarChar(50)
+  discount_amount      Decimal?          @default(0.000) @db.Decimal(18, 3)
+  discount_type        String?           @default("Fixed") @db.VarChar(20)
+  sub_total            Decimal?          @default(0.000) @db.Decimal(18, 3)
+  total_discount       Decimal?          @default(0.000) @db.Decimal(18, 3)
+  total_vat            Decimal?          @default(0.000) @db.Decimal(18, 3)
+  grand_total          Decimal?          @default(0.000) @db.Decimal(18, 3)
+  customer_notes       String?
+  terms_and_conditions String?
+  attachments          Json?
+  created_date         DateTime          @default(now())
+  created_by           Int?
+  updated_date         DateTime          @default(now()) @updatedAt
+  updated_by           Int?
+  deleted_date         DateTime?
+  deleted_by           Int?
+  invoices             Invoice[]
+  details              QuotationDetail[]
+  deliveryNotes        DeliveryNote[]
+  client               Client            @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser        ClientUser?       @relation("QuotCreatedBy", fields: [created_by], references: [id])
+  currency             Currency          @relation(fields: [currency_id], references: [id])
+  customer             Customer          @relation(fields: [customer_id], references: [id])
+  deletedByUser        ClientUser?       @relation("QuotDeletedBy", fields: [deleted_by], references: [id])
+  salesPerson          SalesPerson?      @relation(fields: [sales_person_id], references: [id])
+  updatedByUser        ClientUser?       @relation("QuotUpdatedBy", fields: [updated_by], references: [id])
 
   @@unique([client_id, quotation_number])
   @@map("quotations")
 }
 
 model QuotationDetail {
-  id              Int      @id @default(autoincrement())
+  id              Int           @id @default(autoincrement())
   quotation_id    Int
   item_id         Int
-  description     String?  @db.Text
-  quantity        Decimal  @db.Decimal(18, 3)
-  rate            Decimal  @db.Decimal(18, 3)
-  discount_amount Decimal? @default(0.000) @db.Decimal(18, 3)
+  description     String?
+  quantity        Decimal       @db.Decimal(18, 3)
+  rate            Decimal       @db.Decimal(18, 3)
+  discount_amount Decimal?      @default(0.000) @db.Decimal(18, 3)
   vat_rate_id     Int?
-  line_total      Decimal  @db.Decimal(18, 3)
-  created_date    DateTime @default(now())
+  line_total      Decimal       @db.Decimal(18, 3)
+  created_date    DateTime      @default(now())
   created_by      Int?
-  updated_date    DateTime @default(now()) @updatedAt
+  updated_date    DateTime      @default(now()) @updatedAt
   updated_by      Int?
   deleted_date    DateTime?
   deleted_by      Int?
-
-  // Relations
-  quotation     Quotation    @relation(fields: [quotation_id], references: [id], onDelete: Cascade)
-  item          InventoryItem @relation(fields: [item_id], references: [id], onDelete: Restrict)
-  vatRate       VatRate?     @relation(fields: [vat_rate_id], references: [id], onDelete: SetNull)
-  createdByUser ClientUser?  @relation("QDetCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser ClientUser?  @relation("QDetUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+  createdByUser   ClientUser?   @relation("QDetCreatedBy", fields: [created_by], references: [id])
+  item            InventoryItem @relation(fields: [item_id], references: [id])
+  quotation       Quotation     @relation(fields: [quotation_id], references: [id], onDelete: Cascade)
+  updatedByUser   ClientUser?   @relation("QDetUpdatedBy", fields: [updated_by], references: [id])
+  vatRate         VatRate?      @relation(fields: [vat_rate_id], references: [id])
 
   @@map("quotation_details")
 }
 
 model Invoice {
-  id                    Int      @id @default(autoincrement())
+  id                    Int             @id @default(autoincrement())
   client_id             Int
-  invoice_number        String   @db.VarChar(100)
+  invoice_number        String          @db.VarChar(100)
   customer_id           Int
   quotation_id          Int?
-  invoice_date          DateTime @db.Date
-  due_date              DateTime? @db.Date
-  payment_terms         String?  @db.VarChar(100)
-  reference_number      String?  @db.VarChar(255)
+  invoice_date          DateTime        @db.Date
+  due_date              DateTime?       @db.Date
+  payment_terms         String?         @db.VarChar(100)
+  reference_number      String?         @db.VarChar(255)
   sales_person_id       Int?
   currency_id           Int
   sales_partner_id      Int?
-  commission_percentage Decimal? @default(0.00) @db.Decimal(5, 2)
-  commission_amount     Decimal? @default(0.000) @db.Decimal(18, 3)
+  commission_percentage Decimal?        @default(0.00) @db.Decimal(5, 2)
+  commission_amount     Decimal?        @default(0.000) @db.Decimal(18, 3)
+  status                String?         @default("Draft") @db.VarChar(50)
+  discount_level        String?         @default("Line Item Level") @db.VarChar(50)
+  discount_amount       Decimal?        @default(0.000) @db.Decimal(18, 3)
+  discount_type         String?         @default("Fixed") @db.VarChar(20)
+  sub_total             Decimal?        @default(0.000) @db.Decimal(18, 3)
+  total_discount        Decimal?        @default(0.000) @db.Decimal(18, 3)
+  total_vat             Decimal?        @default(0.000) @db.Decimal(18, 3)
+  grand_total           Decimal?        @default(0.000) @db.Decimal(18, 3)
+  balance_due           Decimal?        @default(0.000) @db.Decimal(18, 3)
+  customer_notes        String?
+  terms_and_conditions  String?
+  attachments           Json?
+  created_date          DateTime        @default(now())
+  created_by            Int?
+  updated_date          DateTime        @default(now()) @updatedAt
+  updated_by            Int?
+  deleted_date          DateTime?
+  deleted_by            Int?
+  details               InvoiceDetail[]
+  deliveryNotes         DeliveryNote[]
+  client                Client          @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  createdByUser         ClientUser?     @relation("InvCreatedBy", fields: [created_by], references: [id])
+  currency              Currency        @relation(fields: [currency_id], references: [id])
+  customer              Customer        @relation(fields: [customer_id], references: [id])
+  deletedByUser         ClientUser?     @relation("InvDeletedBy", fields: [deleted_by], references: [id])
+  quotation             Quotation?      @relation(fields: [quotation_id], references: [id])
+  salesPartner          SalesPartner?   @relation(fields: [sales_partner_id], references: [id])
+  salesPerson           SalesPerson?    @relation(fields: [sales_person_id], references: [id])
+  updatedByUser         ClientUser?     @relation("InvUpdatedBy", fields: [updated_by], references: [id])
+  receiptApplications   ReceiptApplication[]
+  creditNoteApplications CreditNoteApplication[]
+
+  @@unique([client_id, invoice_number])
+  @@map("invoices")
+}
+
+model InvoiceDetail {
+  id              Int           @id @default(autoincrement())
+  invoice_id      Int
+  item_id         Int
+  description     String?
+  quantity        Decimal       @db.Decimal(18, 3)
+  rate            Decimal       @db.Decimal(18, 3)
+  discount_amount Decimal?      @default(0.000) @db.Decimal(18, 3)
+  vat_rate_id     Int?
+  line_total      Decimal       @db.Decimal(18, 3)
+  created_date    DateTime      @default(now())
+  created_by      Int?
+  updated_date    DateTime      @default(now()) @updatedAt
+  updated_by      Int?
+  deleted_date    DateTime?
+  deleted_by      Int?
+  createdByUser   ClientUser?   @relation("IDetCreatedBy", fields: [created_by], references: [id])
+  invoice         Invoice       @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  item            InventoryItem @relation(fields: [item_id], references: [id])
+  updatedByUser   ClientUser?   @relation("IDetUpdatedBy", fields: [updated_by], references: [id])
+  vatRate         VatRate?      @relation(fields: [vat_rate_id], references: [id])
+
+  @@map("invoice_details")
+}
+
+model RecurringInvoice {
+  id                     Int       @id @default(autoincrement())
+  client_id              Int
+  profile_name           String    @db.VarChar(255)
+  customer_id            Int
+  repeat_every           String    @default("Month") @db.VarChar(50)
+  starts_on              DateTime  @db.Date
+  ends_on                DateTime? @db.Date
+  never_expires          Boolean?  @default(false)
+  last_invoice_date      DateTime? @db.Date
+  next_invoice_date      DateTime? @db.Date
+  payment_terms          String?   @db.VarChar(100)
+  accounts_receivable_id Int?
+  status                 String?   @default("Draft") @db.VarChar(50)
+  discount_level         String?   @default("Line Item Level") @db.VarChar(50)
+  discount_amount        Decimal?  @default(0.000) @db.Decimal(18, 3)
+  discount_type          String?   @default("Fixed") @db.VarChar(20)
+  sub_total              Decimal?  @default(0.000) @db.Decimal(18, 3)
+  total_discount         Decimal?  @default(0.000) @db.Decimal(18, 3)
+  total_vat              Decimal?  @default(0.000) @db.Decimal(18, 3)
+  grand_total            Decimal?  @default(0.000) @db.Decimal(18, 3)
+  customer_notes         String?   @db.Text
+  terms_and_conditions   String?   @db.Text
+  attachments            Json?
+  created_date           DateTime  @default(now())
+  created_by             Int?
+  updated_date           DateTime  @default(now()) @updatedAt
+  updated_by             Int?
+  deleted_date           DateTime?
+  deleted_by             Int?
+
+  // Relations
+  client            Client                   @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  customer          Customer                 @relation(fields: [customer_id], references: [id], onDelete: Restrict)
+  receivableAccount ChartOfAccount?          @relation("ReceivableAccount", fields: [accounts_receivable_id], references: [id], onDelete: SetNull)
+  createdByUser     ClientUser?              @relation("RecInvCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser     ClientUser?              @relation("RecInvUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+  deletedByUser     ClientUser?              @relation("RecInvDeletedBy", fields: [deleted_by], references: [id], onDelete: SetNull)
+  details           RecurringInvoiceDetail[]
+  salesPartner      SalesPartner?            @relation(fields: [salesPartnerId], references: [id])
+  salesPartnerId    Int?
+
+  @@unique([client_id, profile_name])
+  @@map("recurring_invoices")
+}
+
+model RecurringInvoiceDetail {
+  id                   Int       @id @default(autoincrement())
+  recurring_invoice_id Int
+  item_id              Int
+  description          String?   @db.Text
+  quantity             Decimal   @db.Decimal(18, 3)
+  rate                 Decimal   @db.Decimal(18, 3)
+  discount_amount      Decimal?  @default(0.000) @db.Decimal(18, 3)
+  vat_rate_id          Int?
+  line_total           Decimal   @db.Decimal(18, 3)
+  created_date         DateTime  @default(now())
+  created_by           Int?
+  updated_date         DateTime  @default(now()) @updatedAt
+  updated_by           Int?
+  deleted_date         DateTime?
+  deleted_by           Int?
+
+  // Relations
+  recurringInvoice RecurringInvoice @relation(fields: [recurring_invoice_id], references: [id], onDelete: Cascade)
+  item             InventoryItem    @relation(fields: [item_id], references: [id], onDelete: Restrict)
+  vatRate          VatRate?         @relation(fields: [vat_rate_id], references: [id], onDelete: SetNull)
+  createdByUser    ClientUser?      @relation("RIDetCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser    ClientUser?      @relation("RIDetUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+
+  @@map("recurring_invoice_details")
+}
+
+model DeliveryNote {
+  id                    Int      @id @default(autoincrement())
+  client_id             Int
+  delivery_note_number  String   @db.VarChar(50)
+  customer_id           Int
+  quotation_id          Int?
+  invoice_id            Int?
+  delivery_date         DateTime @db.Date
   status                String?  @default("Draft") @db.VarChar(50)
-  discount_level        String?  @default("Line Item Level") @db.VarChar(50)
-  discount_amount       Decimal? @default(0.000) @db.Decimal(18, 3)
-  discount_type         String?  @default("Fixed") @db.VarChar(20)
+  delivery_address      String?  @db.Text
+  shipping_method       String?  @db.VarChar(100)
+  tracking_number       String?  @db.VarChar(100)
+  notes                 String?  @db.Text
+  terms_and_conditions  String?  @db.Text
   sub_total             Decimal? @default(0.000) @db.Decimal(18, 3)
-  total_discount        Decimal? @default(0.000) @db.Decimal(18, 3)
   total_vat             Decimal? @default(0.000) @db.Decimal(18, 3)
   grand_total           Decimal? @default(0.000) @db.Decimal(18, 3)
-  balance_due           Decimal? @default(0.000) @db.Decimal(18, 3)
-  customer_notes        String?  @db.Text
-  terms_and_conditions  String?  @db.Text
-  attachments           Json?
   created_date          DateTime @default(now())
   created_by            Int?
   updated_date          DateTime @default(now()) @updatedAt
@@ -854,44 +949,160 @@ model Invoice {
   deleted_by            Int?
 
   // Relations
-  client        Client        @relation(fields: [client_id], references: [id], onDelete: Cascade)
-  customer      Customer      @relation(fields: [customer_id], references: [id], onDelete: Restrict)
-  quotation     Quotation?    @relation(fields: [quotation_id], references: [id], onDelete: SetNull)
-  salesPerson   SalesPerson?  @relation(fields: [sales_person_id], references: [id], onDelete: SetNull)
-  salesPartner  SalesPartner? @relation(fields: [sales_partner_id], references: [id], onDelete: SetNull)
-  currency      Currency      @relation(fields: [currency_id], references: [id], onDelete: Restrict)
-  createdByUser ClientUser?   @relation("InvCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser ClientUser?   @relation("InvUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
-  deletedByUser ClientUser?   @relation("InvDeletedBy", fields: [deleted_by], references: [id], onDelete: SetNull)
-  details       InvoiceDetail[]
+  client        Client         @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  customer      Customer       @relation(fields: [customer_id], references: [id], onDelete: Restrict)
+  quotation     Quotation?     @relation(fields: [quotation_id], references: [id], onDelete: SetNull)
+  invoice       Invoice?       @relation(fields: [invoice_id], references: [id], onDelete: SetNull)
+  createdByUser ClientUser?    @relation("DNoteCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser ClientUser?    @relation("DNoteUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+  deletedByUser ClientUser?    @relation("DNoteDeletedBy", fields: [deleted_by], references: [id], onDelete: SetNull)
+  details       DeliveryNoteDetail[]
 
-  @@unique([client_id, invoice_number])
-  @@map("invoices")
+  @@unique([client_id, delivery_note_number])
+  @@map("delivery_notes")
 }
 
-model InvoiceDetail {
+model DeliveryNoteDetail {
+  id                Int      @id @default(autoincrement())
+  delivery_note_id  Int
+  item_id           Int
+  description       String?  @db.Text
+  quantity          Decimal  @db.Decimal(18, 3)
+  rate              Decimal? @db.Decimal(18, 3)
+  line_total        Decimal? @db.Decimal(18, 3)
+  vat_rate_id       Int?
+  created_date      DateTime @default(now())
+  created_by        Int?
+  updated_date      DateTime @default(now()) @updatedAt
+  updated_by        Int?
+
+  // Relations
+  deliveryNote  DeliveryNote   @relation(fields: [delivery_note_id], references: [id], onDelete: Cascade)
+  item          InventoryItem  @relation(fields: [item_id], references: [id], onDelete: Restrict)
+  vatRate       VatRate?       @relation(fields: [vat_rate_id], references: [id], onDelete: SetNull)
+  createdByUser ClientUser?    @relation("DNDetCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser ClientUser?    @relation("DNDetUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+
+  @@map("delivery_note_details")
+}
+
+model Receipt {
+  id                  Int      @id @default(autoincrement())
+  client_id           Int
+  receipt_number      String   @db.VarChar(100)
+  customer_id         Int
+  receipt_date        DateTime @db.Date
+  payment_mode        String?  @db.VarChar(50)
+  deposit_to_id       Int?
+  reference_number    String?  @db.VarChar(100)
+  amount_received     Decimal  @db.Decimal(18, 3)
+  bank_charges        Decimal? @default(0.000) @db.Decimal(18, 3)
+  notes               String?  @db.Text
+  status              String?  @default("Received") @db.VarChar(50)
+  created_date        DateTime @default(now())
+  created_by          Int?
+  updated_date        DateTime @default(now()) @updatedAt
+  updated_by          Int?
+  deleted_date        DateTime?
+  deleted_by          Int?
+
+  // Relations
+  client          Client               @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  customer        Customer             @relation(fields: [customer_id], references: [id], onDelete: Restrict)
+  depositAccount  ChartOfAccount?      @relation("DepositAccount", fields: [deposit_to_id], references: [id], onDelete: SetNull)
+  createdByUser   ClientUser?          @relation("ReceiptCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser   ClientUser?          @relation("ReceiptUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+  deletedByUser   ClientUser?          @relation("ReceiptDeletedBy", fields: [deleted_by], references: [id], onDelete: SetNull)
+  applications    ReceiptApplication[]
+
+  @@unique([client_id, receipt_number])
+  @@map("receipts")
+}
+
+model ReceiptApplication {
+  id             Int     @id @default(autoincrement())
+  receipt_id     Int
+  invoice_id     Int
+  amount_applied Decimal @db.Decimal(18, 3)
+
+  // Relations
+  receipt  Receipt @relation(fields: [receipt_id], references: [id], onDelete: Cascade)
+  invoice  Invoice @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+
+  @@map("receipt_applications")
+}
+
+model CreditNote {
+  id                  Int      @id @default(autoincrement())
+  client_id           Int
+  credit_note_number  String   @db.VarChar(100)
+  customer_id         Int
+  credit_note_date    DateTime @db.Date
+  status              String?  @default("Open") @db.VarChar(50)
+  reference_number    String?  @db.VarChar(100)
+  sales_person_id     Int?
+  currency_id         Int?
+  sub_total           Decimal? @default(0.000) @db.Decimal(18, 3)
+  total_vat           Decimal? @default(0.000) @db.Decimal(18, 3)
+  grand_total         Decimal? @default(0.000) @db.Decimal(18, 3)
+  balance             Decimal? @default(0.000) @db.Decimal(18, 3)
+  customer_notes      String?  @db.Text
+  terms_and_conditions String? @db.Text
+  created_date        DateTime @default(now())
+  created_by          Int?
+  updated_date        DateTime @default(now()) @updatedAt
+  updated_by          Int?
+  deleted_date        DateTime?
+  deleted_by          Int?
+
+  // Relations
+  client          Client                  @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  customer        Customer                @relation(fields: [customer_id], references: [id], onDelete: Restrict)
+  salesPerson     SalesPerson?            @relation(fields: [sales_person_id], references: [id], onDelete: SetNull)
+  currency        Currency?               @relation(fields: [currency_id], references: [id], onDelete: SetNull)
+  createdByUser   ClientUser?             @relation("CreditNoteCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser   ClientUser?             @relation("CreditNoteUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+  deletedByUser   ClientUser?             @relation("CreditNoteDeletedBy", fields: [deleted_by], references: [id], onDelete: SetNull)
+  details         CreditNoteDetail[]
+  applications    CreditNoteApplication[]
+
+  @@unique([client_id, credit_note_number])
+  @@map("credit_notes")
+}
+
+model CreditNoteDetail {
   id              Int      @id @default(autoincrement())
-  invoice_id      Int
+  credit_note_id  Int
   item_id         Int
   description     String?  @db.Text
   quantity        Decimal  @db.Decimal(18, 3)
   rate            Decimal  @db.Decimal(18, 3)
-  discount_amount Decimal? @default(0.000) @db.Decimal(18, 3)
   vat_rate_id     Int?
   line_total      Decimal  @db.Decimal(18, 3)
   created_date    DateTime @default(now())
   created_by      Int?
   updated_date    DateTime @default(now()) @updatedAt
   updated_by      Int?
-  deleted_date    DateTime?
-  deleted_by      Int?
 
   // Relations
-  invoice       Invoice       @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  creditNote    CreditNote    @relation(fields: [credit_note_id], references: [id], onDelete: Cascade)
   item          InventoryItem @relation(fields: [item_id], references: [id], onDelete: Restrict)
   vatRate       VatRate?      @relation(fields: [vat_rate_id], references: [id], onDelete: SetNull)
-  createdByUser ClientUser?   @relation("IDetCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
-  updatedByUser ClientUser?   @relation("IDetUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
+  createdByUser ClientUser?   @relation("CNDetCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  updatedByUser ClientUser?   @relation("CNDetUpdatedBy", fields: [updated_by], references: [id], onDelete: SetNull)
 
-  @@map("invoice_details")
+  @@map("credit_note_details")
+}
+
+model CreditNoteApplication {
+  id              Int     @id @default(autoincrement())
+  credit_note_id  Int
+  invoice_id      Int
+  amount_applied  Decimal @db.Decimal(18, 3)
+
+  // Relations
+  creditNote  CreditNote @relation(fields: [credit_note_id], references: [id], onDelete: Cascade)
+  invoice     Invoice    @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+
+  @@map("credit_note_applications")
 }

@@ -8,6 +8,8 @@
 8.  **Prisma Studio (Database UI)**:
     - To see your database tables in a visual editor, run: `npm run db:studio`
     - This will open a browser window at `http://localhost:5555`.
+11. **API Documentation (Swagger UI)**:
+    - To view and test APIs interactively, visit: `http://localhost:3000/api-docs`
 
 ---
 
@@ -813,6 +815,78 @@ Fetch all quotations.
 
 ---
 
+
+## 🔁 11. Recurring Invoices Module
+Automated billing profiles for repeat customers.
+
+### A. List Recurring Invoices
+Fetch all active recurring invoice profiles.
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/sales/recurring-invoices`
+
+### B. Create Recurring Profile
+*   **Method**: `POST`
+*   **URL**: `{{base_url}}/api/v1/sales/recurring-invoices`
+*   **Body (JSON)**:
+    ```json
+    {
+      "profile_name": "Monthly Server Maintenance",
+      "customer_id": 1,
+      "repeat_every": "Month",
+      "starts_on": "2026-05-01",
+      "never_expires": true,
+      "status": "Active",
+      "sub_total": 450,
+      "grand_total": 472.5,
+      "details": [
+        {
+          "item_id": 1,
+          "quantity": 1,
+          "rate": 450,
+          "vat_rate_id": 1,
+          "line_total": 472.5
+        }
+      ]
+    }
+    ```
+
+### C. Update Profile
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/sales/recurring-invoices/:id`
+*   **Body (JSON)**:
+    ```json
+    {
+      "profile_name": "Updated Maintenance Name",
+      "status": "Inactive"
+    }
+    ```
+
+### D. Bulk Status Update
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/sales/recurring-invoices/bulk-status`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2],
+      "status": "Inactive"
+    }
+    ```
+
+### E. Bulk Delete
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/sales/recurring-invoices`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2]
+    }
+    ```
+
+### F. Single Delete
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/sales/recurring-invoices/:id`
+
+
 ## 🧾 11. Invoices Module
 
 ### A. List Invoices
@@ -971,6 +1045,166 @@ Fetch customer contacts. Can be filtered by customer ID.
       "ids": [1, 2]
     }
     ```
+
+---
+
+## 🚚 12. Delivery Notes Module
+Manage shipments and partial deliveries.
+
+### A. List Delivery Notes
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/sales/delivery-notes`
+
+### B. Create Delivery Note
+*   **Method**: `POST`
+*   **URL**: `{{base_url}}/api/v1/sales/delivery-notes`
+*   **Body (JSON)**:
+    ```json
+    {
+      "delivery_note_number": "DN-2026-005",
+      "customer_id": 1,
+      "quotation_id": 1,
+      "delivery_date": "2026-05-05",
+      "status": "Delivered",
+      "delivery_address": "Main Warehouse, Gate 4",
+      "shipping_method": "Courier",
+      "sub_total": 450,
+      "grand_total": 472.5,
+      "details": [
+        {
+          "item_id": 1,
+          "quantity": 1,
+          "rate": 450,
+          "vat_rate_id": 1,
+          "line_total": 472.5
+        }
+      ]
+    }
+    ```
+
+### C. Update Delivery Note
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/sales/delivery-notes/:id`
+*   **Body (JSON)**:
+    ```json
+    {
+      "status": "Cancelled",
+      "notes": "Customer requested cancellation"
+    }
+    ```
+
+### D. Bulk Status Update
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/sales/delivery-notes/bulk-status`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2],
+      "status": "Delivered"
+    }
+    ```
+
+### E. Bulk Delete
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/sales/delivery-notes`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2]
+    }
+    ```
+
+---
+
+## 💰 13. Receipts Module
+Manage customer payments and apply them to invoices.
+
+### A. List Receipts
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/sales/receipts`
+
+### B. Record a Payment (Receipt)
+*   **Method**: `POST`
+*   **URL**: `{{base_url}}/api/v1/sales/receipts`
+*   **Body (JSON)**:
+    ```json
+    {
+      "receipt_number": "RCP-2026-101",
+      "customer_id": 1,
+      "receipt_date": "2026-05-05",
+      "payment_mode": "Cash",
+      "deposit_to_id": 4,
+      "amount_received": 200,
+      "notes": "Partial payment for INV-001",
+      "applications": [
+        {
+          "invoice_id": 1,
+          "amount_applied": 200
+        }
+      ]
+    }
+    ```
+
+### C. Bulk Status Update
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/sales/receipts/bulk-status`
+*   **Body (JSON)**:
+    ```json
+    {
+      "ids": [1, 2],
+      "status": "Received"
+    }
+    ```
+
+### D. Delete Receipt
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/sales/receipts/:id`
+*   **Note**: This will automatically restore the `balance_due` on all invoices where this receipt was applied.
+
+---
+
+## 📉 14. Credit Notes Module
+Manage sales returns and apply credits to invoices.
+
+### A. List Credit Notes
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/sales/credit-notes`
+
+### B. Create Credit Note
+*   **Method**: `POST`
+*   **URL**: `{{base_url}}/api/v1/sales/credit-notes`
+*   **Body (JSON)**:
+    ```json
+    {
+      "credit_note_number": "CN-2026-005",
+      "customer_id": 1,
+      "credit_note_date": "2026-05-05",
+      "currency_id": 1,
+      "sub_total": 100,
+      "total_vat": 5,
+      "grand_total": 105,
+      "details": [
+        {
+          "item_id": 1,
+          "quantity": 1,
+          "rate": 100,
+          "vat_rate_id": 1,
+          "line_total": 105
+        }
+      ],
+      "applications": [
+        {
+          "invoice_id": 1,
+          "amount_applied": 105
+        }
+      ]
+    }
+    ```
+
+### C. Delete Credit Note
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/sales/credit-notes/:id`
+*   **Note**: Restores invoice balances automatically.
 
 ---
 

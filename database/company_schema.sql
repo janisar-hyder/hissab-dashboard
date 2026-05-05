@@ -857,6 +857,332 @@ CREATE TABLE invoice_details (
     FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL
 );
 
+-- Recurring Invoices (Scheduling Profiles that auto-generate Invoices)
+CREATE TABLE recurring_invoices (
+    id SERIAL PRIMARY KEY,
+    client_id INT NOT NULL,
+    profile_name VARCHAR(255) NOT NULL,
+    customer_id INT NOT NULL,
+
+    -- Schedule Settings
+    repeat_every VARCHAR(50) NOT NULL DEFAULT 'Month', -- Week, 2 Weeks, Month, 2 Months, Quarter, 6 Months, Year
+    starts_on DATE NOT NULL,
+    ends_on DATE,          -- NULL if never_expires = true
+    never_expires BOOLEAN DEFAULT FALSE,
+
+    -- Tracking
+    last_invoice_date DATE,  -- Auto-updated when an invoice is generated
+    next_invoice_date DATE,  -- Computed from schedule
+
+    payment_terms VARCHAR(100),
+    accounts_receivable_id INT, -- Links to chart_of_accounts
+
+    status VARCHAR(50) DEFAULT 'Draft', -- Draft, Active, Expired
+
+    -- Discount Settings
+    discount_level VARCHAR(50) DEFAULT 'Line Item Level', -- 'Transaction Level' or 'Line Item Level'
+    discount_amount DECIMAL(18,3) DEFAULT 0.000,          -- Header discount value
+    discount_type VARCHAR(20) DEFAULT 'Fixed',            -- 'Fixed' or 'Percentage'
+
+    -- Computed Totals
+    sub_total DECIMAL(18,3) DEFAULT 0.000,
+    total_discount DECIMAL(18,3) DEFAULT 0.000,
+    total_vat DECIMAL(18,3) DEFAULT 0.000,
+    grand_total DECIMAL(18,3) DEFAULT 0.000,
+
+    customer_notes TEXT,
+    terms_and_conditions TEXT,
+    attachments JSONB, -- Store as JSON array of paths/urls
+
+    -- Audit Columns
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by INT NULL,
+    updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
+
+    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT,
+    FOREIGN KEY (accounts_receivable_id) REFERENCES chart_of_accounts(id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    UNIQUE(client_id, profile_name)
+);
+
+-- Recurring Invoice Details (Line Items)
+CREATE TABLE recurring_invoice_details (
+    id SERIAL PRIMARY KEY,
+    recurring_invoice_id INT NOT NULL,
+
+    item_id INT NOT NULL, -- Links directly to inventory_items
+    description TEXT,     -- Specific description for this line (optional)
+
+    quantity DECIMAL(18,3) NOT NULL,
+    rate DECIMAL(18,3) NOT NULL,
+
+    discount_amount DECIMAL(18,3) DEFAULT 0.000, -- Line-level discount value
+
+    vat_rate_id INT,
+
+    line_total DECIMAL(18,3) NOT NULL,
+
+    -- Audit Columns
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by INT NULL,
+    updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
+
+    FOREIGN KEY (recurring_invoice_id) REFERENCES recurring_invoices(id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE RESTRICT,
+    FOREIGN KEY (vat_rate_id) REFERENCES vat_rates(id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL
+);
+
+-- Delivery Notes (Proof of delivery to customers)
+CREATE TABLE delivery_notes (
+    id SERIAL PRIMARY KEY,
+    client_id INT NOT NULL,
+    delivery_note_number VARCHAR(100) NOT NULL,
+    customer_id INT NOT NULL,
+    delivery_note_date DATE NOT NULL,
+    reference_number VARCHAR(255),
+    
+    status VARCHAR(50) DEFAULT 'Draft', -- Draft, Open, Delivered
+    invoice_status VARCHAR(50) DEFAULT 'Not Invoiced', -- Invoiced, Not Invoiced
+    
+    -- Discount Settings
+    discount_level VARCHAR(50) DEFAULT 'Line Item Level', -- 'Transaction Level' or 'Line Item Level'
+    discount_amount DECIMAL(18,3) DEFAULT 0.000,          -- Header discount value
+    discount_type VARCHAR(20) DEFAULT 'Fixed',            -- 'Fixed' or 'Percentage'
+    
+    -- Computed Totals
+    sub_total DECIMAL(18,3) DEFAULT 0.000,
+    total_discount DECIMAL(18,3) DEFAULT 0.000,
+    total_vat DECIMAL(18,3) DEFAULT 0.000,
+    grand_total DECIMAL(18,3) DEFAULT 0.000,
+    
+    customer_notes TEXT,
+    terms_and_conditions TEXT,
+    attachments JSONB, -- Store as JSON array of paths/urls
+    
+    -- Audit Columns
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by INT NULL,
+    updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
+    
+    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT,
+    FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    UNIQUE(client_id, delivery_note_number)
+);
+
+-- Delivery Note Details (Line Items)
+CREATE TABLE delivery_note_details (
+    id SERIAL PRIMARY KEY,
+    delivery_note_id INT NOT NULL,
+    
+    item_id INT NOT NULL, -- Links directly to inventory_items
+    description TEXT,     -- Specific description for this line (optional)
+    
+    quantity DECIMAL(18,3) NOT NULL,
+    rate DECIMAL(18,3) NOT NULL,
+    
+    discount_amount DECIMAL(18,3) DEFAULT 0.000, -- Line-level discount value
+    
+    vat_rate_id INT,
+    
+    line_total DECIMAL(18,3) NOT NULL,
+    
+    -- Audit Columns
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by INT NULL,
+    updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
+    
+    FOREIGN KEY (delivery_note_id) REFERENCES delivery_notes(id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE RESTRICT,
+    FOREIGN KEY (vat_rate_id) REFERENCES vat_rates(id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL
+);
+
+-- Credit Notes (Customer Returns/Credits)
+CREATE TABLE credit_notes (
+    id SERIAL PRIMARY KEY,
+    client_id INT NOT NULL,
+    credit_note_number VARCHAR(100) NOT NULL,
+    customer_id INT NOT NULL,
+    credit_note_date DATE NOT NULL,
+    reference_number VARCHAR(255),
+    
+    accounts_receivable_id INT, -- Links to chart_of_accounts
+    
+    status VARCHAR(50) DEFAULT 'Draft', -- Draft, Open, Closed
+    
+    -- Computed Totals
+    sub_total DECIMAL(18,3) DEFAULT 0.000,
+    total_vat DECIMAL(18,3) DEFAULT 0.000,
+    grand_total DECIMAL(18,3) DEFAULT 0.000,
+    
+    -- Balance Tracking
+    credits_used DECIMAL(18,3) DEFAULT 0.000,
+    credits_remaining DECIMAL(18,3) DEFAULT 0.000,
+    
+    customer_notes TEXT,
+    terms_and_conditions TEXT,
+    attachments JSONB, -- Store as JSON array of paths/urls
+    
+    -- Audit Columns
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by INT NULL,
+    updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
+    
+    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT,
+    FOREIGN KEY (accounts_receivable_id) REFERENCES chart_of_accounts(id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    UNIQUE(client_id, credit_note_number)
+);
+
+-- Credit Note Details (Line Items)
+CREATE TABLE credit_note_details (
+    id SERIAL PRIMARY KEY,
+    credit_note_id INT NOT NULL,
+    
+    item_id INT NOT NULL, -- Links directly to inventory_items
+    description TEXT,     -- Specific description for this line (optional)
+    
+    quantity DECIMAL(18,3) NOT NULL,
+    rate DECIMAL(18,3) NOT NULL,
+    
+    discount_amount DECIMAL(18,3) DEFAULT 0.000, -- Line-level discount value
+    
+    vat_rate_id INT,
+    
+    line_total DECIMAL(18,3) NOT NULL,
+    
+    -- Audit Columns
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by INT NULL,
+    updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
+    
+    FOREIGN KEY (credit_note_id) REFERENCES credit_notes(id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE RESTRICT,
+    FOREIGN KEY (vat_rate_id) REFERENCES vat_rates(id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL
+);
+
+-- Credit Note Applications (Tracking which credit note paid for which invoice)
+CREATE TABLE credit_note_applications (
+    id SERIAL PRIMARY KEY,
+    client_id INT NOT NULL,
+    credit_note_id INT NOT NULL,
+    invoice_id INT NOT NULL,
+    
+    amount_applied DECIMAL(18,3) NOT NULL,
+    applied_date DATE DEFAULT CURRENT_DATE,
+    
+    -- Audit Columns
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by INT NULL,
+    updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
+    
+    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+    FOREIGN KEY (credit_note_id) REFERENCES credit_notes(id) ON DELETE CASCADE,
+    FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL
+);
+
+-- Receipts (Customer Payments)
+CREATE TABLE receipts (
+    id SERIAL PRIMARY KEY,
+    client_id INT NOT NULL,
+    receipt_number VARCHAR(100) NOT NULL,
+    customer_id INT NOT NULL,
+    
+    amount_received DECIMAL(18,3) NOT NULL,
+    payment_date DATE NOT NULL,
+    payment_mode VARCHAR(100), -- Cash, Cheque, Bank Transfer, Credit Card
+    deposit_to_id INT NOT NULL, -- Links to chart_of_accounts
+    bank_charges DECIMAL(18,3) DEFAULT 0.000,
+    
+    reference_number VARCHAR(255),
+    status VARCHAR(50) DEFAULT 'Paid', -- Paid, Draft
+    notes TEXT,
+    attachments JSONB, -- Store as JSON array of paths/urls
+    
+    -- Audit Columns
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by INT NULL,
+    updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
+    
+    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT,
+    FOREIGN KEY (deposit_to_id) REFERENCES chart_of_accounts(id) ON DELETE RESTRICT,
+    FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    UNIQUE(client_id, receipt_number)
+);
+
+-- Receipt Applications (Tracking which receipt paid for which invoice)
+CREATE TABLE receipt_applications (
+    id SERIAL PRIMARY KEY,
+    client_id INT NOT NULL,
+    receipt_id INT NOT NULL,
+    invoice_id INT NOT NULL,
+    
+    amount_applied DECIMAL(18,3) NOT NULL,
+    applied_date DATE DEFAULT CURRENT_DATE,
+    
+    -- Audit Columns
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by INT NULL,
+    updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT NULL,
+    deleted_date TIMESTAMP NULL,
+    deleted_by INT NULL,
+    
+    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+    FOREIGN KEY (receipt_id) REFERENCES receipts(id) ON DELETE CASCADE,
+    FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES client_users(id) ON DELETE SET NULL,
+    FOREIGN KEY (deleted_by) REFERENCES client_users(id) ON DELETE SET NULL
+);
+
 CREATE TABLE company_profiles (
     client_id INT PRIMARY KEY,
     

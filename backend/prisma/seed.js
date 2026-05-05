@@ -65,31 +65,44 @@ async function main() {
     }
   });
 
-  // 6. Cleanup existing data for re-seeding
-  await prisma.inventoryItem.deleteMany({ where: { client_id: client.id } });
-  await prisma.quotationDetail.deleteMany({ where: { quotation: { client_id: client.id } } });
-  await prisma.quotation.deleteMany({ where: { client_id: client.id } });
+  // 6. Cleanup existing data for re-seeding (Delete in reverse order of dependency)
+  await prisma.receiptApplication.deleteMany({ where: { receipt: { client_id: client.id } } });
+  await prisma.receipt.deleteMany({ where: { client_id: client.id } });
+  await prisma.creditNoteApplication.deleteMany({ where: { creditNote: { client_id: client.id } } });
+  await prisma.creditNoteDetail.deleteMany({ where: { creditNote: { client_id: client.id } } });
+  await prisma.creditNote.deleteMany({ where: { client_id: client.id } });
+  await prisma.recurringInvoiceDetail.deleteMany({ where: { recurringInvoice: { client_id: client.id } } });
+  await prisma.recurringInvoice.deleteMany({ where: { client_id: client.id } });
+  await prisma.deliveryNoteDetail.deleteMany({ where: { deliveryNote: { client_id: client.id } } });
+  await prisma.deliveryNote.deleteMany({ where: { client_id: client.id } });
   await prisma.invoiceDetail.deleteMany({ where: { invoice: { client_id: client.id } } });
   await prisma.invoice.deleteMany({ where: { client_id: client.id } });
+  await prisma.quotationDetail.deleteMany({ where: { quotation: { client_id: client.id } } });
+  await prisma.quotation.deleteMany({ where: { client_id: client.id } });
+  
+  await prisma.inventoryItem.deleteMany({ where: { client_id: client.id } });
+  await prisma.inventorySubCategory.deleteMany({ where: { client_id: client.id } });
+  await prisma.inventoryCategory.deleteMany({ where: { client_id: client.id } });
+  await prisma.inventoryUnitOfMeasure.deleteMany({ where: { client_id: client.id } });
+  await prisma.vatRate.deleteMany({ where: { client_id: client.id } });
+
   await prisma.customerContact.deleteMany({ where: { customer: { client_id: client.id } } });
   await prisma.customer.deleteMany({ where: { client_id: client.id } });
   await prisma.purchaseVendorContact.deleteMany({ where: { vendor: { client_id: client.id } } });
   await prisma.purchaseVendor.deleteMany({ where: { client_id: client.id } });
+
   await prisma.salesPerson.deleteMany({ where: { client_id: client.id } });
   await prisma.salesPartner.deleteMany({ where: { client_id: client.id } });
   await prisma.currency.deleteMany({ where: { client_id: client.id } });
   await prisma.chartOfAccount.deleteMany({ where: { client_id: client.id } });
-  await prisma.inventoryCategory.deleteMany({ where: { client_id: client.id } });
-  await prisma.inventorySubCategory.deleteMany({ where: { client_id: client.id } });
-  await prisma.inventoryUnitOfMeasure.deleteMany({ where: { client_id: client.id } });
-  await prisma.vatRate.deleteMany({ where: { client_id: client.id } });
 
   // 7. Chart of Accounts
   await prisma.chartOfAccount.createMany({
     data: [
       { client_id: client.id, name: 'Sales', type: 'Income', created_by: clientUser.id },
       { client_id: client.id, name: 'Cost of Goods Sold', type: 'Cost of Goods Sold', created_by: clientUser.id },
-      { client_id: client.id, name: 'Inventory Asset', type: 'Stock', created_by: clientUser.id }
+      { client_id: client.id, name: 'Inventory Asset', type: 'Stock', created_by: clientUser.id },
+      { client_id: client.id, name: 'Main Cash Account', type: 'Bank', created_by: clientUser.id }
     ]
   });
 
@@ -433,6 +446,150 @@ async function main() {
             rate: 250.000,
             vat_rate_id: standardVat.id,
             line_total: 262.500
+          }
+        ]
+      }
+    }
+  });
+  
+  // 15.5 Recurring Invoices
+  await prisma.recurringInvoice.create({
+    data: {
+      client_id: client.id,
+      profile_name: 'Monthly Maintenance - Alpha',
+      customer_id: customer1.id,
+      repeat_every: 'Month',
+      starts_on: new Date(),
+      never_expires: true,
+      next_invoice_date: new Date(),
+      status: 'Active',
+      sub_total: 450.000,
+      total_vat: 22.500,
+      grand_total: 472.500,
+      created_by: clientUser.id,
+      details: {
+        create: [
+          {
+            item_id: item1.id,
+            quantity: 1,
+            rate: 450.000,
+            vat_rate_id: standardVat.id,
+            line_total: 472.500
+          }
+        ]
+      }
+    }
+  });
+
+  await prisma.recurringInvoice.create({
+    data: {
+      client_id: client.id,
+      profile_name: 'Quarterly Service - Beta',
+      customer_id: customer2.id,
+      repeat_every: 'Quarter',
+      starts_on: new Date(),
+      never_expires: false,
+      ends_on: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+      next_invoice_date: new Date(),
+      status: 'Active',
+      sub_total: 500.000,
+      total_vat: 25.000,
+      grand_total: 525.000,
+      created_by: clientUser.id,
+      details: {
+        create: [
+          {
+            item_id: item2.id,
+            quantity: 2,
+            rate: 250.000,
+            vat_rate_id: standardVat.id,
+            line_total: 525.000
+          }
+        ]
+      }
+    }
+  });
+
+  // 15.6 Delivery Notes
+  await prisma.deliveryNote.create({
+    data: {
+      client_id: client.id,
+      delivery_note_number: 'DN-2026-001',
+      customer_id: customer1.id,
+      quotation_id: quotation1.id,
+      delivery_date: new Date(),
+      status: 'Delivered',
+      delivery_address: 'Warehouse A, Industrial Area',
+      shipping_method: 'Truck',
+      tracking_number: 'TRK-998877',
+      sub_total: 450.000,
+      total_vat: 22.500,
+      grand_total: 472.500,
+      created_by: clientUser.id,
+      details: {
+        create: [
+          {
+            item_id: item1.id,
+            quantity: 1,
+            rate: 450.000,
+            vat_rate_id: standardVat.id,
+            line_total: 472.500,
+            created_by: clientUser.id
+          }
+        ]
+      }
+    }
+  });
+
+  const cashAccount = await prisma.chartOfAccount.findFirst({ where: { client_id: client.id, name: 'Main Cash Account' } });
+  const testInvoice = await prisma.invoice.findFirst({ where: { client_id: client.id, invoice_number: 'INV-2026-001' } });
+
+  // 15.7 Receipts
+  await prisma.receipt.create({
+    data: {
+      client_id: client.id,
+      receipt_number: 'RCP-2026-001',
+      customer_id: customer1.id,
+      receipt_date: new Date(),
+      payment_mode: 'Cash',
+      deposit_to_id: cashAccount?.id,
+      amount_received: 200.000,
+      notes: 'Partial payment for invoice',
+      created_by: clientUser.id,
+      applications: {
+        create: [
+          {
+            invoice_id: testInvoice.id,
+            amount_applied: 200.000
+          }
+        ]
+      }
+    }
+  });
+
+  // 15.8 Credit Notes
+  await prisma.creditNote.create({
+    data: {
+      client_id: client.id,
+      credit_note_number: 'CN-2026-001',
+      customer_id: customer1.id,
+      credit_note_date: new Date(),
+      status: 'Open',
+      currency_id: bhd.id,
+      sub_total: 100.000,
+      total_vat: 5.000,
+      grand_total: 105.000,
+      balance: 105.000,
+      created_by: clientUser.id,
+      details: {
+        create: [
+          {
+            item_id: item1.id,
+            quantity: 1,
+            rate: 100.000,
+            vat_rate_id: standardVat.id,
+            line_total: 105.000,
+            created_by: clientUser.id
           }
         ]
       }
