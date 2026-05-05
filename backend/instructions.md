@@ -592,7 +592,7 @@ Fetch all vendors.
       "name": "Supplier Inc.",
       "email": "supplier@example.com",
       "phone": "+1234567890",
-      "currency_id": 1,
+      "currency_id": 11,
       "status": "Active"
     }
     ```
@@ -706,7 +706,7 @@ Fetch all customers.
       "name": "Acme Corp",
       "email": "contact@acme.com",
       "phone": "+1987654321",
-      "currency_id": 1,
+      "currency_id": 11,
       "is_active": true
     }
     ```
@@ -766,18 +766,18 @@ Fetch all quotations.
     ```json
     {
       "quotation_number": "QT-1001",
-      "customer_id": 1,
+      "customer_id": 11,
       "quotation_date": "2026-05-03",
-      "currency_id": 1,
+      "currency_id": 11,
       "discount_level": "Line Item Level",
       "sub_total": 500,
       "grand_total": 525,
       "details": [
         {
-          "item_id": 1,
+          "item_id": 4,
           "quantity": 2,
           "rate": 250,
-          "vat_rate_id": 1,
+          "vat_rate_id": 5,
           "line_total": 525
         }
       ]
@@ -1130,10 +1130,10 @@ Manage customer payments and apply them to invoices.
     ```json
     {
       "receipt_number": "RCP-2026-101",
-      "customer_id": 1,
+      "customer_id": 11,
       "receipt_date": "2026-05-05",
       "payment_mode": "Cash",
-      "deposit_to_id": 4,
+      "deposit_to_id": 10,
       "amount_received": 200,
       "notes": "Partial payment for INV-001",
       "applications": [
@@ -1177,18 +1177,18 @@ Manage sales returns and apply credits to invoices.
     ```json
     {
       "credit_note_number": "CN-2026-005",
-      "customer_id": 1,
+      "customer_id": 11,
       "credit_note_date": "2026-05-05",
-      "currency_id": 1,
+      "currency_id": 11,
       "sub_total": 100,
       "total_vat": 5,
       "grand_total": 105,
       "details": [
         {
-          "item_id": 1,
+          "item_id": 4,
           "quantity": 1,
           "rate": 100,
-          "vat_rate_id": 1,
+          "vat_rate_id": 5,
           "line_total": 105
         }
       ],
