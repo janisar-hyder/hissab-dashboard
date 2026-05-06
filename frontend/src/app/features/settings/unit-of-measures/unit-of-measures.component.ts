@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, signal, computed, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -14,12 +14,8 @@ import { BulkActionsComponent, BulkAction } from '../../../shared/components/bul
 import { CustomFilterComponent, FilterOption } from '../../../shared/components/custom-filter/custom-filter';
 import { BreadcrumbsComponent } from '../../../shared/components/breadcrumbs/breadcrumbs.component';
 import { AddUomModalComponent } from './components/add-uom-modal/add-uom-modal.component';
-
-export interface UOM {
-  id: string;
-  name: string;
-  status: 'Active' | 'Inactive';
-}
+import { UOM, UomService } from './services/uom.service';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-unit-of-measures',
@@ -41,33 +37,32 @@ export interface UOM {
     AddUomModalComponent
   ],
   templateUrl: './unit-of-measures.component.html',
-  styleUrls: ['./unit-of-measures.component.scss']
+  styleUrls: ['./unit-of-measures.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class UnitOfMeasuresComponent {
-  uoms: UOM[] = [
-    { id: '1', name: 'Box', status: 'Active' },
-    { id: '2', name: 'Unit', status: 'Active' },
-    { id: '3', name: 'Pcs', status: 'Active' },
-    { id: '4', name: 'Meter', status: 'Inactive' },
-    { id: '5', name: 'Centimeter', status: 'Active' }
-  ];
+export class UnitOfMeasuresComponent implements OnInit {
+  private uomService = inject(UomService);
+  private notificationService = inject(NotificationService);
 
-  selectedUomIds = new Set<string>();
-  currentPage = 1;
-  itemsPerPage = 15;
-  isManageColumnsOpen = false;
-  isAddModalOpen = false;
-  searchQuery = '';
-  currentFilter = 'All';
-  sortColumn = '';
-  sortDirection: 'asc' | 'desc' = 'asc';
-  uomToDelete: UOM | null = null;
-  bulkDeletePending = false;
+  uoms = signal<UOM[]>([]);
+  isLoading = signal(false);
 
-  availableColumns: ColumnDef[] = [
+  selectedUomIds = signal<Set<number>>(new Set<number>());
+  currentPage = signal(1);
+  itemsPerPage = signal(15);
+  isManageColumnsOpen = signal(false);
+  isAddModalOpen = signal(false);
+  searchQuery = signal('');
+  currentFilter = signal('All');
+  sortColumn = signal('');
+  sortDirection = signal<'asc' | 'desc'>('asc');
+  uomToDelete = signal<UOM | null>(null);
+  bulkDeletePending = signal(false);
+
+  availableColumns = signal<ColumnDef[]>([
     { id: 'name', label: 'UOM Name', visible: true },
     { id: 'status', label: 'Status', visible: true }
-  ];
+  ]);
 
   filterOptions: FilterOption[] = [
     { label: 'Active', value: 'Active', colorHex: '#10b981' },
@@ -75,49 +70,121 @@ export class UnitOfMeasuresComponent {
   ];
 
   bulkActions: BulkAction[] = [
-    { id: 'delete', label: 'Delete Unit of Measures', colorClass: 'text-danger' }
+    { id: 'mark_active', label: 'Mark as Active', icon: 'las la-check-circle' },
+    { id: 'mark_inactive', label: 'Mark as Inactive', icon: 'las la-times-circle' },
+    { id: 'delete', label: 'Delete Unit of Measures', colorClass: 'text-danger', icon: 'las la-trash' }
   ];
 
-  get filteredUoms(): UOM[] {
-    let filtered = this.uoms;
+  dynamicBulkActions = computed(() => {
+    const selectedIds = this.selectedUomIds();
+    if (selectedIds.size === 0) return [];
 
-    if (this.currentFilter !== 'All') {
-      filtered = filtered.filter(u => u.status === this.currentFilter);
+    const selected = this.uoms().filter(u => selectedIds.has(u.id));
+    const allActive = selected.every(u => u.status === 'Active');
+    const allInactive = selected.every(u => u.status === 'Inactive');
+
+    return this.bulkActions.filter(action => {
+      if (action.id === 'mark_active') return !allActive;
+      if (action.id === 'mark_inactive') return !allInactive;
+      return true;
+    });
+  });
+
+  ngOnInit() {
+    this.loadUnits();
+  }
+
+  loadUnits() {
+    this.isLoading.set(true);
+    this.uomService.getUnits().subscribe({
+      next: (res) => {
+        this.uoms.set(res.data);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading units:', err);
+        this.isLoading.set(false);
+        this.notificationService.error('Error loading units of measure');
+      }
+    });
+  }
+
+  filteredUoms = computed(() => {
+    let filtered = this.uoms();
+    const filterValue = this.currentFilter();
+    const query = this.searchQuery().toLowerCase();
+    const col = this.sortColumn();
+    const dir = this.sortDirection();
+
+    if (filterValue !== 'All') {
+      filtered = filtered.filter(u => u.status === filterValue);
     }
 
-    if (this.searchQuery) {
-      const query = this.searchQuery.toLowerCase();
+    if (query) {
       filtered = filtered.filter(u => 
         u.name.toLowerCase().includes(query)
       );
     }
 
-    return filtered;
-  }
+    if (col) {
+      filtered = [...filtered].sort((a, b) => {
+        const valA = (a as any)[col];
+        const valB = (b as any)[col];
 
-  get paginatedUoms(): UOM[] {
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    return this.filteredUoms.slice(startIndex, startIndex + this.itemsPerPage);
-  }
+        if (valA === null || valA === undefined) return 1;
+        if (valB === null || valB === undefined) return -1;
+
+        if (typeof valA === 'string' && typeof valB === 'string') {
+          return dir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        } else {
+          return dir === 'asc' ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
+        }
+      });
+    }
+
+    return filtered;
+  });
+
+  paginatedUoms = computed(() => {
+    const startIndex = (this.currentPage() - 1) * this.itemsPerPage();
+    return this.filteredUoms().slice(startIndex, startIndex + this.itemsPerPage());
+  });
 
   onSaveUom(data: any) {
-    const newUom: UOM = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: data.name,
-      status: 'Active'
-    };
-    this.uoms = [newUom, ...this.uoms];
-    this.isAddModalOpen = false;
+    this.uomService.createUnit(data).subscribe({
+      next: (res) => {
+        this.uoms.update(prev => [res.data, ...prev]);
+        this.isAddModalOpen.set(false);
+        this.notificationService.success('Unit of measure created');
+      },
+      error: (err) => {
+        console.error('Error creating unit:', err);
+        this.notificationService.error(err.error?.message || 'Error creating unit');
+      }
+    });
   }
 
-  handleAction(event: { action: string, data: any }) {
+  handleAction(event: { action: string, data: UOM }) {
     if (event.action === 'delete') {
-      this.uomToDelete = event.data;
+      this.uomToDelete.set(event.data);
     } else if (event.action === 'mark_active') {
-      event.data.status = 'Active';
+      this.updateStatus(event.data.id, 'Active');
     } else if (event.action === 'mark_inactive') {
-      event.data.status = 'Inactive';
+      this.updateStatus(event.data.id, 'Inactive');
     }
+  }
+
+  updateStatus(id: number, status: 'Active' | 'Inactive') {
+    this.uomService.updateUnit(id, { status }).subscribe({
+      next: (res) => {
+        this.uoms.update(prev => prev.map(u => u.id === id ? res.data : u));
+        this.notificationService.success(`Unit marked as ${status}`);
+      },
+      error: (err) => {
+        console.error('Error updating status:', err);
+        this.notificationService.error('Error updating status');
+      }
+    });
   }
 
   getActions(uom: UOM): MenuAction[] {
@@ -131,63 +198,122 @@ export class UnitOfMeasuresComponent {
   }
 
   handleBulkAction(action: string) {
+    const selectedIds = Array.from(this.selectedUomIds());
+    if (selectedIds.length === 0) return;
+
     if (action === 'delete') {
-      this.bulkDeletePending = true;
+      this.bulkDeletePending.set(true);
+    } else if (action === 'mark_active' || action === 'mark_inactive') {
+      const status = action === 'mark_active' ? 'Active' : 'Inactive';
+      this.uomService.updateBulkStatus(selectedIds, status).subscribe({
+        next: () => {
+          this.uoms.update(prev => prev.map(u => 
+            selectedIds.includes(u.id) ? { ...u, status } : u
+          ));
+          this.selectedUomIds.set(new Set());
+          this.notificationService.success(`Successfully updated ${selectedIds.length} units`);
+        },
+        error: (err) => {
+          console.error('Error updating bulk status:', err);
+          this.notificationService.error('Error updating bulk status');
+        }
+      });
     }
   }
 
   confirmDelete() {
-    if (this.bulkDeletePending) {
-      this.uoms = this.uoms.filter(u => !this.selectedUomIds.has(u.id));
-      this.selectedUomIds.clear();
-      this.bulkDeletePending = false;
-    } else if (this.uomToDelete) {
-      this.uoms = this.uoms.filter(u => u.id !== this.uomToDelete!.id);
-      this.uomToDelete = null;
-    }
+    const isBulk = this.bulkDeletePending();
+    const toDelete = this.uomToDelete();
+    const selectedIds = this.selectedUomIds();
+
+    const idsToDelete = isBulk 
+      ? Array.from(selectedIds) 
+      : (toDelete ? [toDelete.id] : []);
+
+    if (idsToDelete.length === 0) return;
+
+    this.uomService.deleteUnits(idsToDelete).subscribe({
+      next: () => {
+        this.uoms.update(prev => prev.filter(u => !idsToDelete.includes(u.id)));
+        this.selectedUomIds.update(set => {
+          const newSet = new Set(set);
+          idsToDelete.forEach(id => newSet.delete(id));
+          return newSet;
+        });
+        this.uomToDelete.set(null);
+        this.bulkDeletePending.set(false);
+        this.notificationService.success(isBulk ? 'Units deleted' : 'Unit deleted');
+      },
+      error: (err) => {
+        console.error('Error deleting units:', err);
+        this.notificationService.error(err.error?.message || 'Error deleting unit(s)');
+        this.uomToDelete.set(null);
+        this.bulkDeletePending.set(false);
+      }
+    });
   }
 
   sort(columnId: string, event: Event): void {
     event.stopPropagation();
-    if (this.sortColumn === columnId) {
-      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    if (this.sortColumn() === columnId) {
+      this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
     } else {
-      this.sortColumn = columnId;
-      this.sortDirection = 'asc';
+      this.sortColumn.set(columnId);
+      this.sortDirection.set('asc');
     }
-
-    const direction = this.sortDirection === 'asc' ? 1 : -1;
-    this.uoms.sort((a, b) => {
-      const valA = (a as any)[columnId];
-      const valB = (b as any)[columnId];
-      return valA.localeCompare(valB) * direction;
-    });
   }
 
   // Common UI methods
-  setFilter(f: string) { this.currentFilter = f; this.currentPage = 1; }
-  toggleManageColumns() { this.isManageColumnsOpen = true; }
-  closeManageColumns() { this.isManageColumnsOpen = false; }
-  onColumnsChange(cols: ColumnDef[]) { this.availableColumns = cols; }
-  onPageChange(p: number) { this.currentPage = p; }
+  setFilter(f: string) { this.currentFilter.set(f); this.currentPage.set(1); }
+  toggleManageColumns() { this.isManageColumnsOpen.set(true); }
+  closeManageColumns() { this.isManageColumnsOpen.set(false); }
+  onColumnsChange(cols: ColumnDef[]) { this.availableColumns.set(cols); }
+  onPageChange(p: number) { this.currentPage.set(p); }
   onItemsPerPageChange(n: number | 'All') { 
-    this.itemsPerPage = n === 'All' ? this.uoms.length : n; 
-    this.currentPage = 1; 
+    this.itemsPerPage.set(n === 'All' ? this.uoms().length : n); 
+    this.currentPage.set(1); 
   }
-  clearSearch() { this.searchQuery = ''; }
+  clearSearch() { this.searchQuery.set(''); }
   toggleAll() {
-    if (this.isAllSelected()) this.selectedUomIds.clear();
-    else this.paginatedUoms.forEach(u => this.selectedUomIds.add(u.id));
+    if (this.isAllSelected()) {
+      this.selectedUomIds.update(set => {
+        const newSet = new Set(set);
+        this.paginatedUoms().forEach(u => newSet.delete(u.id));
+        return newSet;
+      });
+    } else {
+      this.selectedUomIds.update(set => {
+        const newSet = new Set(set);
+        this.paginatedUoms().forEach(u => newSet.add(u.id));
+        return newSet;
+      });
+    }
   }
-  toggleSelection(id: string) {
-    if (this.selectedUomIds.has(id)) this.selectedUomIds.delete(id);
-    else this.selectedUomIds.add(id);
+  toggleSelection(id: number) {
+    this.selectedUomIds.update(set => {
+      const newSet = new Set(set);
+      if (newSet.has(id)) newSet.delete(id);
+      else newSet.add(id);
+      return newSet;
+    });
   }
-  isAllSelected(): boolean {
-    return this.paginatedUoms.length > 0 && this.paginatedUoms.every(u => this.selectedUomIds.has(u.id));
+  isAllSelected = computed(() => {
+    const paginated = this.paginatedUoms();
+    const selected = this.selectedUomIds();
+    return paginated.length > 0 && paginated.every(u => selected.has(u.id));
+  });
+  isPartiallySelected = computed(() => {
+    const paginated = this.paginatedUoms();
+    const selected = this.selectedUomIds();
+    const selectedInPage = paginated.filter(u => selected.has(u.id)).length;
+    return selectedInPage > 0 && selectedInPage < paginated.length;
+  });
+
+  trackByUomId(index: number, item: UOM) {
+    return item.id;
   }
-  isPartiallySelected(): boolean {
-    const selectedCount = this.paginatedUoms.filter(u => this.selectedUomIds.has(u.id)).length;
-    return selectedCount > 0 && selectedCount < this.paginatedUoms.length;
+
+  trackByColumnId(index: number, column: ColumnDef) {
+    return column.id;
   }
 }

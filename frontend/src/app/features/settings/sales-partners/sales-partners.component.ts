@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, signal, computed, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -15,14 +15,8 @@ import { CustomFilterComponent, FilterOption } from '../../../shared/components/
 import { BreadcrumbsComponent } from '../../../shared/components/breadcrumbs/breadcrumbs.component';
 
 import { AddSalesPartnerModalComponent } from './components/add-sales-partner-modal/add-sales-partner-modal.component';
-
-interface SalesPartner {
-  id: string;
-  name: string;
-  commission: number;
-  description: string;
-  status: 'Active' | 'Inactive';
-}
+import { SalesPartner, SalesPartnerService } from './services/sales-partner.service';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-sales-partners',
@@ -44,34 +38,34 @@ interface SalesPartner {
     AddSalesPartnerModalComponent
   ],
   templateUrl: './sales-partners.component.html',
-  styleUrls: ['./sales-partners.component.scss']
+  styleUrls: ['./sales-partners.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SalesPartnersComponent {
-  salesPartners: SalesPartner[] = [
-    { id: '1', name: 'Jack Thomas', commission: 10, description: '-', status: 'Active' },
-    { id: '2', name: 'Stellar Marketing', commission: 5, description: 'Collaborating to enhance our offerings.', status: 'Active' },
-    { id: '3', name: 'Eco Innovations', commission: 20, description: '-', status: 'Active' },
-    { id: '4', name: 'Noah Patel', commission: 10, description: 'Working together for mutual success.', status: 'Inactive' }
-  ];
+export class SalesPartnersComponent implements OnInit {
+  private salesPartnerService = inject(SalesPartnerService);
+  private notificationService = inject(NotificationService);
 
-  selectedSalesPartnerIds = new Set<string>();
-  currentPage = 1;
-  itemsPerPage = 15;
-  isManageColumnsOpen = false;
-  isAddModalOpen = false;
-  searchQuery = '';
-  currentFilter = 'All';
-  sortColumn = '';
-  sortDirection: 'asc' | 'desc' = 'asc';
-  partnerToDelete: SalesPartner | null = null;
-  bulkDeletePending = false;
+  salesPartners = signal<SalesPartner[]>([]);
+  isLoading = signal(false);
 
-  availableColumns: ColumnDef[] = [
+  selectedSalesPartnerIds = signal<Set<number>>(new Set<number>());
+  currentPage = signal(1);
+  itemsPerPage = signal(15);
+  isManageColumnsOpen = signal(false);
+  isAddModalOpen = signal(false);
+  searchQuery = signal('');
+  currentFilter = signal('All');
+  sortColumn = signal('');
+  sortDirection = signal<'asc' | 'desc'>('asc');
+  partnerToDelete = signal<SalesPartner | null>(null);
+  bulkDeletePending = signal(false);
+
+  availableColumns = signal<ColumnDef[]>([
     { id: 'name', label: 'Name', visible: true },
     { id: 'commission', label: 'Commission (%)', visible: true },
     { id: 'description', label: 'Description', visible: true },
     { id: 'status', label: 'Status', visible: true }
-  ];
+  ]);
 
   filterOptions: FilterOption[] = [
     { label: 'Active', value: 'Active', colorHex: '#10b981' },
@@ -79,54 +73,127 @@ export class SalesPartnersComponent {
   ];
 
   bulkActions: BulkAction[] = [
-    { id: 'delete', label: 'Delete Sales Partners', colorClass: 'text-danger' }
+    { id: 'mark_active', label: 'Mark as Active', icon: 'las la-check-circle' },
+    { id: 'mark_inactive', label: 'Mark as Inactive', icon: 'las la-times-circle' },
+    { id: 'delete', label: 'Delete Sales Partners', colorClass: 'text-danger', icon: 'las la-trash' }
   ];
 
-  get filteredSalesPartners(): SalesPartner[] {
-    let filtered = this.salesPartners;
+  dynamicBulkActions = computed(() => {
+    const selectedIds = this.selectedSalesPartnerIds();
+    if (selectedIds.size === 0) return [];
 
-    if (this.currentFilter !== 'All') {
-      filtered = filtered.filter(p => p.status === this.currentFilter);
+    const selected = this.salesPartners().filter(p => selectedIds.has(p.id));
+    const allActive = selected.every(p => p.status === 'Active');
+    const allInactive = selected.every(p => p.status === 'Inactive');
+
+    return this.bulkActions.filter(action => {
+      if (action.id === 'mark_active') return !allActive;
+      if (action.id === 'mark_inactive') return !allInactive;
+      return true;
+    });
+  });
+
+  ngOnInit() {
+    this.loadSalesPartners();
+  }
+
+  loadSalesPartners() {
+    this.isLoading.set(true);
+    this.salesPartnerService.getSalesPartners().subscribe({
+      next: (res) => {
+        this.salesPartners.set(res.data);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading sales partners:', err);
+        this.isLoading.set(false);
+        this.notificationService.error('Error loading sales partners');
+      }
+    });
+  }
+
+  filteredSalesPartners = computed(() => {
+    let filtered = this.salesPartners();
+    const filterValue = this.currentFilter();
+    const query = this.searchQuery().toLowerCase();
+    const col = this.sortColumn();
+    const dir = this.sortDirection();
+
+    if (filterValue !== 'All') {
+      filtered = filtered.filter(p => p.status === filterValue);
     }
 
-    if (this.searchQuery) {
-      const query = this.searchQuery.toLowerCase();
+    if (query) {
       filtered = filtered.filter(p => 
         p.name.toLowerCase().includes(query) || 
-        p.description.toLowerCase().includes(query) ||
+        (p.description && p.description.toLowerCase().includes(query)) ||
         p.commission.toString().includes(query)
       );
     }
 
-    return filtered;
-  }
+    if (col) {
+      filtered = [...filtered].sort((a, b) => {
+        const valA = (a as any)[col];
+        const valB = (b as any)[col];
 
-  get paginatedSalesPartners(): SalesPartner[] {
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    return this.filteredSalesPartners.slice(startIndex, startIndex + this.itemsPerPage);
-  }
+        if (valA === null || valA === undefined) return 1;
+        if (valB === null || valB === undefined) return -1;
+
+        if (typeof valA === 'number' && typeof valB === 'number') {
+          return dir === 'asc' ? valA - valB : valB - valA;
+        }
+
+        if (typeof valA === 'string' && typeof valB === 'string') {
+          return dir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        } else {
+          return dir === 'asc' ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
+        }
+      });
+    }
+
+    return filtered;
+  });
+
+  paginatedSalesPartners = computed(() => {
+    const startIndex = (this.currentPage() - 1) * this.itemsPerPage();
+    return this.filteredSalesPartners().slice(startIndex, startIndex + this.itemsPerPage());
+  });
 
   onSaveSalesPartner(data: any) {
-    const newPartner: SalesPartner = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: data.name,
-      commission: data.commission,
-      description: data.description || '-',
-      status: 'Active'
-    };
-    this.salesPartners = [newPartner, ...this.salesPartners];
+    this.salesPartnerService.createSalesPartner(data).subscribe({
+      next: (res) => {
+        this.salesPartners.update(prev => [res.data, ...prev]);
+        this.isAddModalOpen.set(false);
+        this.notificationService.success('Sales partner created successfully');
+      },
+      error: (err) => {
+        console.error('Error creating sales partner:', err);
+        this.notificationService.error(err.error?.message || 'Error creating sales partner');
+      }
+    });
   }
 
-  handleAction(event: { action: string, data: any }) {
+  handleAction(event: { action: string, data: SalesPartner }) {
     if (event.action === 'delete') {
-      this.partnerToDelete = event.data;
+      this.partnerToDelete.set(event.data);
     } else if (event.action === 'mark_active') {
-      event.data.status = 'Active';
+      this.updateStatus(event.data.id, 'Active');
     } else if (event.action === 'mark_inactive') {
-      event.data.status = 'Inactive';
-    } else if (event.action === 'edit') {
-      // Implement edit logic if needed
+      this.updateStatus(event.data.id, 'Inactive');
     }
+  }
+
+  updateStatus(id: number, status: 'Active' | 'Inactive') {
+    this.salesPartnerService.updateSalesPartner(id, { status }).subscribe({
+      next: (res) => {
+        this.salesPartners.update(prev => prev.map(p => p.id === id ? res.data : p));
+        this.notificationService.success(`Sales partner marked as ${status}`);
+      },
+      error: (err) => {
+        console.error('Error updating status:', err);
+        this.notificationService.error('Error updating status');
+      }
+    });
   }
 
   getActions(partner: SalesPartner): MenuAction[] {
@@ -140,77 +207,125 @@ export class SalesPartnersComponent {
   }
 
   handleBulkAction(action: string) {
+    const selectedIds = Array.from(this.selectedSalesPartnerIds());
+    if (selectedIds.length === 0) return;
+
     if (action === 'delete') {
-      this.bulkDeletePending = true;
+      this.bulkDeletePending.set(true);
+    } else if (action === 'mark_active' || action === 'mark_inactive') {
+      const status = action === 'mark_active' ? 'Active' : 'Inactive';
+      this.salesPartnerService.updateBulkStatus(selectedIds, status).subscribe({
+        next: () => {
+          this.salesPartners.update(prev => prev.map(p => 
+            selectedIds.includes(p.id) ? { ...p, status } : p
+          ));
+          this.selectedSalesPartnerIds.set(new Set());
+          this.notificationService.success(`Successfully updated ${selectedIds.length} sales partners`);
+        },
+        error: (err) => {
+          console.error('Error updating bulk status:', err);
+          this.notificationService.error('Error updating bulk status');
+        }
+      });
     }
   }
 
   confirmDelete() {
-    if (this.bulkDeletePending) {
-      this.salesPartners = this.salesPartners.filter(p => !this.selectedSalesPartnerIds.has(p.id));
-      this.selectedSalesPartnerIds.clear();
-      this.bulkDeletePending = false;
-    } else if (this.partnerToDelete) {
-      this.salesPartners = this.salesPartners.filter(p => p.id !== this.partnerToDelete!.id);
-      this.partnerToDelete = null;
-    }
+    const isBulk = this.bulkDeletePending();
+    const toDelete = this.partnerToDelete();
+    const selectedIds = this.selectedSalesPartnerIds();
+
+    const idsToDelete = isBulk 
+      ? Array.from(selectedIds) 
+      : (toDelete ? [toDelete.id] : []);
+
+    if (idsToDelete.length === 0) return;
+
+    this.salesPartnerService.deleteSalesPartners(idsToDelete).subscribe({
+      next: () => {
+        this.salesPartners.update(prev => prev.filter(p => !idsToDelete.includes(p.id)));
+        this.selectedSalesPartnerIds.update(set => {
+          const newSet = new Set(set);
+          idsToDelete.forEach(id => newSet.delete(id));
+          return newSet;
+        });
+        this.partnerToDelete.set(null);
+        this.bulkDeletePending.set(false);
+        this.notificationService.success(isBulk ? 'Sales partners deleted' : 'Sales partner deleted');
+      },
+      error: (err) => {
+        console.error('Error deleting sales partners:', err);
+        this.notificationService.error(err.error?.message || 'Error deleting sales partner(s)');
+        this.partnerToDelete.set(null);
+        this.bulkDeletePending.set(false);
+      }
+    });
   }
 
   sort(columnId: string, event: Event): void {
     event.stopPropagation();
-    if (this.sortColumn === columnId) {
-      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    if (this.sortColumn() === columnId) {
+      this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
     } else {
-      this.sortColumn = columnId;
-      this.sortDirection = 'asc';
+      this.sortColumn.set(columnId);
+      this.sortDirection.set('asc');
     }
-
-    this.salesPartners.sort((a, b) => {
-      const valA = (a as any)[columnId];
-      const valB = (b as any)[columnId];
-
-      if (valA === null || valA === undefined) return 1;
-      if (valB === null || valB === undefined) return -1;
-
-      if (typeof valA === 'string' && typeof valB === 'string') {
-        return this.sortDirection === 'asc'
-          ? valA.localeCompare(valB)
-          : valB.localeCompare(valA);
-      } else {
-        return this.sortDirection === 'asc'
-          ? (valA > valB ? 1 : -1)
-          : (valA < valB ? 1 : -1);
-      }
-    });
   }
 
   onImport() {}
   onExport() {}
 
   // Common UI methods
-  setFilter(f: string) { this.currentFilter = f; this.currentPage = 1; }
-  toggleManageColumns() { this.isManageColumnsOpen = true; }
-  closeManageColumns() { this.isManageColumnsOpen = false; }
-  onColumnsChange(cols: ColumnDef[]) { this.availableColumns = cols; }
-  onPageChange(p: number) { this.currentPage = p; }
+  setFilter(f: string) { this.currentFilter.set(f); this.currentPage.set(1); }
+  toggleManageColumns() { this.isManageColumnsOpen.set(true); }
+  closeManageColumns() { this.isManageColumnsOpen.set(false); }
+  onColumnsChange(cols: ColumnDef[]) { this.availableColumns.set(cols); }
+  onPageChange(p: number) { this.currentPage.set(p); }
   onItemsPerPageChange(n: number | 'All') { 
-    this.itemsPerPage = n === 'All' ? this.salesPartners.length : n; 
-    this.currentPage = 1; 
+    this.itemsPerPage.set(n === 'All' ? this.salesPartners().length : n); 
+    this.currentPage.set(1); 
   }
-  clearSearch() { this.searchQuery = ''; }
+  clearSearch() { this.searchQuery.set(''); }
   toggleAll() {
-    if (this.isAllSelected()) this.selectedSalesPartnerIds.clear();
-    else this.paginatedSalesPartners.forEach(p => this.selectedSalesPartnerIds.add(p.id));
+    if (this.isAllSelected()) {
+      this.selectedSalesPartnerIds.update(set => {
+        const newSet = new Set(set);
+        this.paginatedSalesPartners().forEach(p => newSet.delete(p.id));
+        return newSet;
+      });
+    } else {
+      this.selectedSalesPartnerIds.update(set => {
+        const newSet = new Set(set);
+        this.paginatedSalesPartners().forEach(p => newSet.add(p.id));
+        return newSet;
+      });
+    }
   }
-  toggleSelection(id: string) {
-    if (this.selectedSalesPartnerIds.has(id)) this.selectedSalesPartnerIds.delete(id);
-    else this.selectedSalesPartnerIds.add(id);
+  toggleSelection(id: number) {
+    this.selectedSalesPartnerIds.update(set => {
+      const newSet = new Set(set);
+      if (newSet.has(id)) newSet.delete(id);
+      else newSet.add(id);
+      return newSet;
+    });
   }
-  isAllSelected(): boolean {
-    return this.paginatedSalesPartners.length > 0 && this.paginatedSalesPartners.every(p => this.selectedSalesPartnerIds.has(p.id));
+  isAllSelected = computed(() => {
+    const paginated = this.paginatedSalesPartners();
+    const selected = this.selectedSalesPartnerIds();
+    return paginated.length > 0 && paginated.every(p => selected.has(p.id));
+  });
+  isPartiallySelected = computed(() => {
+    const paginated = this.paginatedSalesPartners();
+    const selected = this.selectedSalesPartnerIds();
+    const selectedInPage = paginated.filter(p => selected.has(p.id)).length;
+    return selectedInPage > 0 && selectedInPage < paginated.length;
+  });
+
+  trackByPartnerId(index: number, item: SalesPartner) {
+    return item.id;
   }
-  isPartiallySelected(): boolean {
-    const selectedCount = this.paginatedSalesPartners.filter(p => this.selectedSalesPartnerIds.has(p.id)).length;
-    return selectedCount > 0 && selectedCount < this.paginatedSalesPartners.length;
+
+  trackByColumnId(index: number, column: ColumnDef) {
+    return column.id;
   }
 }

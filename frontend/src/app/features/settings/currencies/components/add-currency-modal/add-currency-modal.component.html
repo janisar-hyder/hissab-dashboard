@@ -18,47 +18,47 @@
         </div>
 
         <div class="modal-body">
-            <!-- Form Area -->
             <div class="form-group">
                 <label>Currency Code<span class="required">*</span></label>
-                <!-- Using select component natively or app-custom-select depending on codebase, let's use app-custom-select to look good -->
-                <!-- Or just native select since it's a modal and the screenshot shows a select arrow -->
                 <app-custom-select 
-                    [(ngModel)]="currencyCode" 
+                    [ngModel]="currency().code" 
                     [options]="codeOptions" 
                     placeholder="Select Currency Code"
-                    (ngModelChange)="onCodeSelect()">
+                    (ngModelChange)="updateField('code', $event)">
                 </app-custom-select>
             </div>
 
             <div class="form-group">
                 <label>Currency Symbol<span class="required">*</span></label>
-                <input type="text" class="form-control" [(ngModel)]="currencySymbol" placeholder="Enter Currency Symbol" [disabled]="true">
+                <input type="text" class="form-control" [ngModel]="currency().symbol" placeholder="Enter Currency Symbol" [disabled]="true">
             </div>
 
             <div class="form-group">
                 <label>Currency Name<span class="required">*</span></label>
-                <input type="text" class="form-control" [(ngModel)]="currencyName" placeholder="Enter Currency Name" [disabled]="true">
+                <input type="text" class="form-control" [ngModel]="currency().name" placeholder="Enter Currency Name" [disabled]="true">
             </div>
 
             <div class="form-group">
                 <label>Decimal Places<span class="required">*</span></label>
                 <app-custom-select 
-                    [(ngModel)]="decimalPlaces" 
+                    [ngModel]="currency().decimal_places" 
                     [options]="decimalOptions" 
-                    placeholder="Select Decimal Places">
+                    placeholder="Select Decimal Places"
+                    (ngModelChange)="updateField('decimal_places', $event)">
                 </app-custom-select>
             </div>
 
             <div class="form-group">
                 <label>Format</label>
-                <input type="text" class="form-control" [(ngModel)]="format" placeholder="Enter Format">
+                <input type="text" class="form-control" 
+                       [ngModel]="currency().format" (ngModelChange)="updateField('format', $event)" 
+                       placeholder="Enter Format">
             </div>
         </div>
 
         <div class="modal-footer">
             <button class="btn btn-cancel" (click)="close.emit()">Cancel</button>
-            <button class="btn btn-save" (click)="onSave()" [disabled]="!currencyCode || !currencySymbol || !currencyName || !decimalPlaces">Save</button>
+            <button class="btn btn-save" (click)="onSave()" [disabled]="!currency().code || !currency().symbol || !currency().name">Save</button>
         </div>
     </div>
 </div>

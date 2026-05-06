@@ -27,7 +27,8 @@
                 <input type="text" 
                        id="uomName" 
                        name="uomName" 
-                       [(ngModel)]="uom.name" 
+                       [ngModel]="uom().name" 
+                       (ngModelChange)="updateUomField('name', $event)"
                        class="form-control" 
                        placeholder="Enter UOM Name" 
                        required>
@@ -36,7 +37,7 @@
 
         <div class="modal-actions">
             <app-button variant="outline" (clicked)="onCancel()">Cancel</app-button>
-            <app-button variant="primary" (clicked)="onSave()" [disabled]="!uom.name.trim()">Save</app-button>
+            <app-button variant="primary" (clicked)="onSave()" [disabled]="!uom().name.trim()">Save</app-button>
         </div>
     </div>
 </div>

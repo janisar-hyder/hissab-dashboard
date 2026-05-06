@@ -12,23 +12,29 @@
         <div class="modal-body">
             <div class="form-group">
                 <label>Name<span class="required">*</span></label>
-                <input type="text" class="form-control" [(ngModel)]="partnerName" placeholder="Enter Sales Person Name">
+                <input type="text" class="form-control" 
+                       [ngModel]="partner().name" (ngModelChange)="updateField('name', $event)" 
+                       placeholder="Enter Sales Person Name">
             </div>
 
             <div class="form-group">
                 <label>Commission (%)<span class="required">*</span></label>
-                <input type="number" class="form-control" [(ngModel)]="commission" placeholder="Enter Commission">
+                <input type="number" class="form-control" 
+                       [ngModel]="partner().commission" (ngModelChange)="updateField('commission', $event)" 
+                       placeholder="Enter Commission">
             </div>
 
             <div class="form-group">
                 <label>Description</label>
-                <textarea class="form-control" [(ngModel)]="description" placeholder="Enter Description"></textarea>
+                <textarea class="form-control" 
+                          [ngModel]="partner().description" (ngModelChange)="updateField('description', $event)" 
+                          placeholder="Enter Description"></textarea>
             </div>
         </div>
 
         <div class="modal-footer">
             <button class="btn btn-cancel" (click)="close.emit()">Cancel</button>
-            <button class="btn btn-save" (click)="onSave()" [disabled]="!partnerName || commission === null || commission === undefined">Save</button>
+            <button class="btn btn-save" (click)="onSave()" [disabled]="!partner().name || partner().commission === null">Save</button>
         </div>
     </div>
 </div>

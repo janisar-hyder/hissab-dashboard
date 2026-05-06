@@ -8,32 +8,35 @@
         title="Sales Partners"
         addBtnText="Add New Sales Partner"
         [showActions]="true"
-        (addNew)="isAddModalOpen = true"
+        (addNew)="isAddModalOpen.set(true)"
         (importBtn)="onImport()"
         (exportBtn)="onExport()">
 
         <app-bulk-actions
             custom-actions
-            *ngIf="selectedSalesPartnerIds.size > 0"
-            [selectedCount]="selectedSalesPartnerIds.size"
-            [actions]="bulkActions"
+            *ngIf="selectedSalesPartnerIds().size > 0"
+            [selectedCount]="selectedSalesPartnerIds().size"
+            [actions]="dynamicBulkActions()"
             (actionSelected)="handleBulkAction($event)">
         </app-bulk-actions>
     </app-page-header>
 
-    <div class="data-card" style="margin: 0; display: flex; flex-direction: column;" *ngIf="salesPartners.length > 0 || searchQuery">
+    <div class="data-card" style="margin: 0; display: flex; flex-direction: column;" *ngIf="salesPartners().length > 0 || searchQuery()">
         <!-- Toolbar -->
         <div class="card-toolbar">
             <div class="search-box">
                 <i class="las la-search search-icon"></i>
-                <input type="text" placeholder="Search for something.." [(ngModel)]="searchQuery" (ngModelChange)="currentPage = 1" class="search-input">
-                <i class="las la-times clear-icon" *ngIf="searchQuery" (click)="clearSearch()"></i>
+                <input type="text" placeholder="Search for something.." 
+                       [ngModel]="searchQuery()" 
+                       (ngModelChange)="searchQuery.set($event); currentPage.set(1)" 
+                       class="search-input">
+                <i class="las la-times clear-icon" *ngIf="searchQuery()" (click)="clearSearch()"></i>
             </div>
             
             <div class="toolbar-actions" style="display: flex; gap: var(--space-sm); align-items: center;">
                 <app-custom-filter
                     [options]="filterOptions"
-                    [currentFilter]="currentFilter"
+                    [currentFilter]="currentFilter()"
                     activeLabelPrefix="All Sales Partners"
                     (filterChange)="setFilter($event)">
                 </app-custom-filter>
@@ -53,10 +56,10 @@
                                 <span class="checkmark"></span>
                             </label>
                         </th>
-                        <ng-container *ngFor="let col of availableColumns">
+                        <ng-container *ngFor="let col of availableColumns(); trackBy: trackByColumnId">
                             <th *ngIf="col.visible" [class.col-status]="col.id === 'status'">
                                 {{ col.label }}
-                                <i [class]="sortColumn === col.id ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" 
+                                <i [class]="sortColumn() === col.id ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" 
                                    (click)="sort(col.id, $event)"
                                    style="cursor: pointer; margin-left: 4px;"></i>
                             </th>
@@ -64,24 +67,24 @@
                         <th class="col-actions"></th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr *ngFor="let partner of paginatedSalesPartners">
+                <tbody [class.loading]="isLoading()">
+                    <tr *ngFor="let partner of paginatedSalesPartners(); trackBy: trackByPartnerId" [class.selected]="selectedSalesPartnerIds().has(partner.id)">
                         <td class="col-checkbox">
                             <label class="custom-checkbox">
-                                <input type="checkbox" [checked]="selectedSalesPartnerIds.has(partner.id)" (change)="toggleSelection(partner.id)">
+                                <input type="checkbox" [checked]="selectedSalesPartnerIds().has(partner.id)" (change)="toggleSelection(partner.id)">
                                 <span class="checkmark"></span>
                             </label>
                         </td>
-                        <ng-container *ngFor="let col of availableColumns">
+                        <ng-container *ngFor="let col of availableColumns(); trackBy: trackByColumnId">
                             <td *ngIf="col.visible" [ngSwitch]="col.id" [class.col-status]="col.id === 'status'" class="text-muted">
                                 <ng-container *ngSwitchCase="'name'">
                                     <span class="item-name">{{ partner.name }}</span>
                                 </ng-container>
                                 <ng-container *ngSwitchCase="'commission'">
-                                    {{ partner.commission }}
+                                    {{ partner.commission }}%
                                 </ng-container>
                                 <ng-container *ngSwitchCase="'description'">
-                                    {{ partner.description }}
+                                    {{ partner.description || '-' }}
                                 </ng-container>
                                 <ng-container *ngSwitchCase="'status'">
                                     <span class="status-pill" [ngClass]="partner.status.toLowerCase()">
@@ -99,14 +102,14 @@
                         </td>
                     </tr>
                     <!-- Internal Empty State -->
-                    <tr *ngIf="paginatedSalesPartners.length === 0">
-                        <td [attr.colspan]="availableColumns.length + 2" style="padding: 0;">
+                    <tr *ngIf="paginatedSalesPartners().length === 0 && !isLoading()">
+                        <td [attr.colspan]="availableColumns().length + 2" style="padding: 0;">
                             <app-empty-state 
-                                [title]="(searchQuery || currentFilter !== 'All') ? 'No Sales Partners Found.' : 'No Sales Partners Found.'"
-                                [subtitle]="searchQuery ? 'We couldn\'t find any sales partners matching \'' + searchQuery + '\'' : 'It looks like you haven\'t added any sales partners yet.'" 
-                                [actionLabel]="(searchQuery || currentFilter !== 'All') ? '' : 'Add New Sales Partner'"
-                                [actionIconClass]="(searchQuery || currentFilter !== 'All') ? '' : 'las la-plus'" 
-                                (actionClick)="isAddModalOpen = true">
+                                [title]="(searchQuery() || currentFilter() !== 'All') ? 'No Sales Partners Found.' : 'No Sales Partners Found.'"
+                                [subtitle]="searchQuery() ? 'We couldn\'t find any sales partners matching \'' + searchQuery() + '\'' : 'It looks like you haven\'t added any sales partners yet.'" 
+                                [actionLabel]="(searchQuery() || currentFilter() !== 'All') ? '' : 'Add New Sales Partner'"
+                                [actionIconClass]="(searchQuery() || currentFilter() !== 'All') ? '' : 'las la-plus'" 
+                                (actionClick)="isAddModalOpen.set(true)">
                             </app-empty-state>
                         </td>
                     </tr>
@@ -116,46 +119,46 @@
 
         <!-- Pagination -->
         <app-pagination 
-            [totalItems]="filteredSalesPartners.length" 
-            [itemsPerPage]="itemsPerPage" 
-            [currentPage]="currentPage"
+            [totalItems]="filteredSalesPartners().length" 
+            [itemsPerPage]="itemsPerPage()" 
+            [currentPage]="currentPage()"
             (pageChange)="onPageChange($event)" 
             (itemsPerPageChange)="onItemsPerPageChange($event)">
         </app-pagination>
     </div>
 
     <!-- External Empty State -->
-    <app-empty-state *ngIf="salesPartners.length === 0 && !searchQuery" 
+    <app-empty-state *ngIf="salesPartners().length === 0 && !searchQuery() && !isLoading()" 
         title="No Sales Partners Found."
         subtitle="It looks like you haven't added any sales partners yet." 
         actionLabel="Add New Sales Partner"
         actionIconClass="las la-plus" 
-        (actionClick)="isAddModalOpen = true">
+        (actionClick)="isAddModalOpen.set(true)">
     </app-empty-state>
 </div>
 
 <!-- Modal -->
 <app-add-sales-partner-modal 
-    *ngIf="isAddModalOpen" 
-    (close)="isAddModalOpen = false" 
+    *ngIf="isAddModalOpen()" 
+    (close)="isAddModalOpen.set(false)" 
     (save)="onSaveSalesPartner($event)">
 </app-add-sales-partner-modal>
 
 <!-- Delete Confirmation -->
 <app-delete-modal 
-    [isOpen]="!!partnerToDelete || bulkDeletePending" 
-    [title]="bulkDeletePending ? 'Delete Sales Partners' : 'Delete Sales Partner'"
-    [message]="bulkDeletePending 
-        ? 'Are you sure you want to delete ' + selectedSalesPartnerIds.size + ' selected sales partner(s)? This action cannot be undone.'
+    [isOpen]="!!partnerToDelete() || bulkDeletePending()" 
+    [title]="bulkDeletePending() ? 'Delete Sales Partners' : 'Delete Sales Partner'"
+    [message]="bulkDeletePending() 
+        ? 'Are you sure you want to delete ' + selectedSalesPartnerIds().size + ' selected sales partner(s)? This action cannot be undone.'
         : 'Are you sure you want to delete this sales partner? This action cannot be undone.'" 
-    (cancel)="partnerToDelete = null; bulkDeletePending = false"
+    (cancel)="partnerToDelete.set(null); bulkDeletePending.set(false)"
     (confirm)="confirmDelete()">
 </app-delete-modal>
 
 <!-- Manage Columns -->
 <app-manage-columns 
-    [isOpen]="isManageColumnsOpen" 
-    [columns]="availableColumns" 
+    [isOpen]="isManageColumnsOpen()" 
+    [columns]="availableColumns()" 
     (closePanel)="closeManageColumns()"
     (columnsChange)="onColumnsChange($event)">
 </app-manage-columns>

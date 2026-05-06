@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ElementRef, HostListener } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ElementRef, HostListener, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export interface FilterOption {
@@ -13,6 +13,7 @@ export interface FilterOption {
   imports: [CommonModule],
   templateUrl: './custom-filter.html',
   styleUrls: ['./custom-filter.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CustomFilterComponent {
   @Input() options: FilterOption[] = [];

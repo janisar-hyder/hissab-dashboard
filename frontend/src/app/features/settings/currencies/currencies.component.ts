@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, signal, computed, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -14,16 +14,8 @@ import { BulkActionsComponent, BulkAction } from '../../../shared/components/bul
 import { BreadcrumbsComponent } from '../../../shared/components/breadcrumbs/breadcrumbs.component';
 
 import { AddCurrencyModalComponent } from './components/add-currency-modal/add-currency-modal.component';
-
-interface Currency {
-  id: string;
-  name: string;
-  code: string;
-  symbol: string;
-  isBase: boolean;
-  decimalPlaces: number;
-  format?: string;
-}
+import { Currency, CurrencyService } from './services/currency.service';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-currencies',
@@ -44,48 +36,63 @@ interface Currency {
     AddCurrencyModalComponent
   ],
   templateUrl: './currencies.component.html',
-  styleUrls: ['./currencies.component.scss']
+  styleUrls: ['./currencies.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CurrenciesComponent {
-  currencies: Currency[] = [
-    { id: '1', name: 'Bahraini Dinar', code: 'BHD', symbol: 'BHD', isBase: true, decimalPlaces: 3 },
-    { id: '2', name: 'UAE Dirham', code: 'AED', symbol: 'AED', isBase: false, decimalPlaces: 2 },
-    { id: '3', name: 'Canadian Dollar', code: 'CAD', symbol: '$', isBase: false, decimalPlaces: 2 },
-    { id: '4', name: 'Euro', code: 'EUR', symbol: '€', isBase: false, decimalPlaces: 2 },
-    { id: '5', name: 'Pound Sterling', code: 'GBP', symbol: '£', isBase: false, decimalPlaces: 2 },
-    { id: '6', name: 'Pakistani Rupee', code: 'PKR', symbol: 'Rs.', isBase: false, decimalPlaces: 0 },
-    { id: '7', name: 'Kuwaiti Dinar', code: 'KWD', symbol: 'KWD', isBase: false, decimalPlaces: 3 },
-    { id: '8', name: 'Qatari Riyal', code: 'QAR', symbol: 'QAR', isBase: false, decimalPlaces: 2 },
-    { id: '9', name: 'Saudi Riyal', code: 'SAR', symbol: 'SAR', isBase: false, decimalPlaces: 2 },
-    { id: '10', name: 'United States Dollar', code: 'USD', symbol: '$', isBase: false, decimalPlaces: 2 }
-  ];
+export class CurrenciesComponent implements OnInit {
+  private currencyService = inject(CurrencyService);
+  private notificationService = inject(NotificationService);
 
-  selectedCurrencyIds = new Set<string>();
-  currentPage = 1;
-  itemsPerPage = 15;
-  isManageColumnsOpen = false;
-  isAddModalOpen = false;
-  searchQuery = '';
-  sortColumn = '';
-  sortDirection: 'asc' | 'desc' = 'asc';
-  currencyToDelete: Currency | null = null;
-  bulkDeletePending = false;
+  currencies = signal<Currency[]>([]);
+  isLoading = signal(false);
 
-  availableColumns: ColumnDef[] = [
+  selectedCurrencyIds = signal<Set<number>>(new Set<number>());
+  currentPage = signal(1);
+  itemsPerPage = signal(15);
+  isManageColumnsOpen = signal(false);
+  isAddModalOpen = signal(false);
+  searchQuery = signal('');
+  sortColumn = signal('');
+  sortDirection = signal<'asc' | 'desc'>('asc');
+  currencyToDelete = signal<Currency | null>(null);
+  bulkDeletePending = signal(false);
+
+  availableColumns = signal<ColumnDef[]>([
     { id: 'name', label: 'Name', visible: true },
     { id: 'code', label: 'Currency Code', visible: true },
     { id: 'symbol', label: 'Symbol', visible: true }
-  ];
+  ]);
 
   bulkActions: BulkAction[] = [
-    { id: 'delete', label: 'Delete Currencies', colorClass: 'text-danger' }
+    { id: 'delete', label: 'Delete Currencies', colorClass: 'text-danger', icon: 'las la-trash' }
   ];
 
-  get filteredCurrencies(): Currency[] {
-    let filtered = this.currencies;
+  ngOnInit() {
+    this.loadCurrencies();
+  }
 
-    if (this.searchQuery) {
-      const query = this.searchQuery.toLowerCase();
+  loadCurrencies() {
+    this.isLoading.set(true);
+    this.currencyService.getCurrencies().subscribe({
+      next: (res) => {
+        this.currencies.set(res.data);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading currencies:', err);
+        this.isLoading.set(false);
+        this.notificationService.error('Error loading currencies');
+      }
+    });
+  }
+
+  filteredCurrencies = computed(() => {
+    let filtered = this.currencies();
+    const query = this.searchQuery().toLowerCase();
+    const col = this.sortColumn();
+    const dir = this.sortDirection();
+
+    if (query) {
       filtered = filtered.filter(c => 
         c.name.toLowerCase().includes(query) || 
         c.code.toLowerCase().includes(query) ||
@@ -93,39 +100,62 @@ export class CurrenciesComponent {
       );
     }
 
-    return filtered;
-  }
+    if (col) {
+      filtered = [...filtered].sort((a, b) => {
+        // Base currency always on top
+        if (a.is_base) return -1;
+        if (b.is_base) return 1;
 
-  get paginatedCurrencies(): Currency[] {
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    return this.filteredCurrencies.slice(startIndex, startIndex + this.itemsPerPage);
-  }
+        const valA = (a as any)[col];
+        const valB = (b as any)[col];
+
+        if (valA === null || valA === undefined) return 1;
+        if (valB === null || valB === undefined) return -1;
+
+        if (typeof valA === 'string' && typeof valB === 'string') {
+          return dir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        } else {
+          return dir === 'asc' ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
+        }
+      });
+    } else {
+      // Default: Base currency first, then alphabetical
+      filtered = [...filtered].sort((a, b) => {
+        if (a.is_base) return -1;
+        if (b.is_base) return 1;
+        return a.code.localeCompare(b.code);
+      });
+    }
+
+    return filtered;
+  });
+
+  paginatedCurrencies = computed(() => {
+    const startIndex = (this.currentPage() - 1) * this.itemsPerPage();
+    return this.filteredCurrencies().slice(startIndex, startIndex + this.itemsPerPage());
+  });
 
   onSaveCurrency(data: any) {
-    const newCurrency: Currency = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: data.name,
-      code: data.code,
-      symbol: data.symbol,
-      isBase: false, // By default new currencies are not base
-      decimalPlaces: data.decimalPlaces,
-      format: data.format
-    };
-    // Insert new item after the base currency (or at top if no base)
-    const baseIndex = this.currencies.findIndex(c => c.isBase);
-    if (baseIndex > -1) {
-        this.currencies.splice(baseIndex + 1, 0, newCurrency);
-        this.currencies = [...this.currencies];
-    } else {
-        this.currencies = [newCurrency, ...this.currencies];
-    }
+    this.currencyService.createCurrency(data).subscribe({
+      next: (res) => {
+        this.currencies.update(prev => [res.data, ...prev]);
+        this.isAddModalOpen.set(false);
+        this.notificationService.success('Currency created successfully');
+      },
+      error: (err) => {
+        console.error('Error creating currency:', err);
+        this.notificationService.error(err.error?.message || 'Error creating currency');
+      }
+    });
   }
 
-  handleAction(event: { action: string, data: any }) {
+  handleAction(event: { action: string, data: Currency }) {
     if (event.action === 'delete') {
-      this.currencyToDelete = event.data;
-    } else if (event.action === 'edit') {
-      // Implement edit logic if needed
+      if (event.data.is_base) {
+        this.notificationService.error('Cannot delete base currency');
+        return;
+      }
+      this.currencyToDelete.set(event.data);
     }
   }
 
@@ -134,7 +164,7 @@ export class CurrenciesComponent {
       { label: 'Edit', action: 'edit', svgIconPath: '/icons/edit.svg', customClass: 'edit-btn' }
     ];
     
-    if (!currency.isBase) {
+    if (!currency.is_base) {
       actions.push({ label: 'Delete', action: 'delete', svgIconPath: '/icons/delete.svg', customClass: 'delete-btn' });
     }
     
@@ -143,95 +173,113 @@ export class CurrenciesComponent {
 
   handleBulkAction(action: string) {
     if (action === 'delete') {
-      this.bulkDeletePending = true;
+      this.bulkDeletePending.set(true);
     }
   }
 
   confirmDelete() {
-    if (this.bulkDeletePending) {
-      this.currencies = this.currencies.filter(c => !this.selectedCurrencyIds.has(c.id));
-      this.selectedCurrencyIds.clear();
-      this.bulkDeletePending = false;
-    } else if (this.currencyToDelete) {
-      this.currencies = this.currencies.filter(c => c.id !== this.currencyToDelete!.id);
-      this.currencyToDelete = null;
-    }
+    const isBulk = this.bulkDeletePending();
+    const toDelete = this.currencyToDelete();
+    const selectedIds = this.selectedCurrencyIds();
+
+    const idsToDelete = isBulk 
+      ? Array.from(selectedIds) 
+      : (toDelete ? [toDelete.id] : []);
+
+    if (idsToDelete.length === 0) return;
+
+    this.currencyService.deleteCurrencies(idsToDelete).subscribe({
+      next: () => {
+        this.currencies.update(prev => prev.filter(c => !idsToDelete.includes(c.id)));
+        this.selectedCurrencyIds.update(set => {
+          const newSet = new Set(set);
+          idsToDelete.forEach(id => newSet.delete(id));
+          return newSet;
+        });
+        this.currencyToDelete.set(null);
+        this.bulkDeletePending.set(false);
+        this.notificationService.success(isBulk ? 'Currencies deleted' : 'Currency deleted');
+      },
+      error: (err) => {
+        console.error('Error deleting currencies:', err);
+        this.notificationService.error(err.error?.message || 'Error deleting currency(s)');
+        this.currencyToDelete.set(null);
+        this.bulkDeletePending.set(false);
+      }
+    });
   }
 
   sort(columnId: string, event: Event): void {
     event.stopPropagation();
-    if (this.sortColumn === columnId) {
-      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    if (this.sortColumn() === columnId) {
+      this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
     } else {
-      this.sortColumn = columnId;
-      this.sortDirection = 'asc';
+      this.sortColumn.set(columnId);
+      this.sortDirection.set('asc');
     }
-
-    this.currencies.sort((a, b) => {
-      // Keep Base Currency always on top regardless of sort
-      if (a.isBase) return -1;
-      if (b.isBase) return 1;
-
-      const valA = (a as any)[columnId];
-      const valB = (b as any)[columnId];
-
-      if (valA === null || valA === undefined) return 1;
-      if (valB === null || valB === undefined) return -1;
-
-      if (typeof valA === 'string' && typeof valB === 'string') {
-        return this.sortDirection === 'asc'
-          ? valA.localeCompare(valB)
-          : valB.localeCompare(valA);
-      } else {
-        return this.sortDirection === 'asc'
-          ? (valA > valB ? 1 : -1)
-          : (valA < valB ? 1 : -1);
-      }
-    });
   }
 
   onImport() {}
   onExport() {}
 
   // Common UI methods
-  toggleManageColumns() { this.isManageColumnsOpen = true; }
-  closeManageColumns() { this.isManageColumnsOpen = false; }
-  onColumnsChange(cols: ColumnDef[]) { this.availableColumns = cols; }
-  onPageChange(p: number) { this.currentPage = p; }
+  toggleManageColumns() { this.isManageColumnsOpen.set(true); }
+  closeManageColumns() { this.isManageColumnsOpen.set(false); }
+  onColumnsChange(cols: ColumnDef[]) { this.availableColumns.set(cols); }
+  onPageChange(p: number) { this.currentPage.set(p); }
   onItemsPerPageChange(n: number | 'All') { 
-    this.itemsPerPage = n === 'All' ? this.currencies.length : n; 
-    this.currentPage = 1; 
+    this.itemsPerPage.set(n === 'All' ? this.currencies().length : n); 
+    this.currentPage.set(1); 
   }
-  clearSearch() { this.searchQuery = ''; }
+  clearSearch() { this.searchQuery.set(''); }
   
   toggleAll() {
     if (this.isAllSelected()) {
-        this.selectedCurrencyIds.clear();
+      this.selectedCurrencyIds.update(set => {
+        const newSet = new Set(set);
+        this.selectableCurrencies().forEach(c => newSet.delete(c.id));
+        return newSet;
+      });
     } else {
-        // Only select items that are NOT base currency
-        this.paginatedCurrencies.forEach(c => {
-            if (!c.isBase) this.selectedCurrencyIds.add(c.id);
-        });
+      this.selectedCurrencyIds.update(set => {
+        const newSet = new Set(set);
+        this.selectableCurrencies().forEach(c => newSet.add(c.id));
+        return newSet;
+      });
     }
   }
   
-  toggleSelection(id: string) {
-    if (this.selectedCurrencyIds.has(id)) this.selectedCurrencyIds.delete(id);
-    else this.selectedCurrencyIds.add(id);
+  toggleSelection(id: number) {
+    this.selectedCurrencyIds.update(set => {
+      const newSet = new Set(set);
+      if (newSet.has(id)) newSet.delete(id);
+      else newSet.add(id);
+      return newSet;
+    });
   }
   
-  get selectableCurrencies(): Currency[] {
-    return this.paginatedCurrencies.filter(c => !c.isBase);
-  }
+  selectableCurrencies = computed(() => {
+    return this.paginatedCurrencies().filter(c => !c.is_base);
+  });
   
-  isAllSelected(): boolean {
-    const selectable = this.selectableCurrencies;
-    return selectable.length > 0 && selectable.every(c => this.selectedCurrencyIds.has(c.id));
-  }
+  isAllSelected = computed(() => {
+    const selectable = this.selectableCurrencies();
+    const selected = this.selectedCurrencyIds();
+    return selectable.length > 0 && selectable.every(c => selected.has(c.id));
+  });
   
-  isPartiallySelected(): boolean {
-    const selectable = this.selectableCurrencies;
-    const selectedCount = selectable.filter(c => this.selectedCurrencyIds.has(c.id)).length;
+  isPartiallySelected = computed(() => {
+    const selectable = this.selectableCurrencies();
+    const selected = this.selectedCurrencyIds();
+    const selectedCount = selectable.filter(c => selected.has(c.id)).length;
     return selectedCount > 0 && selectedCount < selectable.length;
+  });
+
+  trackByCurrencyId(index: number, item: Currency) {
+    return item.id;
+  }
+
+  trackByColumnId(index: number, column: ColumnDef) {
+    return column.id;
   }
 }

@@ -9,30 +9,33 @@
         title="VAT Rates"
         addBtnText="Add New VAT Rate"
         [showActions]="true"
-        (addNew)="isAddModalOpen = true">
+        (addNew)="isAddModalOpen.set(true)">
 
         <app-bulk-actions
             custom-actions
-            *ngIf="selectedRateIds.size > 0"
-            [selectedCount]="selectedRateIds.size"
-            [actions]="bulkActions"
+            *ngIf="selectedRateIds().size > 0"
+            [selectedCount]="selectedRateIds().size"
+            [actions]="dynamicBulkActions()"
             (actionSelected)="handleBulkAction($event)">
         </app-bulk-actions>
     </app-page-header>
 
-    <div class="data-card" style="margin: 0; display: flex; flex-direction: column;" *ngIf="vatRates.length > 0 || searchQuery">
+    <div class="data-card" style="margin: 0; display: flex; flex-direction: column;" *ngIf="vatRates().length > 0 || searchQuery()">
         <!-- Toolbar -->
         <div class="card-toolbar">
             <div class="search-box">
                 <i class="las la-search search-icon"></i>
-                <input type="text" placeholder="Search for something.." [(ngModel)]="searchQuery" (input)="currentPage = 1" class="search-input">
-                <i class="las la-times clear-icon" *ngIf="searchQuery" (click)="clearSearch()"></i>
+                <input type="text" placeholder="Search for something.." 
+                       [ngModel]="searchQuery()" 
+                       (ngModelChange)="searchQuery.set($event); currentPage.set(1)" 
+                       class="search-input">
+                <i class="las la-times clear-icon" *ngIf="searchQuery()" (click)="clearSearch()"></i>
             </div>
             
             <div class="toolbar-actions" style="display: flex; gap: var(--space-sm); align-items: center;">
                 <app-custom-filter
                     [options]="filterOptions"
-                    [currentFilter]="currentFilter"
+                    [currentFilter]="currentFilter()"
                     activeLabelPrefix="All VAT Rates"
                     (filterChange)="setFilter($event)">
                 </app-custom-filter>
@@ -52,10 +55,10 @@
                                 <span class="checkmark"></span>
                             </label>
                         </th>
-                        <ng-container *ngFor="let col of availableColumns">
+                        <ng-container *ngFor="let col of availableColumns(); trackBy: trackByColumnId">
                             <th *ngIf="col.visible" [class.col-status]="col.id === 'status'">
                                 {{ col.label }}
-                                <i [class]="sortColumn === col.id ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" 
+                                <i [class]="sortColumn() === col.id ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" 
                                    (click)="sort(col.id, $event)"
                                    style="cursor: pointer; margin-left: 4px;"></i>
                             </th>
@@ -63,15 +66,15 @@
                         <th class="col-actions"></th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr *ngFor="let rate of paginatedRates">
+                <tbody [class.loading]="isLoading()">
+                    <tr *ngFor="let rate of paginatedRates(); trackBy: trackByRateId" [class.selected]="selectedRateIds().has(rate.id)">
                         <td class="col-checkbox">
                             <label class="custom-checkbox">
-                                <input type="checkbox" [checked]="selectedRateIds.has(rate.id)" (change)="toggleSelection(rate.id)">
+                                <input type="checkbox" [checked]="selectedRateIds().has(rate.id)" (change)="toggleSelection(rate.id)">
                                 <span class="checkmark"></span>
                             </label>
                         </td>
-                        <ng-container *ngFor="let col of availableColumns">
+                        <ng-container *ngFor="let col of availableColumns(); trackBy: trackByColumnId">
                             <td *ngIf="col.visible" [ngSwitch]="col.id" [class.col-status]="col.id === 'status'">
                                 <ng-container *ngSwitchCase="'name'">
                                     <span class="item-name">{{ rate.name }}</span>
@@ -95,14 +98,14 @@
                         </td>
                     </tr>
                     <!-- Internal Empty State (No Results found inside table) -->
-                    <tr *ngIf="paginatedRates.length === 0">
-                        <td [attr.colspan]="availableColumns.length + 2" style="padding: 0;">
+                    <tr *ngIf="paginatedRates().length === 0 && !isLoading()">
+                        <td [attr.colspan]="availableColumns().length + 2" style="padding: 0;">
                             <app-empty-state 
-                                [title]="(searchQuery || currentFilter !== 'All') ? 'No VAT Rates Found.' : 'No VAT Rates Found.'"
-                                [subtitle]="searchQuery ? 'We couldn\'t find any VAT rates matching \'' + searchQuery + '\'' : 'It looks like you haven\'t added any VAT rates yet.'" 
-                                [actionLabel]="(searchQuery || currentFilter !== 'All') ? '' : 'Add New VAT Rate'"
-                                [actionIconClass]="(searchQuery || currentFilter !== 'All') ? '' : 'las la-plus'" 
-                                (actionClick)="isAddModalOpen = true">
+                                [title]="(searchQuery() || currentFilter() !== 'All') ? 'No VAT Rates Found.' : 'No VAT Rates Found.'"
+                                [subtitle]="searchQuery() ? 'We couldn\'t find any VAT rates matching \'' + searchQuery() + '\'' : 'It looks like you haven\'t added any VAT rates yet.'" 
+                                [actionLabel]="(searchQuery() || currentFilter() !== 'All') ? '' : 'Add New VAT Rate'"
+                                [actionIconClass]="(searchQuery() || currentFilter() !== 'All') ? '' : 'las la-plus'" 
+                                (actionClick)="isAddModalOpen.set(true)">
                             </app-empty-state>
                         </td>
                     </tr>
@@ -112,46 +115,46 @@
 
         <!-- Pagination -->
         <app-pagination 
-            [totalItems]="filteredRates.length" 
-            [itemsPerPage]="itemsPerPage" 
-            [currentPage]="currentPage"
+            [totalItems]="filteredRates().length" 
+            [itemsPerPage]="itemsPerPage()" 
+            [currentPage]="currentPage()"
             (pageChange)="onPageChange($event)" 
             (itemsPerPageChange)="onItemsPerPageChange($event)">
         </app-pagination>
     </div>
 
     <!-- External Empty State (No VAT Rates exist yet) -->
-    <app-empty-state *ngIf="vatRates.length === 0 && !searchQuery" 
+    <app-empty-state *ngIf="vatRates().length === 0 && !searchQuery() && !isLoading()" 
         title="No VAT Rates Found."
         subtitle="It looks like you haven't added any VAT rates yet." 
         actionLabel="Add New VAT Rate"
         actionIconClass="las la-plus" 
-        (actionClick)="isAddModalOpen = true">
+        (actionClick)="isAddModalOpen.set(true)">
     </app-empty-state>
 </div>
 
 <!-- Modal -->
 <app-add-vat-rate-modal 
-    *ngIf="isAddModalOpen" 
-    (close)="isAddModalOpen = false"
+    *ngIf="isAddModalOpen()" 
+    (close)="isAddModalOpen.set(false)"
     (save)="onSaveRate($event)">
 </app-add-vat-rate-modal>
 
 <!-- Delete Confirmation -->
 <app-delete-modal 
-    [isOpen]="!!rateToDelete || bulkDeletePending" 
-    [title]="bulkDeletePending ? 'Delete VAT Rates' : 'Delete VAT Rate'"
-    [message]="bulkDeletePending 
-        ? 'Are you sure you want to delete ' + selectedRateIds.size + ' selected VAT rate(s)? This action cannot be undone.'
+    [isOpen]="!!rateToDelete() || bulkDeletePending()" 
+    [title]="bulkDeletePending() ? 'Delete VAT Rates' : 'Delete VAT Rate'"
+    [message]="bulkDeletePending() 
+        ? 'Are you sure you want to delete ' + selectedRateIds().size + ' selected VAT rate(s)? This action cannot be undone.'
         : 'Are you sure you want to delete this VAT rate? This action cannot be undone.'" 
-    (cancel)="rateToDelete = null; bulkDeletePending = false"
+    (cancel)="rateToDelete.set(null); bulkDeletePending.set(false)"
     (confirm)="confirmDelete()">
 </app-delete-modal>
 
 <!-- Manage Columns -->
 <app-manage-columns 
-    [isOpen]="isManageColumnsOpen" 
-    [columns]="availableColumns" 
+    [isOpen]="isManageColumnsOpen()" 
+    [columns]="availableColumns()" 
     (closePanel)="closeManageColumns()"
     (columnsChange)="onColumnsChange($event)">
 </app-manage-columns>

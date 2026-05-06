@@ -8,24 +8,26 @@
         <h1 class="page-title">VAT Settings</h1>
     </div>
 
-    <div class="settings-card">
+    <div class="settings-card" [class.loading]="isLoading()">
         <div class="settings-card-header">
             <span class="settings-label">Is your business registered for VAT?</span>
             <label class="switch">
-                <input type="checkbox" [(ngModel)]="isVatRegistered" (change)="toggleVat($event)">
+                <input type="checkbox" [ngModel]="isVatRegistered()" (ngModelChange)="onFieldChange('isVatRegistered', $event)">
                 <span class="slider round"></span>
             </label>
         </div>
 
-        <div class="settings-card-body" *ngIf="isVatRegistered">
+        <div class="settings-card-body" *ngIf="isVatRegistered()">
             <div class="form-grid form-grid-2">
                 <div class="form-group">
                     <label>Tax Registration Number (TRN)<span class="required">*</span></label>
-                    <input type="text" class="form-control" placeholder="Enter Tax Registration Number" [(ngModel)]="taxRegistrationNumber">
+                    <input type="text" class="form-control" placeholder="Enter Tax Registration Number" 
+                           [ngModel]="taxRegistrationNumber()" (ngModelChange)="onFieldChange('taxRegistrationNumber', $event)">
                 </div>
                 <div class="form-group">
                     <label>VAT Registered On<span class="required">*</span></label>
-                    <input type="date" class="form-control date-input" [(ngModel)]="vatRegisteredOn">
+                    <input type="date" class="form-control date-input" 
+                           [ngModel]="vatRegisteredOn()" (ngModelChange)="onFieldChange('vatRegisteredOn', $event)">
                 </div>
             </div>
         </div>

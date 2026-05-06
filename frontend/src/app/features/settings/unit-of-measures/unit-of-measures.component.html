@@ -9,34 +9,34 @@
         title="Unit of Measures"
         addBtnText="Add New UOM"
         [showActions]="true"
-        (addNew)="isAddModalOpen = true">
+        (addNew)="isAddModalOpen.set(true)">
 
         <app-bulk-actions
             custom-actions
-            *ngIf="selectedUomIds.size > 0"
-            [selectedCount]="selectedUomIds.size"
-            [actions]="bulkActions"
+            *ngIf="selectedUomIds().size > 0"
+            [selectedCount]="selectedUomIds().size"
+            [actions]="dynamicBulkActions()"
             (actionSelected)="handleBulkAction($event)">
         </app-bulk-actions>
     </app-page-header>
 
-    <div class="data-card" style="margin: 0; display: flex; flex-direction: column;" *ngIf="uoms.length > 0 || searchQuery">
+    <div class="data-card" style="margin: 0; display: flex; flex-direction: column;" *ngIf="uoms().length > 0 || searchQuery()">
         <!-- Toolbar -->
         <div class="card-toolbar">
             <div class="search-box">
                 <i class="las la-search search-icon"></i>
                 <input type="text" 
-                       [(ngModel)]="searchQuery" 
-                       (ngModelChange)="currentPage = 1"
+                       [ngModel]="searchQuery()" 
+                       (ngModelChange)="searchQuery.set($event); currentPage.set(1)"
                        placeholder="Search for something.." 
                        class="search-input">
-                <i *ngIf="searchQuery" class="las la-times clear-icon" (click)="clearSearch()"></i>
+                <i *ngIf="searchQuery()" class="las la-times clear-icon" (click)="clearSearch()"></i>
             </div>
             
             <div class="toolbar-actions" style="display: flex; gap: var(--space-sm); align-items: center;">
                 <app-custom-filter 
                     [options]="filterOptions" 
-                    [currentFilter]="currentFilter"
+                    [currentFilter]="currentFilter()"
                     activeLabelPrefix="All UOMs"
                     (filterChange)="setFilter($event)">
                 </app-custom-filter>
@@ -55,10 +55,10 @@
                                 <span class="checkmark"></span>
                             </label>
                         </th>
-                        <ng-container *ngFor="let col of availableColumns">
+                        <ng-container *ngFor="let col of availableColumns(); trackBy: trackByColumnId">
                             <th *ngIf="col.visible" [class.col-status]="col.id === 'status'">
                                 {{ col.label }}
-                                <i [class]="sortColumn === col.id ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" 
+                                <i [class]="sortColumn() === col.id ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" 
                                    (click)="sort(col.id, $event)"
                                    style="cursor: pointer; margin-left: 4px;"></i>
                             </th>
@@ -66,15 +66,15 @@
                         <th class="col-actions"></th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr *ngFor="let uom of paginatedUoms">
+                <tbody [class.loading]="isLoading()">
+                    <tr *ngFor="let uom of paginatedUoms(); trackBy: trackByUomId" [class.selected]="selectedUomIds().has(uom.id)">
                         <td class="col-checkbox">
                             <label class="custom-checkbox">
-                                <input type="checkbox" [checked]="selectedUomIds.has(uom.id)" (change)="toggleSelection(uom.id)">
+                                <input type="checkbox" [checked]="selectedUomIds().has(uom.id)" (change)="toggleSelection(uom.id)">
                                 <span class="checkmark"></span>
                             </label>
                         </td>
-                        <ng-container *ngFor="let col of availableColumns">
+                        <ng-container *ngFor="let col of availableColumns(); trackBy: trackByColumnId">
                             <td *ngIf="col.visible" [ngSwitch]="col.id" [class.col-status]="col.id === 'status'" class="text-muted">
                                 <ng-container *ngSwitchCase="'name'">
                                     <span class="item-name">{{ uom.name }}</span>
@@ -91,14 +91,14 @@
                         </td>
                     </tr>
                     <!-- Empty Search State -->
-                    <tr *ngIf="paginatedUoms.length === 0">
-                        <td [attr.colspan]="availableColumns.length + 2" style="padding: 0;">
+                    <tr *ngIf="paginatedUoms().length === 0 && !isLoading()">
+                        <td [attr.colspan]="availableColumns().length + 2" style="padding: 0;">
                             <app-empty-state 
-                                [title]="(searchQuery || currentFilter !== 'All') ? 'No Unit of Measures Found.' : 'No Unit of Measures Found.'"
-                                [subtitle]="searchQuery ? 'We couldn\'t find any unit of measures matching \'' + searchQuery + '\'' : 'It looks like you haven\'t added any unit of measures yet.'" 
-                                [actionLabel]="(searchQuery || currentFilter !== 'All') ? '' : 'Add New UOM'"
-                                [actionIconClass]="(searchQuery || currentFilter !== 'All') ? '' : 'las la-plus'" 
-                                (actionClick)="isAddModalOpen = true">
+                                [title]="(searchQuery() || currentFilter() !== 'All') ? 'No Unit of Measures Found.' : 'No Unit of Measures Found.'"
+                                [subtitle]="searchQuery() ? 'We couldn\'t find any unit of measures matching \'' + searchQuery() + '\'' : 'It looks like you haven\'t added any unit of measures yet.'" 
+                                [actionLabel]="(searchQuery() || currentFilter() !== 'All') ? '' : 'Add New UOM'"
+                                [actionIconClass]="(searchQuery() || currentFilter() !== 'All') ? '' : 'las la-plus'" 
+                                (actionClick)="isAddModalOpen.set(true)">
                             </app-empty-state>
                         </td>
                     </tr>
@@ -108,9 +108,9 @@
 
         <!-- Pagination -->
         <app-pagination 
-            [totalItems]="filteredUoms.length" 
-            [itemsPerPage]="itemsPerPage" 
-            [currentPage]="currentPage"
+            [totalItems]="filteredUoms().length" 
+            [itemsPerPage]="itemsPerPage()" 
+            [currentPage]="currentPage()"
             (pageChange)="onPageChange($event)" 
             (itemsPerPageChange)="onItemsPerPageChange($event)">
         </app-pagination>
@@ -118,37 +118,37 @@
 
     <!-- Initial Empty State -->
     <app-empty-state 
-        *ngIf="uoms.length === 0 && !searchQuery"
+        *ngIf="uoms().length === 0 && !searchQuery() && !isLoading()"
         title="No Unit of Measures Found."
         subtitle="It looks like you haven't added any unit of measures yet." 
         actionLabel="Add New UOM"
         actionIconClass="las la-plus" 
-        (actionClick)="isAddModalOpen = true">
+        (actionClick)="isAddModalOpen.set(true)">
     </app-empty-state>
 </div>
 
 <!-- Modal -->
 <app-add-uom-modal 
-    *ngIf="isAddModalOpen" 
-    (close)="isAddModalOpen = false" 
+    *ngIf="isAddModalOpen()" 
+    (close)="isAddModalOpen.set(false)" 
     (save)="onSaveUom($event)">
 </app-add-uom-modal>
 
 <!-- Delete Confirmation -->
 <app-delete-modal 
-    [isOpen]="!!uomToDelete || bulkDeletePending" 
-    [title]="bulkDeletePending ? 'Delete Unit of Measures' : 'Delete Unit of Measure'"
-    [message]="bulkDeletePending 
-        ? 'Are you sure you want to delete ' + selectedUomIds.size + ' selected units? This action cannot be undone.'
+    [isOpen]="!!uomToDelete() || bulkDeletePending()" 
+    [title]="bulkDeletePending() ? 'Delete Unit of Measures' : 'Delete Unit of Measure'"
+    [message]="bulkDeletePending() 
+        ? 'Are you sure you want to delete ' + selectedUomIds().size + ' selected units? This action cannot be undone.'
         : 'Are you sure you want to delete this unit of measure? This action cannot be undone.'" 
-    (cancel)="uomToDelete = null; bulkDeletePending = false"
+    (cancel)="uomToDelete.set(null); bulkDeletePending.set(false)"
     (confirm)="confirmDelete()">
 </app-delete-modal>
 
 <!-- Manage Columns -->
 <app-manage-columns 
-    [isOpen]="isManageColumnsOpen"
-    [columns]="availableColumns"
+    [isOpen]="isManageColumnsOpen()"
+    [columns]="availableColumns()"
     (columnsChange)="onColumnsChange($event)"
     (closePanel)="closeManageColumns()">
 </app-manage-columns>

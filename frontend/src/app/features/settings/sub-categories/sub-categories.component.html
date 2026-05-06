@@ -8,34 +8,34 @@
         title="Sub Categories"
         addBtnText="Add New Sub Category"
         [showActions]="true"
-        (addNew)="isAddModalOpen = true"
+        (addNew)="isAddModalOpen.set(true)"
         (importBtn)="onImport()"
         (exportBtn)="onExport()">
 
         <app-bulk-actions
             custom-actions
-            *ngIf="selectedSubCategoryIds.size > 0"
-            [selectedCount]="selectedSubCategoryIds.size"
-            [actions]="bulkActions"
+            *ngIf="selectedSubCategoryIds().size > 0"
+            [selectedCount]="selectedSubCategoryIds().size"
+            [actions]="dynamicBulkActions()"
             (actionSelected)="handleBulkAction($event)">
         </app-bulk-actions>
     </app-page-header>
 
-    <div class="data-card" style="margin: 0; display: flex; flex-direction: column;" *ngIf="subCategories.length > 0 || searchQuery">
+    <div class="data-card" style="margin: 0; display: flex; flex-direction: column;" *ngIf="subCategories().length > 0 || searchQuery()">
         <div class="card-toolbar">
             <div class="search-box">
                 <i class="las la-search search-icon"></i>
                 <input type="text" 
-                       [(ngModel)]="searchQuery" 
-                       (ngModelChange)="currentPage = 1"
+                       [ngModel]="searchQuery()" 
+                       (ngModelChange)="searchQuery.set($event); currentPage.set(1)"
                        placeholder="Search for something.." 
                        class="search-input">
-                <i *ngIf="searchQuery" class="las la-times clear-icon" (click)="clearSearch()"></i>
+                <i *ngIf="searchQuery()" class="las la-times clear-icon" (click)="clearSearch()"></i>
             </div>
             <div class="toolbar-actions">
                 <app-custom-filter 
                     [options]="filterOptions" 
-                    [currentFilter]="currentFilter"
+                    [currentFilter]="currentFilter()"
                     activeLabelPrefix="All Sub Categories"
                     (filterChange)="setFilter($event)">
                 </app-custom-filter>
@@ -53,10 +53,10 @@
                                 <span class="checkmark"></span>
                             </label>
                         </th>
-                        <ng-container *ngFor="let col of availableColumns">
+                        <ng-container *ngFor="let col of availableColumns(); trackBy: trackByColumnId">
                             <th *ngIf="col.visible" [class.col-status]="col.id === 'status'">
                                 {{ col.label }}
-                                <i [class]="sortColumn === col.id ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" 
+                                <i [class]="sortColumn() === col.id ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" 
                                    (click)="sort(col.id, $event)"
                                    style="cursor: pointer; margin-left: 4px;"></i>
                             </th>
@@ -64,24 +64,24 @@
                         <th class="col-actions"></th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr *ngFor="let subCat of paginatedSubCategories" [class.selected]="selectedSubCategoryIds.has(subCat.id)">
+                <tbody [class.loading]="isLoading()">
+                    <tr *ngFor="let subCat of paginatedSubCategories(); trackBy: trackBySubCategoryId" [class.selected]="selectedSubCategoryIds().has(subCat.id)">
                         <td class="col-checkbox">
                             <label class="custom-checkbox">
-                                <input type="checkbox" [checked]="selectedSubCategoryIds.has(subCat.id)" (change)="toggleSelection(subCat.id)">
+                                <input type="checkbox" [checked]="selectedSubCategoryIds().has(subCat.id)" (change)="toggleSelection(subCat.id)">
                                 <span class="checkmark"></span>
                             </label>
                         </td>
-                        <ng-container *ngFor="let col of availableColumns">
+                        <ng-container *ngFor="let col of availableColumns(); trackBy: trackByColumnId">
                             <td *ngIf="col.visible" [ngSwitch]="col.id" [class.col-status]="col.id === 'status'" class="text-muted">
                                 <ng-container *ngSwitchCase="'name'">
                                     <span class="item-name">{{ subCat.name }}</span>
                                 </ng-container>
                                 <ng-container *ngSwitchCase="'description'">
-                                    {{ subCat.description }}
+                                    {{ subCat.description || '-' }}
                                 </ng-container>
                                 <ng-container *ngSwitchCase="'parentCategory'">
-                                    {{ subCat.parentCategory }}
+                                    {{ subCat.category?.name || '-' }}
                                 </ng-container>
                                 <ng-container *ngSwitchCase="'status'">
                                     <span class="status-pill" [ngClass]="subCat.status.toLowerCase()">
@@ -96,14 +96,14 @@
                         </td>
                     </tr>
                     <!-- Empty Search State -->
-                    <tr *ngIf="paginatedSubCategories.length === 0">
-                        <td [attr.colspan]="availableColumns.length + 2" style="padding: 0;">
+                    <tr *ngIf="paginatedSubCategories().length === 0 && !isLoading()">
+                        <td [attr.colspan]="availableColumns().length + 2" style="padding: 0;">
                             <app-empty-state 
-                                [title]="(searchQuery || currentFilter !== 'All') ? 'No Sub Categories Found.' : 'No Sub Categories Found.'"
-                                [subtitle]="searchQuery ? 'We couldn\'t find any sub categories matching \'' + searchQuery + '\'' : 'It looks like you haven\'t added any sub categories yet.'" 
-                                [actionLabel]="(searchQuery || currentFilter !== 'All') ? '' : 'Add New Sub Category'"
-                                [actionIconClass]="(searchQuery || currentFilter !== 'All') ? '' : 'las la-plus'" 
-                                (actionClick)="isAddModalOpen = true">
+                                [title]="(searchQuery() || currentFilter() !== 'All') ? 'No Sub Categories Found.' : 'No Sub Categories Found.'"
+                                [subtitle]="searchQuery() ? 'We couldn\'t find any sub categories matching \'' + searchQuery() + '\'' : 'It looks like you haven\'t added any sub categories yet.'" 
+                                [actionLabel]="(searchQuery() || currentFilter() !== 'All') ? '' : 'Add New Sub Category'"
+                                [actionIconClass]="(searchQuery() || currentFilter() !== 'All') ? '' : 'las la-plus'" 
+                                (actionClick)="isAddModalOpen.set(true)">
                             </app-empty-state>
                         </td>
                     </tr>
@@ -112,9 +112,9 @@
         </div>
 
         <app-pagination 
-            [currentPage]="currentPage"
-            [totalItems]="filteredSubCategories.length"
-            [itemsPerPage]="itemsPerPage"
+            [currentPage]="currentPage()"
+            [totalItems]="filteredSubCategories().length"
+            [itemsPerPage]="itemsPerPage()"
             (pageChange)="onPageChange($event)"
             (itemsPerPageChange)="onItemsPerPageChange($event)">
         </app-pagination>
@@ -122,35 +122,35 @@
 
     <!-- Initial Empty State -->
     <app-empty-state 
-        *ngIf="subCategories.length === 0 && !searchQuery"
+        *ngIf="subCategories().length === 0 && !searchQuery() && !isLoading()"
         title="No Sub Categories Found."
         subtitle="It looks like you haven't added any sub categories yet." 
         actionLabel="Add New Sub Category"
         actionIconClass="las la-plus" 
-        (actionClick)="isAddModalOpen = true">
+        (actionClick)="isAddModalOpen.set(true)">
     </app-empty-state>
 </div>
 
 <app-add-sub-category-modal 
-    *ngIf="isAddModalOpen" 
-    (close)="isAddModalOpen = false"
+    *ngIf="isAddModalOpen()" 
+    (close)="isAddModalOpen.set(false)"
     (save)="onSaveSubCategory($event)">
 </app-add-sub-category-modal>
 
 <app-manage-columns 
-    [isOpen]="isManageColumnsOpen"
-    [columns]="availableColumns"
+    [isOpen]="isManageColumnsOpen()"
+    [columns]="availableColumns()"
     (columnsChange)="onColumnsChange($event)"
     (closePanel)="closeManageColumns()">
 </app-manage-columns>
 
 <!-- Delete Confirmation -->
 <app-delete-modal 
-    [isOpen]="!!subCategoryToDelete || bulkDeletePending" 
-    [title]="bulkDeletePending ? 'Delete Sub Categories' : 'Delete Sub Category'"
-    [message]="bulkDeletePending 
-        ? 'Are you sure you want to delete ' + selectedSubCategoryIds.size + ' selected sub category(s)? This action cannot be undone.'
+    [isOpen]="!!subCategoryToDelete() || bulkDeletePending()" 
+    [title]="bulkDeletePending() ? 'Delete Sub Categories' : 'Delete Sub Category'"
+    [message]="bulkDeletePending() 
+        ? 'Are you sure you want to delete ' + selectedSubCategoryIds().size + ' selected sub category(s)? This action cannot be undone.'
         : 'Are you sure you want to delete this sub category? This action cannot be undone.'" 
-    (cancel)="subCategoryToDelete = null; bulkDeletePending = false"
+    (cancel)="subCategoryToDelete.set(null); bulkDeletePending.set(false)"
     (confirm)="confirmDelete()">
 </app-delete-modal>

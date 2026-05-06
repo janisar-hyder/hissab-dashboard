@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ElementRef, HostListener } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ElementRef, HostListener, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export interface BulkAction {
@@ -13,7 +13,8 @@ export interface BulkAction {
     standalone: true,
     imports: [CommonModule],
     templateUrl: './bulk-actions.component.html',
-    styleUrls: ['./bulk-actions.component.scss']
+    styleUrls: ['./bulk-actions.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BulkActionsComponent {
     @Input() actions: BulkAction[] = [];

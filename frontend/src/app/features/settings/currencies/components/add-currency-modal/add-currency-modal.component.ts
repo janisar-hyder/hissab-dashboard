@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, OnInit } from '@angular/core';
+import { Component, EventEmitter, Output, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as cc from 'currency-codes';
@@ -11,17 +11,20 @@ import { CustomSelectComponent, SelectOption } from '../../../../../shared/compo
   standalone: true,
   imports: [CommonModule, FormsModule, CustomSelectComponent],
   templateUrl: './add-currency-modal.component.html',
-  styleUrls: ['./add-currency-modal.component.scss']
+  styleUrls: ['./add-currency-modal.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AddCurrencyModalComponent implements OnInit {
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<any>();
 
-  currencyCode: string = '';
-  currencySymbol: string = '';
-  currencyName: string = '';
-  decimalPlaces: string = '';
-  format: string = '';
+  currency = signal({
+    code: '',
+    symbol: '',
+    name: '',
+    decimal_places: '2',
+    format: ''
+  });
 
   codeOptions: SelectOption[] = [];
   decimalOptions: SelectOption[] = [
@@ -37,30 +40,30 @@ export class AddCurrencyModalComponent implements OnInit {
     })).sort((a, b) => a.label.localeCompare(b.label));
   }
 
-  onCodeSelect() {
-    if (this.currencyCode) {
-      const data = cc.code(this.currencyCode);
+  updateField(field: string, value: any) {
+    this.currency.update(c => ({ ...c, [field]: value }));
+    
+    if (field === 'code' && value) {
+      const data = cc.code(value);
       if (data) {
-        this.currencyName = data.currency;
-        // The digits property returns the standard decimals, map it to string
-        this.decimalPlaces = data.digits.toString();
-        
-        const sym = getSymbolFromCurrency(this.currencyCode);
-        this.currencySymbol = sym ? sym : this.currencyCode;
+        const sym = getSymbolFromCurrency(value);
+        this.currency.update(c => ({
+          ...c,
+          name: data.currency,
+          decimal_places: data.digits.toString(),
+          symbol: sym ? sym : value
+        }));
       }
     }
   }
 
   onSave() {
-    if (this.currencyCode && this.currencyName && this.currencySymbol && this.decimalPlaces) {
+    const data = this.currency();
+    if (data.code && data.name && data.symbol) {
       this.save.emit({
-        code: this.currencyCode,
-        name: this.currencyName,
-        symbol: this.currencySymbol,
-        decimalPlaces: parseInt(this.decimalPlaces, 10),
-        format: this.format
+        ...data,
+        decimal_places: parseInt(data.decimal_places, 10)
       });
-      this.close.emit();
     }
   }
 }

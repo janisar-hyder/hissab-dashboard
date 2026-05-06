@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, HostListener, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export interface MenuAction {
@@ -11,9 +11,11 @@ export interface MenuAction {
 
 @Component({
   selector: 'app-action-menu',
+  standalone: true,
   imports: [CommonModule],
   templateUrl: './action-menu.html',
   styleUrl: './action-menu.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ActionMenu {
   @Input() actions: MenuAction[] = [];

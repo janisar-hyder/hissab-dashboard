@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../../../../shared/components/button/button.component';
@@ -8,20 +8,25 @@ import { ButtonComponent } from '../../../../../shared/components/button/button.
   standalone: true,
   imports: [CommonModule, FormsModule, ButtonComponent],
   templateUrl: './add-uom-modal.component.html',
-  styleUrls: ['./add-uom-modal.component.scss']
+  styleUrls: ['./add-uom-modal.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AddUomModalComponent {
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<any>();
 
-  uom = {
+  uom = signal({
     name: ''
-  };
+  });
+
+  updateUomField(field: string, value: any) {
+    this.uom.update(s => ({ ...s, [field]: value }));
+  }
 
   onSave() {
-    if (this.uom.name.trim()) {
-      this.save.emit(this.uom);
-      this.close.emit();
+    const data = this.uom();
+    if (data.name.trim()) {
+      this.save.emit(data);
     }
   }
 

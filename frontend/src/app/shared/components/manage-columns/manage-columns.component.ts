@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkDragDrop, moveItemInArray, DragDropModule } from '@angular/cdk/drag-drop';
@@ -16,7 +16,8 @@ export interface ColumnDef {
   standalone: true,
   imports: [CommonModule, FormsModule, DragDropModule, ButtonComponent],
   templateUrl: './manage-columns.component.html',
-  styleUrls: ['./manage-columns.component.scss']
+  styleUrls: ['./manage-columns.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ManageColumnsComponent implements OnChanges {
   @Input() isOpen = false;

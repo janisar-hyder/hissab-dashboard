@@ -23,7 +23,8 @@
                 <input type="text" 
                        id="vatName" 
                        name="vatName" 
-                       [(ngModel)]="vatRate.name" 
+                       [ngModel]="vatRate().name" 
+                       (ngModelChange)="updateVatField('name', $event)"
                        class="form-control" 
                        placeholder="Enter VAT Name" 
                        required>
@@ -33,7 +34,8 @@
                 <input type="number" 
                        id="vatRateValue" 
                        name="vatRateValue" 
-                       [(ngModel)]="vatRate.rate" 
+                       [ngModel]="vatRate().rate" 
+                       (ngModelChange)="updateVatField('rate', $event)"
                        class="form-control" 
                        placeholder="Enter Rate" 
                        required>
@@ -42,7 +44,7 @@
 
         <div class="modal-actions">
             <app-button variant="outline" (clicked)="onCancel()">Cancel</app-button>
-            <app-button variant="primary" (clicked)="onSave()" [disabled]="!vatRate.name.trim() || vatRate.rate === null">Save</app-button>
+            <app-button variant="primary" (clicked)="onSave()" [disabled]="!vatRate().name.trim() || vatRate().rate === null">Save</app-button>
         </div>
     </div>
 </div>

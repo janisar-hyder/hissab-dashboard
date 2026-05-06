@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
@@ -12,7 +12,8 @@ export interface Breadcrumb {
     standalone: true,
     imports: [CommonModule],
     templateUrl: './breadcrumbs.component.html',
-    styleUrls: ['./breadcrumbs.component.scss']
+    styleUrls: ['./breadcrumbs.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BreadcrumbsComponent {
     @Input() items: Breadcrumb[] = [];

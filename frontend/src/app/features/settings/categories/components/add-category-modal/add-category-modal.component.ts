@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../../../../shared/components/button/button.component';
@@ -8,7 +8,8 @@ import { ButtonComponent } from '../../../../../shared/components/button/button.
   standalone: true,
   imports: [CommonModule, FormsModule, ButtonComponent],
   templateUrl: './add-category-modal.component.html',
-  styleUrls: ['./add-category-modal.component.scss']
+  styleUrls: ['./add-category-modal.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AddCategoryModalComponent {
   @Output() close = new EventEmitter<void>();

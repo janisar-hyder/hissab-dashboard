@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -7,22 +7,26 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './add-sales-person-modal.component.html',
-  styleUrls: ['./add-sales-person-modal.component.scss']
+  styleUrls: ['./add-sales-person-modal.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AddSalesPersonModalComponent {
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<any>();
 
-  personName: string = '';
-  description: string = '';
+  person = signal({
+    name: '',
+    description: ''
+  });
+
+  updateField(field: string, value: any) {
+    this.person.update(p => ({ ...p, [field]: value }));
+  }
 
   onSave() {
-    if (this.personName) {
-      this.save.emit({
-        name: this.personName,
-        description: this.description || '-'
-      });
-      this.close.emit();
+    const data = this.person();
+    if (data.name) {
+      this.save.emit(data);
     }
   }
 }

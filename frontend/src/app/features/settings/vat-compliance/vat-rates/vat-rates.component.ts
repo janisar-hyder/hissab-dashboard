@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, signal, computed, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -15,13 +15,8 @@ import { CustomFilterComponent, FilterOption } from '../../../../shared/componen
 import { BreadcrumbsComponent } from '../../../../shared/components/breadcrumbs/breadcrumbs.component';
 
 import { AddVatRateModalComponent } from './components/add-vat-rate-modal/add-vat-rate-modal.component';
-
-export interface VatRate {
-  id: string;
-  name: string;
-  rate: number;
-  status: 'Active' | 'Inactive';
-}
+import { VatRate, VatRateService } from './services/vat-rate.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-vat-rates',
@@ -43,31 +38,33 @@ export interface VatRate {
     AddVatRateModalComponent
   ],
   templateUrl: './vat-rates.component.html',
-  styleUrls: ['./vat-rates.component.scss']
+  styleUrls: ['./vat-rates.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VatRatesComponent {
-  vatRates: VatRate[] = [
-    { id: '1', name: 'Standard Rate', rate: 10, status: 'Active' },
-    { id: '2', name: 'Zero Rated', rate: 0, status: 'Inactive' }
-  ];
+export class VatRatesComponent implements OnInit {
+  private vatRateService = inject(VatRateService);
+  private notificationService = inject(NotificationService);
 
-  selectedRateIds = new Set<string>();
-  currentPage = 1;
-  itemsPerPage = 15;
-  isManageColumnsOpen = false;
-  isAddModalOpen = false;
-  searchQuery = '';
-  currentFilter = 'All';
-  sortColumn = '';
-  sortDirection: 'asc' | 'desc' = 'asc';
-  rateToDelete: VatRate | null = null;
-  bulkDeletePending = false;
+  vatRates = signal<VatRate[]>([]);
+  isLoading = signal(false);
 
-  availableColumns: ColumnDef[] = [
+  selectedRateIds = signal<Set<number>>(new Set<number>());
+  currentPage = signal(1);
+  itemsPerPage = signal(15);
+  isManageColumnsOpen = signal(false);
+  isAddModalOpen = signal(false);
+  searchQuery = signal('');
+  currentFilter = signal('All');
+  sortColumn = signal('');
+  sortDirection = signal<'asc' | 'desc'>('asc');
+  rateToDelete = signal<VatRate | null>(null);
+  bulkDeletePending = signal(false);
+
+  availableColumns = signal<ColumnDef[]>([
     { id: 'name', label: 'VAT Name', visible: true },
     { id: 'rate', label: 'Rate', visible: true },
     { id: 'status', label: 'Status', visible: true }
-  ];
+  ]);
 
   filterOptions: FilterOption[] = [
     { label: 'Active', value: 'Active', colorHex: '#10b981' },
@@ -75,51 +72,126 @@ export class VatRatesComponent {
   ];
 
   bulkActions: BulkAction[] = [
-    { id: 'delete', label: 'Delete VAT Rates', colorClass: 'text-danger' }
+    { id: 'mark_active', label: 'Mark as Active', icon: 'las la-check-circle' },
+    { id: 'mark_inactive', label: 'Mark as Inactive', icon: 'las la-times-circle' },
+    { id: 'delete', label: 'Delete VAT Rates', colorClass: 'text-danger', icon: 'las la-trash' }
   ];
 
-  get filteredRates(): VatRate[] {
-    let filtered = this.vatRates;
+  dynamicBulkActions = computed(() => {
+    const selectedIds = this.selectedRateIds();
+    if (selectedIds.size === 0) return [];
 
-    if (this.currentFilter !== 'All') {
-      filtered = filtered.filter(v => v.status === this.currentFilter);
+    const selected = this.vatRates().filter(v => selectedIds.has(v.id));
+    const allActive = selected.every(v => v.status === 'Active');
+    const allInactive = selected.every(v => v.status === 'Inactive');
+
+    return this.bulkActions.filter(action => {
+      if (action.id === 'mark_active') return !allActive;
+      if (action.id === 'mark_inactive') return !allInactive;
+      return true;
+    });
+  });
+
+  ngOnInit() {
+    this.loadVatRates();
+  }
+
+  loadVatRates() {
+    this.isLoading.set(true);
+    this.vatRateService.getVatRates().subscribe({
+      next: (res) => {
+        this.vatRates.set(res.data);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading VAT rates:', err);
+        this.isLoading.set(false);
+        this.notificationService.error('Error loading VAT rates');
+      }
+    });
+  }
+
+  filteredRates = computed(() => {
+    let filtered = this.vatRates();
+    const filterValue = this.currentFilter();
+    const query = this.searchQuery().toLowerCase();
+    const col = this.sortColumn();
+    const dir = this.sortDirection();
+
+    if (filterValue !== 'All') {
+      filtered = filtered.filter(v => v.status === filterValue);
     }
 
-    if (this.searchQuery) {
-      const query = this.searchQuery.toLowerCase();
+    if (query) {
       filtered = filtered.filter(v => 
         v.name.toLowerCase().includes(query) ||
         v.rate.toString().includes(query)
       );
     }
 
-    return filtered;
-  }
+    if (col) {
+      filtered = [...filtered].sort((a, b) => {
+        const valA = (a as any)[col];
+        const valB = (b as any)[col];
 
-  get paginatedRates(): VatRate[] {
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    return this.filteredRates.slice(startIndex, startIndex + this.itemsPerPage);
-  }
+        if (valA === null || valA === undefined) return 1;
+        if (valB === null || valB === undefined) return -1;
+
+        if (typeof valA === 'number' && typeof valB === 'number') {
+          return dir === 'asc' ? valA - valB : valB - valA;
+        }
+
+        if (typeof valA === 'string' && typeof valB === 'string') {
+          return dir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        } else {
+          return dir === 'asc' ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
+        }
+      });
+    }
+
+    return filtered;
+  });
+
+  paginatedRates = computed(() => {
+    const startIndex = (this.currentPage() - 1) * this.itemsPerPage();
+    return this.filteredRates().slice(startIndex, startIndex + this.itemsPerPage());
+  });
 
   onSaveRate(data: any) {
-    const newRate: VatRate = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: data.name,
-      rate: data.rate,
-      status: 'Active'
-    };
-    this.vatRates = [newRate, ...this.vatRates];
-    this.isAddModalOpen = false;
+    this.vatRateService.createVatRate(data).subscribe({
+      next: (res) => {
+        this.vatRates.update(prev => [res.data, ...prev]);
+        this.isAddModalOpen.set(false);
+        this.notificationService.success('VAT rate created successfully');
+      },
+      error: (err) => {
+        console.error('Error creating VAT rate:', err);
+        this.notificationService.error(err.error?.message || 'Error creating VAT rate');
+      }
+    });
   }
 
-  handleAction(event: { action: string, data: any }) {
+  handleAction(event: { action: string, data: VatRate }) {
     if (event.action === 'delete') {
-      this.rateToDelete = event.data;
+      this.rateToDelete.set(event.data);
     } else if (event.action === 'mark_active') {
-      event.data.status = 'Active';
+      this.updateStatus(event.data.id, 'Active');
     } else if (event.action === 'mark_inactive') {
-      event.data.status = 'Inactive';
+      this.updateStatus(event.data.id, 'Inactive');
     }
+  }
+
+  updateStatus(id: number, status: 'Active' | 'Inactive') {
+    this.vatRateService.updateVatRate(id, { status }).subscribe({
+      next: (res) => {
+        this.vatRates.update(prev => prev.map(v => v.id === id ? res.data : v));
+        this.notificationService.success(`VAT rate marked as ${status}`);
+      },
+      error: (err) => {
+        console.error('Error updating status:', err);
+        this.notificationService.error('Error updating status');
+      }
+    });
   }
 
   getActions(rate: VatRate): MenuAction[] {
@@ -133,67 +205,122 @@ export class VatRatesComponent {
   }
 
   handleBulkAction(action: string) {
+    const selectedIds = Array.from(this.selectedRateIds());
+    if (selectedIds.length === 0) return;
+
     if (action === 'delete') {
-      this.bulkDeletePending = true;
+      this.bulkDeletePending.set(true);
+    } else if (action === 'mark_active' || action === 'mark_inactive') {
+      const status = action === 'mark_active' ? 'Active' : 'Inactive';
+      this.vatRateService.updateBulkStatus(selectedIds, status).subscribe({
+        next: () => {
+          this.vatRates.update(prev => prev.map(v => 
+            selectedIds.includes(v.id) ? { ...v, status } : v
+          ));
+          this.selectedRateIds.set(new Set());
+          this.notificationService.success(`Successfully updated ${selectedIds.length} VAT rates`);
+        },
+        error: (err) => {
+          console.error('Error updating bulk status:', err);
+          this.notificationService.error('Error updating bulk status');
+        }
+      });
     }
   }
 
   confirmDelete() {
-    if (this.bulkDeletePending) {
-      this.vatRates = this.vatRates.filter(v => !this.selectedRateIds.has(v.id));
-      this.selectedRateIds.clear();
-      this.bulkDeletePending = false;
-    } else if (this.rateToDelete) {
-      this.vatRates = this.vatRates.filter(v => v.id !== this.rateToDelete!.id);
-      this.rateToDelete = null;
-    }
+    const isBulk = this.bulkDeletePending();
+    const toDelete = this.rateToDelete();
+    const selectedIds = this.selectedRateIds();
+
+    const idsToDelete = isBulk 
+      ? Array.from(selectedIds) 
+      : (toDelete ? [toDelete.id] : []);
+
+    if (idsToDelete.length === 0) return;
+
+    this.vatRateService.deleteVatRates(idsToDelete).subscribe({
+      next: () => {
+        this.vatRates.update(prev => prev.filter(v => !idsToDelete.includes(v.id)));
+        this.selectedRateIds.update(set => {
+          const newSet = new Set(set);
+          idsToDelete.forEach(id => newSet.delete(id));
+          return newSet;
+        });
+        this.rateToDelete.set(null);
+        this.bulkDeletePending.set(false);
+        this.notificationService.success(isBulk ? 'VAT rates deleted' : 'VAT rate deleted');
+      },
+      error: (err) => {
+        console.error('Error deleting VAT rates:', err);
+        this.notificationService.error(err.error?.message || 'Error deleting VAT rate(s)');
+        this.rateToDelete.set(null);
+        this.bulkDeletePending.set(false);
+      }
+    });
   }
 
   sort(columnId: string, event: Event): void {
     event.stopPropagation();
-    if (this.sortColumn === columnId) {
-      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    if (this.sortColumn() === columnId) {
+      this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
     } else {
-      this.sortColumn = columnId;
-      this.sortDirection = 'asc';
+      this.sortColumn.set(columnId);
+      this.sortDirection.set('asc');
     }
-
-    const direction = this.sortDirection === 'asc' ? 1 : -1;
-    this.vatRates.sort((a, b) => {
-      const valA = (a as any)[columnId];
-      const valB = (b as any)[columnId];
-      
-      if (typeof valA === 'number' && typeof valB === 'number') {
-        return (valA - valB) * direction;
-      }
-      return valA.toString().localeCompare(valB.toString()) * direction;
-    });
   }
 
   // Common UI methods
-  setFilter(f: string) { this.currentFilter = f; this.currentPage = 1; }
-  toggleManageColumns() { this.isManageColumnsOpen = true; }
-  closeManageColumns() { this.isManageColumnsOpen = false; }
-  onColumnsChange(cols: ColumnDef[]) { this.availableColumns = cols; }
-  onPageChange(p: number) { this.currentPage = p; }
+  setFilter(f: string) { this.currentFilter.set(f); this.currentPage.set(1); }
+  toggleManageColumns() { this.isManageColumnsOpen.set(true); }
+  closeManageColumns() { this.isManageColumnsOpen.set(false); }
+  onColumnsChange(cols: ColumnDef[]) { this.availableColumns.set(cols); }
+  onPageChange(p: number) { this.currentPage.set(p); }
   onItemsPerPageChange(n: number | 'All') { 
-    this.itemsPerPage = n === 'All' ? this.vatRates.length : n; 
-    this.currentPage = 1; 
+    this.itemsPerPage.set(n === 'All' ? this.vatRates().length : n); 
+    this.currentPage.set(1); 
   }
-  clearSearch() { this.searchQuery = ''; }
+  clearSearch() { this.searchQuery.set(''); }
   toggleAll() {
-    if (this.isAllSelected()) this.selectedRateIds.clear();
-    else this.paginatedRates.forEach(v => this.selectedRateIds.add(v.id));
+    if (this.isAllSelected()) {
+      this.selectedRateIds.update(set => {
+        const newSet = new Set(set);
+        this.paginatedRates().forEach(v => newSet.delete(v.id));
+        return newSet;
+      });
+    } else {
+      this.selectedRateIds.update(set => {
+        const newSet = new Set(set);
+        this.paginatedRates().forEach(v => newSet.add(v.id));
+        return newSet;
+      });
+    }
   }
-  toggleSelection(id: string) {
-    if (this.selectedRateIds.has(id)) this.selectedRateIds.delete(id);
-    else this.selectedRateIds.add(id);
+  toggleSelection(id: number) {
+    this.selectedRateIds.update(set => {
+      const newSet = new Set(set);
+      if (newSet.has(id)) newSet.delete(id);
+      else newSet.add(id);
+      return newSet;
+    });
   }
-  isAllSelected(): boolean {
-    return this.paginatedRates.length > 0 && this.paginatedRates.every(v => this.selectedRateIds.has(v.id));
+  isAllSelected = computed(() => {
+    const paginated = this.paginatedRates();
+    const selected = this.selectedRateIds();
+    return paginated.length > 0 && paginated.every(v => selected.has(v.id));
+  });
+  isPartiallySelected = computed(() => {
+    const paginated = this.paginatedRates();
+    const selected = this.selectedRateIds();
+    const selectedInPage = paginated.filter(v => selected.has(v.id)).length;
+    return selectedInPage > 0 && selectedInPage < paginated.length;
+  });
+
+  trackByRateId(index: number, item: VatRate) {
+    return item.id;
   }
-  isPartiallySelected(): boolean {
-    const selectedCount = this.paginatedRates.filter(v => this.selectedRateIds.has(v.id)).length;
-    return selectedCount > 0 && selectedCount < this.paginatedRates.length;
+
+  trackByColumnId(index: number, column: ColumnDef) {
+    return column.id;
   }
 }

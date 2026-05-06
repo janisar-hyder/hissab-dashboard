@@ -8,26 +8,29 @@
         title="Currencies"
         addBtnText="Add New Currency"
         [showActions]="true"
-        (addNew)="isAddModalOpen = true"
+        (addNew)="isAddModalOpen.set(true)"
         (importBtn)="onImport()"
         (exportBtn)="onExport()">
 
         <app-bulk-actions
             custom-actions
-            *ngIf="selectedCurrencyIds.size > 0"
-            [selectedCount]="selectedCurrencyIds.size"
+            *ngIf="selectedCurrencyIds().size > 0"
+            [selectedCount]="selectedCurrencyIds().size"
             [actions]="bulkActions"
             (actionSelected)="handleBulkAction($event)">
         </app-bulk-actions>
     </app-page-header>
 
-    <div class="data-card" style="margin: 0; display: flex; flex-direction: column;" *ngIf="currencies.length > 0 || searchQuery">
+    <div class="data-card" style="margin: 0; display: flex; flex-direction: column;" *ngIf="currencies().length > 0 || searchQuery()">
         <!-- Toolbar -->
         <div class="card-toolbar">
             <div class="search-box">
                 <i class="las la-search search-icon"></i>
-                <input type="text" placeholder="Search for something.." [(ngModel)]="searchQuery" (ngModelChange)="currentPage = 1" class="search-input">
-                <i class="las la-times clear-icon" *ngIf="searchQuery" (click)="clearSearch()"></i>
+                <input type="text" placeholder="Search for something.." 
+                       [ngModel]="searchQuery()" 
+                       (ngModelChange)="searchQuery.set($event); currentPage.set(1)" 
+                       class="search-input">
+                <i class="las la-times clear-icon" *ngIf="searchQuery()" (click)="clearSearch()"></i>
             </div>
             
             <div class="toolbar-actions" style="display: flex; gap: var(--space-sm); align-items: center;">
@@ -46,10 +49,10 @@
                                 <span class="checkmark"></span>
                             </label>
                         </th>
-                        <ng-container *ngFor="let col of availableColumns">
+                        <ng-container *ngFor="let col of availableColumns(); trackBy: trackByColumnId">
                             <th *ngIf="col.visible">
                                 {{ col.label }}
-                                <i [class]="sortColumn === col.id ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" 
+                                <i [class]="sortColumn() === col.id ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" 
                                    (click)="sort(col.id, $event)"
                                    style="cursor: pointer; margin-left: 4px;"></i>
                             </th>
@@ -57,28 +60,31 @@
                         <th class="col-actions"></th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr *ngFor="let currency of paginatedCurrencies">
+                <tbody [class.loading]="isLoading()">
+                    <tr *ngFor="let currency of paginatedCurrencies(); trackBy: trackByCurrencyId" [class.selected]="selectedCurrencyIds().has(currency.id)">
                         <td class="col-checkbox">
-                            <label class="custom-checkbox" *ngIf="!currency.isBase">
-                                <input type="checkbox" [checked]="selectedCurrencyIds.has(currency.id)" (change)="toggleSelection(currency.id)">
+                            <label class="custom-checkbox" *ngIf="!currency.is_base">
+                                <input type="checkbox" [checked]="selectedCurrencyIds().has(currency.id)" (change)="toggleSelection(currency.id)">
                                 <span class="checkmark"></span>
                             </label>
+                            <div *ngIf="currency.is_base" class="base-indicator-cell">
+                                <i class="las la-star base-star" title="Base Currency"></i>
+                            </div>
                         </td>
-                        <ng-container *ngFor="let col of availableColumns">
+                        <ng-container *ngFor="let col of availableColumns(); trackBy: trackByColumnId">
                             <td *ngIf="col.visible" [ngSwitch]="col.id" class="text-muted">
                                 <ng-container *ngSwitchCase="'name'">
-                                    <span [ngClass]="currency.isBase ? 'base-currency-text' : 'item-name'">
-                                        {{ currency.name }} {{ currency.isBase ? '(Base Currency)' : '' }}
+                                    <span [ngClass]="currency.is_base ? 'base-currency-text' : 'item-name'">
+                                        {{ currency.name }} {{ currency.is_base ? '(Base)' : '' }}
                                     </span>
                                 </ng-container>
                                 <ng-container *ngSwitchCase="'code'">
-                                     <span [ngClass]="{'base-currency-text': currency.isBase}">
+                                     <span [ngClass]="{'base-currency-text': currency.is_base}">
                                          {{ currency.code }}
                                      </span>
                                 </ng-container>
                                 <ng-container *ngSwitchCase="'symbol'">
-                                    <span [ngClass]="{'base-currency-text': currency.isBase}">
+                                    <span [ngClass]="{'base-currency-text': currency.is_base}">
                                         {{ currency.symbol }}
                                     </span>
                                 </ng-container>
@@ -93,14 +99,14 @@
                         </td>
                     </tr>
                     <!-- Internal Empty State -->
-                    <tr *ngIf="paginatedCurrencies.length === 0">
-                        <td [attr.colspan]="availableColumns.length + 2" style="padding: 0;">
+                    <tr *ngIf="paginatedCurrencies().length === 0 && !isLoading()">
+                        <td [attr.colspan]="availableColumns().length + 2" style="padding: 0;">
                             <app-empty-state 
-                                [title]="searchQuery ? 'No Currencies Found.' : 'No Currencies Found.'"
-                                [subtitle]="searchQuery ? 'We couldn\'t find any currencies matching \'' + searchQuery + '\'' : 'It looks like you haven\'t added any currencies yet.'" 
-                                [actionLabel]="searchQuery ? '' : 'Add New Currency'"
-                                [actionIconClass]="searchQuery ? '' : 'las la-plus'" 
-                                (actionClick)="isAddModalOpen = true">
+                                [title]="searchQuery() ? 'No Currencies Found.' : 'No Currencies Found.'"
+                                [subtitle]="searchQuery() ? 'We couldn\'t find any currencies matching \'' + searchQuery() + '\'' : 'It looks like you haven\'t added any currencies yet.'" 
+                                [actionLabel]="searchQuery() ? '' : 'Add New Currency'"
+                                [actionIconClass]="searchQuery() ? '' : 'las la-plus'" 
+                                (actionClick)="isAddModalOpen.set(true)">
                             </app-empty-state>
                         </td>
                     </tr>
@@ -110,46 +116,46 @@
 
         <!-- Pagination -->
         <app-pagination 
-            [totalItems]="filteredCurrencies.length" 
-            [itemsPerPage]="itemsPerPage" 
-            [currentPage]="currentPage"
+            [totalItems]="filteredCurrencies().length" 
+            [itemsPerPage]="itemsPerPage()" 
+            [currentPage]="currentPage()"
             (pageChange)="onPageChange($event)" 
             (itemsPerPageChange)="onItemsPerPageChange($event)">
         </app-pagination>
     </div>
 
     <!-- External Empty State -->
-    <app-empty-state *ngIf="currencies.length === 0 && !searchQuery" 
+    <app-empty-state *ngIf="currencies().length === 0 && !searchQuery() && !isLoading()" 
         title="No Currencies Found."
         subtitle="It looks like you haven't added any currencies yet." 
         actionLabel="Add New Currency"
         actionIconClass="las la-plus" 
-        (actionClick)="isAddModalOpen = true">
+        (actionClick)="isAddModalOpen.set(true)">
     </app-empty-state>
 </div>
 
 <!-- Modal -->
 <app-add-currency-modal 
-    *ngIf="isAddModalOpen" 
-    (close)="isAddModalOpen = false" 
+    *ngIf="isAddModalOpen()" 
+    (close)="isAddModalOpen.set(false)" 
     (save)="onSaveCurrency($event)">
 </app-add-currency-modal>
 
 <!-- Delete Confirmation -->
 <app-delete-modal 
-    [isOpen]="!!currencyToDelete || bulkDeletePending" 
-    [title]="bulkDeletePending ? 'Delete Currencies' : 'Delete Currency'"
-    [message]="bulkDeletePending 
-        ? 'Are you sure you want to delete ' + selectedCurrencyIds.size + ' selected currency(s)? This action cannot be undone.'
+    [isOpen]="!!currencyToDelete() || bulkDeletePending()" 
+    [title]="bulkDeletePending() ? 'Delete Currencies' : 'Delete Currency'"
+    [message]="bulkDeletePending() 
+        ? 'Are you sure you want to delete ' + selectedCurrencyIds().size + ' selected currency(s)? This action cannot be undone.'
         : 'Are you sure you want to delete this currency? This action cannot be undone.'" 
-    (cancel)="currencyToDelete = null; bulkDeletePending = false"
+    (cancel)="currencyToDelete.set(null); bulkDeletePending.set(false)"
     (confirm)="confirmDelete()">
 </app-delete-modal>
 
 <!-- Manage Columns -->
 <app-manage-columns 
-    [isOpen]="isManageColumnsOpen" 
-    [columns]="availableColumns" 
+    [isOpen]="isManageColumnsOpen()" 
+    [columns]="availableColumns()" 
     (closePanel)="closeManageColumns()"
     (columnsChange)="onColumnsChange($event)">
 </app-manage-columns>

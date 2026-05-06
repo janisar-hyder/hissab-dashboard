@@ -8,32 +8,32 @@
         title="Categories"
         addBtnText="Add New Category"
         [showActions]="true"
-        (addNew)="isAddModalOpen = true"
+        (addNew)="isAddModalOpen.set(true)"
         (importBtn)="onImport()"
         (exportBtn)="onExport()">
 
         <app-bulk-actions
             custom-actions
-            *ngIf="selectedCategoryIds.size > 0"
-            [selectedCount]="selectedCategoryIds.size"
-            [actions]="bulkActions"
+            *ngIf="selectedCategoryIds().size > 0"
+            [selectedCount]="selectedCategoryIds().size"
+            [actions]="dynamicBulkActions()"
             (actionSelected)="handleBulkAction($event)">
         </app-bulk-actions>
     </app-page-header>
 
-    <div class="data-card" style="margin: 0; display: flex; flex-direction: column;" *ngIf="categories.length > 0 || searchQuery">
+    <div class="data-card" style="margin: 0; display: flex; flex-direction: column;" *ngIf="categories().length > 0 || searchQuery()">
         <!-- Toolbar -->
         <div class="card-toolbar">
             <div class="search-box">
                 <i class="las la-search search-icon"></i>
-                <input type="text" placeholder="Search for something.." [(ngModel)]="searchQuery" (ngModelChange)="currentPage = 1" class="search-input">
-                <i class="las la-times clear-icon" *ngIf="searchQuery" (click)="clearSearch()"></i>
+                <input type="text" placeholder="Search for something.." [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event); currentPage.set(1)" class="search-input">
+                <i class="las la-times clear-icon" *ngIf="searchQuery()" (click)="clearSearch()"></i>
             </div>
             
             <div class="toolbar-actions" style="display: flex; gap: var(--space-sm); align-items: center;">
                 <app-custom-filter
                     [options]="filterOptions"
-                    [currentFilter]="currentFilter"
+                    [currentFilter]="currentFilter()"
                     activeLabelPrefix="All Categories"
                     (filterChange)="setFilter($event)">
                 </app-custom-filter>
@@ -53,10 +53,10 @@
                                 <span class="checkmark"></span>
                             </label>
                         </th>
-                        <ng-container *ngFor="let col of availableColumns">
+                        <ng-container *ngFor="let col of availableColumns(); trackBy: trackByColumnId">
                             <th *ngIf="col.visible" [class.col-status]="col.id === 'status'">
                                 {{ col.label }}
-                                <i [class]="sortColumn === col.id ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" 
+                                <i [class]="sortColumn() === col.id ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" 
                                    (click)="sort(col.id, $event)"
                                    style="cursor: pointer; margin-left: 4px;"></i>
                             </th>
@@ -65,14 +65,14 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let category of paginatedCategories">
+                    <tr *ngFor="let category of paginatedCategories(); trackBy: trackByCategoryId">
                         <td class="col-checkbox">
                             <label class="custom-checkbox">
-                                <input type="checkbox" [checked]="selectedCategoryIds.has(category.id)" (change)="toggleSelection(category.id)">
+                                <input type="checkbox" [checked]="selectedCategoryIds().has(category.id)" (change)="toggleSelection(category.id)">
                                 <span class="checkmark"></span>
                             </label>
                         </td>
-                        <ng-container *ngFor="let col of availableColumns">
+                        <ng-container *ngFor="let col of availableColumns(); trackBy: trackByColumnId">
                             <td *ngIf="col.visible" [ngSwitch]="col.id" [class.col-status]="col.id === 'status'" class="text-muted">
                                 <ng-container *ngSwitchCase="'name'">
                                     <span class="item-name">{{ category.name }}</span>
@@ -96,14 +96,14 @@
                         </td>
                     </tr>
                     <!-- Internal Empty State (No Results found inside table) -->
-                    <tr *ngIf="paginatedCategories.length === 0">
-                        <td [attr.colspan]="availableColumns.length + 2" style="padding: 0;">
+                    <tr *ngIf="paginatedCategories().length === 0">
+                        <td [attr.colspan]="availableColumns().length + 2" style="padding: 0;">
                             <app-empty-state 
-                                [title]="(searchQuery || currentFilter !== 'All') ? 'No Categories Found.' : 'No Categories Found.'"
-                                [subtitle]="searchQuery ? 'We couldn\'t find any categories matching \'' + searchQuery + '\'' : 'It looks like you haven\'t added any categories yet.'" 
-                                [actionLabel]="(searchQuery || currentFilter !== 'All') ? '' : 'Add New Category'"
-                                [actionIconClass]="(searchQuery || currentFilter !== 'All') ? '' : 'las la-plus'" 
-                                (actionClick)="isAddModalOpen = true">
+                                [title]="(searchQuery() || currentFilter() !== 'All') ? 'No Categories Found.' : 'No Categories Found.'"
+                                [subtitle]="searchQuery() ? 'We couldn\'t find any categories matching \'' + searchQuery() + '\'' : 'It looks like you haven\'t added any categories yet.'" 
+                                [actionLabel]="(searchQuery() || currentFilter() !== 'All') ? '' : 'Add New Category'"
+                                [actionIconClass]="(searchQuery() || currentFilter() !== 'All') ? '' : 'las la-plus'" 
+                                (actionClick)="isAddModalOpen.set(true)">
                             </app-empty-state>
                         </td>
                     </tr>
@@ -113,46 +113,46 @@
 
         <!-- Pagination -->
         <app-pagination 
-            [totalItems]="filteredCategories.length" 
-            [itemsPerPage]="itemsPerPage" 
-            [currentPage]="currentPage"
+            [totalItems]="filteredCategories().length" 
+            [itemsPerPage]="itemsPerPage()" 
+            [currentPage]="currentPage()"
             (pageChange)="onPageChange($event)" 
             (itemsPerPageChange)="onItemsPerPageChange($event)">
         </app-pagination>
     </div>
 
     <!-- External Empty State (No categories exist yet) -->
-    <app-empty-state *ngIf="categories.length === 0 && !searchQuery" 
+    <app-empty-state *ngIf="categories().length === 0 && !searchQuery()" 
         title="No Categories Found."
         subtitle="It looks like you haven't added any categories yet." 
         actionLabel="Add New Category"
         actionIconClass="las la-plus" 
-        (actionClick)="isAddModalOpen = true">
+        (actionClick)="isAddModalOpen.set(true)">
     </app-empty-state>
 </div>
 
 <!-- Modal -->
 <app-add-category-modal 
-    *ngIf="isAddModalOpen" 
-    (close)="isAddModalOpen = false" 
+    *ngIf="isAddModalOpen()" 
+    (close)="isAddModalOpen.set(false)" 
     (save)="onSaveCategory($event)">
 </app-add-category-modal>
 
 <!-- Delete Confirmation -->
 <app-delete-modal 
-    [isOpen]="!!categoryToDelete || bulkDeletePending" 
-    [title]="bulkDeletePending ? 'Delete Categories' : 'Delete Category'"
-    [message]="bulkDeletePending 
-        ? 'Are you sure you want to delete ' + selectedCategoryIds.size + ' selected category(s)? This action cannot be undone.'
+    [isOpen]="!!categoryToDelete() || bulkDeletePending()" 
+    [title]="bulkDeletePending() ? 'Delete Categories' : 'Delete Category'"
+    [message]="bulkDeletePending() 
+        ? 'Are you sure you want to delete ' + selectedCategoryIds().size + ' selected category(s)? This action cannot be undone.'
         : 'Are you sure you want to delete this category? This action cannot be undone.'" 
-    (cancel)="categoryToDelete = null; bulkDeletePending = false"
+    (cancel)="categoryToDelete.set(null); bulkDeletePending.set(false)"
     (confirm)="confirmDelete()">
 </app-delete-modal>
 
 <!-- Manage Columns -->
 <app-manage-columns 
-    [isOpen]="isManageColumnsOpen" 
-    [columns]="availableColumns" 
+    [isOpen]="isManageColumnsOpen()" 
+    [columns]="availableColumns()" 
     (closePanel)="closeManageColumns()"
     (columnsChange)="onColumnsChange($event)">
 </app-manage-columns>
