@@ -104,7 +104,7 @@
 
 /* Table — matches Journal Vouchers list exactly */
 .table-responsive {
-    overflow-x: auto;
+    overflow: visible;
     width: 100%;
 }
 
@@ -112,6 +112,7 @@
     width: 100%;
     border-collapse: collapse;
     white-space: nowrap;
+    overflow-x: auto;
 
     th,
     td {
@@ -321,59 +322,26 @@
     }
 }
 
-/* Actions Menu — identical to JV list */
-.action-menu-container {
-    position: relative;
-    display: flex;
-    justify-content: center;
-
-    .action-btn {
-        background: none;
-        border: none;
-        padding: 8px;
-        cursor: pointer;
-        color: #9CA3AF;
-        border-radius: 4px;
-        &:hover { background-color: #F3F4F6; color: var(--text-dark); }
-    }
-
-    .action-dropdown {
-        position: absolute;
-        right: 0;
-        top: 100%;
-        width: 160px;
-        background: #fff;
-        border: 1px solid var(--border-light);
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        z-index: 1000;
-        padding: 6px;
-        display: flex;
-        flex-direction: column;
-
-        .menu-item {
-            padding: 10px 12px;
-            background: none;
-            border: none;
-            text-align: left;
-            font-size: 13.5px;
-            border-radius: 6px;
-            cursor: pointer;
-            color: #4B5563;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-
-            &:hover { background-color: #F9FAFB; color: var(--primary); }
-            &.delete-btn { color: #EF4444; &:hover { background-color: #FEF2F2; } }
-
-            .svg-icon {
-                width: 16px;
-                height: 16px;
-                background-color: currentColor;
-                mask-repeat: no-repeat;
-                mask-size: contain;
-            }
-        }
-    }
+/* Actions Menu — handled by app-action-menu */
+.col-actions {
+    width: 64px;
+    text-align: center;
 }
+
+.loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--border-light);
+    border-top: 3px solid var(--primary);
+    border-radius: 50%;
+    margin: 0 auto;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.mt-2 { margin-top: 0.5rem; }
+.text-center { text-align: center; }

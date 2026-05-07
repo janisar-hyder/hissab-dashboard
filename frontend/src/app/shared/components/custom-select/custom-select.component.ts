@@ -15,7 +15,7 @@ export interface SelectOption {
   imports: [CommonModule],
   template: `
     <div class="select-container" [class.disabled]="disabled" [class.compact]="variant === 'compact'">
-      <button class="select-control" (click)="toggleMenu($event)" [class.open]="isOpen" [disabled]="disabled">
+      <button type="button" class="select-control" (click)="toggleMenu($event)" [class.open]="isOpen" [disabled]="disabled">
         <span class="placeholder" *ngIf="!selectedLabel">{{ placeholder }}</span>
         <span class="value" *ngIf="selectedLabel">{{ selectedLabel }}</span>
         <i class="las la-angle-down arrow-icon"></i>

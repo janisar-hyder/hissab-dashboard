@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, ElementRef, HostListener, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -12,16 +12,10 @@ import { DeleteModalComponent } from '../../../../shared/components/delete-modal
 import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
 import { CreateAccountModalComponent } from '../components/create-account-modal/create-account-modal.component';
 import { SelectOption } from '../../../../shared/components/custom-select/custom-select.component';
+import { ChartOfAccountsService, AccountNode } from '../services/chart-of-accounts.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
+import { ActionMenu, MenuAction } from '../../../../shared/components/action-menu/action-menu';
 
-export interface AccountNode {
-    id: string;
-    name: string;
-    type: string;
-    status: 'Active' | 'Inactive';
-    isExpanded: boolean;
-    children?: AccountNode[];
-    isSelected?: boolean;
-}
 
 @Component({
     selector: 'app-chart-of-accounts-list',
@@ -34,56 +28,34 @@ export interface AccountNode {
         PaginationComponent,
         BulkActionsComponent,
         ManageColumnsComponent,
-        DeleteModalComponent,
         CustomFilterComponent,
         EmptyStateComponent,
         BreadcrumbsComponent,
-        CreateAccountModalComponent
+        CreateAccountModalComponent,
+        ActionMenu,
+        DeleteModalComponent
     ],
     templateUrl: './chart-of-accounts-list.component.html',
-    styleUrl: './chart-of-accounts-list.component.scss'
+    styleUrl: './chart-of-accounts-list.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ChartOfAccountsListComponent implements OnInit {
-    accounts: AccountNode[] = [
-        { id: '1', name: 'Accounts Payable', type: 'Accounts Payable', status: 'Active', isExpanded: false },
-        { id: '2', name: 'Accounts Receivable', type: 'Accounts Receivable', status: 'Active', isExpanded: false },
-        {
-            id: '3', name: 'General & Admin Expenses', type: 'Expense', status: 'Active', isExpanded: true,
-            children: [
-                {
-                    id: '3-1', name: 'Office Expenses', type: 'Expense', status: 'Active', isExpanded: true,
-                    children: [
-                        { id: '3-1-1', name: 'Office Rent', type: 'Expense', status: 'Active', isExpanded: false },
-                        { id: '3-1-2', name: 'Electricity Expenses', type: 'Expense', status: 'Active', isExpanded: false }
-                    ]
-                },
-                { id: '3-2', name: 'Office Stationery', type: 'Expense', status: 'Active', isExpanded: false }
-            ]
-        },
-        {
-            id: '4', name: 'Sales', type: 'Income', status: 'Active', isExpanded: false,
-            children: [
-                { id: '4-1', name: 'Service Income', type: 'Income', status: 'Active', isExpanded: false },
-                { id: '4-2', name: 'Prodcut Income', type: 'Income', status: 'Active', isExpanded: false }
-            ]
-        },
-        { id: '5', name: 'Shipping Charges', type: 'Income', status: 'Inactive', isExpanded: false },
-        { id: '6', name: 'Travel Expense', type: 'Income', status: 'Inactive', isExpanded: false }
-    ];
+    accounts = signal<AccountNode[]>([]);
+    isLoading = signal(false);
 
-    searchQuery: string = '';
-    currentFilter: string = 'All';
-    isManageColumnsOpen = false;
-    isCreateModalOpen = false;
-    openMenuId: string | null = null;
-    accountToDelete: AccountNode | null = null;
-    bulkDeletePending = false;
+    searchQuery = signal('');
+    currentFilter = signal('All');
+    isManageColumnsOpen = signal(false);
+    isCreateModalOpen = signal(false);
+    accountToDelete = signal<AccountNode | null>(null);
+    accountToEdit = signal<AccountNode | null>(null);
+    bulkDeletePending = signal(false);
     
     // Pagination (for the top level)
-    currentPage = 1;
-    itemsPerPage: number | 'All' = 15;
-    sortColumn: string = '';
-    sortDirection: 'asc' | 'desc' = 'asc';
+    currentPage = signal(1);
+    itemsPerPage = signal<number | 'All'>(15);
+    sortColumn = signal('');
+    sortDirection = signal<'asc' | 'desc'>('asc');
 
     filterOptions: FilterOption[] = [
         { label: 'Active', value: 'Active', colorHex: '#10b981' },
@@ -97,12 +69,97 @@ export class ChartOfAccountsListComponent implements OnInit {
     ];
 
     bulkActions: BulkAction[] = [
-        { id: 'delete', label: 'Delete Accounts', colorClass: 'text-danger' }
+        { id: 'mark_active', label: 'Mark As Active', icon: 'las la-check-circle' },
+        { id: 'mark_inactive', label: 'Mark As Inactive', icon: 'las la-times-circle' },
+        { id: 'delete', label: 'Delete Accounts', colorClass: 'text-danger', icon: 'las la-trash' }
     ];
 
-    constructor(private eRef: ElementRef, private router: Router) { }
+    // Bulk & Row Selection - converted to Signal for reactivity
+    selectedAccountIds = signal<Set<string>>(new Set<string>());
 
-    ngOnInit(): void { }
+    dynamicBulkActions = computed(() => {
+        const selectedIds = this.selectedAccountIds();
+        if (selectedIds.size === 0) return [];
+
+        // Flatten all accounts to find statuses of selected IDs
+        const allNodes: AccountNode[] = [];
+        const flatten = (nodes: AccountNode[]) => {
+            nodes.forEach(n => {
+                allNodes.push(n);
+                if (n.children) flatten(n.children);
+            });
+        };
+        flatten(this.accounts());
+
+        const selectedAccounts = allNodes.filter(a => selectedIds.has(a.id));
+        const allActive = selectedAccounts.every(a => a.status === 'Active');
+        const allInactive = selectedAccounts.every(a => a.status === 'Inactive');
+
+        return this.bulkActions.filter(action => {
+            if (action.id === 'mark_active') return !allActive;
+            if (action.id === 'mark_inactive') return !allInactive;
+            return true; // Always show delete
+        });
+    });
+
+    trackById(index: number, node: AccountNode): string {
+        return node.id;
+    }
+
+    constructor(
+        private eRef: ElementRef, 
+        private router: Router,
+        private coaService: ChartOfAccountsService,
+        private notificationService: NotificationService
+    ) { }
+
+    ngOnInit(): void {
+        this.loadAccounts();
+    }
+
+    loadAccounts(): void {
+        this.isLoading.set(true);
+        this.coaService.getAccounts().subscribe({
+            next: (res) => {
+                const data = res.data || [];
+                // Build tree if backend returns flat list, or just set if it's already a tree
+                const tree = this.buildTree(data);
+                this.accounts.set(tree);
+                this.isLoading.set(false);
+            },
+            error: (err) => {
+                console.error('Error loading accounts:', err);
+                this.notificationService.error('Failed to load chart of accounts');
+                this.isLoading.set(false);
+            }
+        });
+    }
+
+    private buildTree(nodes: AccountNode[]): AccountNode[] {
+        const map = new Map<string, AccountNode>();
+        const tree: AccountNode[] = [];
+
+        // First pass: Create map of all nodes
+        nodes.forEach(node => {
+            map.set(node.id, { ...node, children: [] });
+        });
+
+        // Second pass: Connect children to parents
+        nodes.forEach(node => {
+            const mappedNode = map.get(node.id)!;
+            const parentId = node.parentId || (node as any).parent_id;
+            
+            if (parentId && map.has(parentId)) {
+                const parent = map.get(parentId)!;
+                parent.children = parent.children || [];
+                parent.children.push(mappedNode);
+            } else {
+                tree.push(mappedNode);
+            }
+        });
+
+        return tree;
+    }
 
     // Hierarchy Expansion
     toggleExpand(node: AccountNode, event: Event): void {
@@ -111,17 +168,19 @@ export class ChartOfAccountsListComponent implements OnInit {
     }
 
     // Filters & Search
-    get filteredAccounts(): AccountNode[] {
-        let list = this.accounts;
-        if (this.currentFilter !== 'All') {
-            list = list.filter(a => a.status === this.currentFilter);
+    filteredAccounts = computed(() => {
+        let list = this.accounts();
+        const filterVal = this.currentFilter();
+        const query = this.searchQuery().toLowerCase();
+
+        if (filterVal !== 'All') {
+            list = list.filter(a => a.status === filterVal);
         }
-        if (this.searchQuery) {
-            const query = this.searchQuery.toLowerCase();
+        if (query) {
             list = this.filterRecursively(list, query);
         }
         return list;
-    }
+    });
 
     private filterRecursively(nodes: AccountNode[], query: string): AccountNode[] {
         return nodes.filter(node => {
@@ -131,42 +190,44 @@ export class ChartOfAccountsListComponent implements OnInit {
         });
     }
 
-    get paginatedAccounts(): AccountNode[] {
-        const list = this.filteredAccounts;
-        if (this.itemsPerPage === 'All') return list;
-        const start = (this.currentPage - 1) * (this.itemsPerPage as number);
-        return list.slice(start, start + (this.itemsPerPage as number));
-    }
+    paginatedAccounts = computed(() => {
+        const list = this.filteredAccounts();
+        const perPage = this.itemsPerPage();
+        if (perPage === 'All') return list;
+        const start = (this.currentPage() - 1) * (perPage as number);
+        return list.slice(start, start + (perPage as number));
+    });
 
     setFilter(filter: string): void {
-        this.currentFilter = filter;
-        this.currentPage = 1;
+        this.currentFilter.set(filter);
+        this.currentPage.set(1);
     }
 
     clearSearch(): void {
-        this.searchQuery = '';
+        this.searchQuery.set('');
     }
 
     sort(columnId: string, event: Event): void {
         event.stopPropagation();
-        if (this.sortColumn === columnId) {
-            this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+        if (this.sortColumn() === columnId) {
+            this.sortDirection.update(d => d === 'asc' ? 'desc' : 'asc');
         } else {
-            this.sortColumn = columnId;
-            this.sortDirection = 'asc';
+            this.sortColumn.set(columnId);
+            this.sortDirection.set('asc');
         }
 
         const sortNodes = (nodes: AccountNode[]) => {
+            const dir = this.sortDirection();
             nodes.sort((a, b) => {
                 const valA = (a as any)[columnId === 'name' ? 'name' : columnId];
                 const valB = (b as any)[columnId === 'name' ? 'name' : columnId];
 
                 if (typeof valA === 'string' && typeof valB === 'string') {
-                    return this.sortDirection === 'asc'
+                    return dir === 'asc'
                         ? valA.localeCompare(valB)
                         : valB.localeCompare(valA);
                 } else {
-                    return this.sortDirection === 'asc'
+                    return dir === 'asc'
                         ? (valA > valB ? 1 : -1)
                         : (valA < valB ? 1 : -1);
                 }
@@ -176,167 +237,297 @@ export class ChartOfAccountsListComponent implements OnInit {
             });
         };
 
-        sortNodes(this.accounts);
+        this.accounts.update(prev => {
+            const newList = [...prev];
+            sortNodes(newList);
+            return newList;
+        });
     }
-
-    // Bulk & Row Selection
-    selectedAccountIds = new Set<string>();
 
     toggleSelection(node: AccountNode, event?: any): void {
-        if (this.selectedAccountIds.has(node.id)) {
-            this.selectedAccountIds.delete(node.id);
-            if (node.children) this.deselectChildren(node.children);
-        } else {
-            this.selectedAccountIds.add(node.id);
-            if (node.children) this.selectChildren(node.children);
-        }
-    }
-
-    private selectChildren(children: AccountNode[]) {
-        children.forEach(child => {
-            this.selectedAccountIds.add(child.id);
-            if (child.children) this.selectChildren(child.children);
+        this.selectedAccountIds.update(set => {
+            const newSet = new Set(set);
+            if (newSet.has(node.id)) {
+                newSet.delete(node.id);
+                if (node.children) this.deselectChildrenInSet(node.children, newSet);
+            } else {
+                newSet.add(node.id);
+                if (node.children) this.selectChildrenInSet(node.children, newSet);
+            }
+            return newSet;
         });
     }
 
-    private deselectChildren(children: AccountNode[]) {
+    private selectChildrenInSet(children: AccountNode[], set: Set<string>) {
         children.forEach(child => {
-            this.selectedAccountIds.delete(child.id);
-            if (child.children) this.deselectChildren(child.children);
+            set.add(child.id);
+            if (child.children) this.selectChildrenInSet(child.children, set);
         });
     }
 
-    isAllSelected(): boolean {
-        const list = this.paginatedAccounts;
-        return list.length > 0 && list.every(a => this.selectedAccountIds.has(a.id));
+    private deselectChildrenInSet(children: AccountNode[], set: Set<string>) {
+        children.forEach(child => {
+            set.delete(child.id);
+            if (child.children) this.deselectChildrenInSet(child.children, set);
+        });
     }
 
-    isPartiallySelected(): boolean {
-        const list = this.paginatedAccounts;
-        const selected = list.filter(a => this.selectedAccountIds.has(a.id)).length;
-        return selected > 0 && selected < list.length;
-    }
+    isAllSelected = computed(() => {
+        const list = this.paginatedAccounts();
+        const selected = this.selectedAccountIds();
+        return list.length > 0 && list.every(a => selected.has(a.id));
+    });
+
+    isPartiallySelected = computed(() => {
+        const list = this.paginatedAccounts();
+        const selected = this.selectedAccountIds();
+        const selectedInPage = list.filter(a => selected.has(a.id)).length;
+        return selectedInPage > 0 && selectedInPage < list.length;
+    });
 
     toggleAll(event: any): void {
-        const list = this.paginatedAccounts;
+        const list = this.paginatedAccounts();
         if (this.isAllSelected()) {
-            list.forEach(a => {
-                this.selectedAccountIds.delete(a.id);
-                if (a.children) this.deselectChildren(a.children);
+            this.selectedAccountIds.update(set => {
+                const newSet = new Set(set);
+                list.forEach(a => {
+                    newSet.delete(a.id);
+                    if (a.children) this.deselectChildrenInSet(a.children, newSet);
+                });
+                return newSet;
             });
         } else {
-            list.forEach(a => {
-                this.selectedAccountIds.add(a.id);
-                if (a.children) this.selectChildren(a.children);
+            this.selectedAccountIds.update(set => {
+                const newSet = new Set(set);
+                list.forEach(a => {
+                    newSet.add(a.id);
+                    if (a.children) this.selectChildrenInSet(a.children, newSet);
+                });
+                return newSet;
             });
         }
     }
 
-    // Actions & Menus
-    toggleMenu(id: string, event: Event): void {
-        event.stopPropagation();
-        this.openMenuId = (this.openMenuId === id) ? null : id;
+    getActions(node: AccountNode): MenuAction[] {
+        const actions: MenuAction[] = [
+            { label: 'Edit', action: 'edit' },
+        ];
+
+        if (node.status === 'Active') {
+            actions.push({ label: 'Mark As Inactive', action: 'mark_inactive' });
+        } else {
+            actions.push({ label: 'Mark As Active', action: 'mark_active' });
+        }
+
+        actions.push({ label: 'Delete', action: 'delete', customClass: 'delete-btn' });
+        return actions;
     }
 
-    @HostListener('document:click')
-    clickout() {
-        this.openMenuId = null;
+    handleAction(event: { action: string, data: any }): void {
+        const { action, data: node } = event;
+        switch (action) {
+            case 'edit':
+                this.openEditModal(node, new MouseEvent('click'));
+                break;
+            case 'mark_active':
+                this.updateStatus(node.id, 'Active');
+                break;
+            case 'mark_inactive':
+                this.updateStatus(node.id, 'Inactive');
+                break;
+            case 'delete':
+                this.openDeleteModal(node, new MouseEvent('click'));
+                break;
+        }
     }
 
-    toggleManageColumns(): void { this.isManageColumnsOpen = true; }
-    closeManageColumns(): void { this.isManageColumnsOpen = false; }
+    toggleManageColumns(): void { this.isManageColumnsOpen.set(true); }
+    closeManageColumns(): void { this.isManageColumnsOpen.set(false); }
     onColumnsChange(cols: ColumnDef[]): void { this.availableColumns = cols; }
 
     openDeleteModal(node: AccountNode, event: Event): void {
         event.stopPropagation();
-        this.accountToDelete = node;
-        this.openMenuId = null;
+        this.accountToDelete.set(node);
+    }
+
+    openEditModal(node: AccountNode, event: Event): void {
+        event.stopPropagation();
+        this.accountToEdit.set(node);
+        this.isCreateModalOpen.set(true);
+    }
+
+    updateStatus(id: string, status: 'Active' | 'Inactive'): void {
+        this.coaService.updateAccount(id, { status }).subscribe({
+            next: (res) => {
+                this.notificationService.success(`Account marked as ${status}`);
+                this.updateAccountInSignal(id, res.data);
+            },
+            error: (err) => {
+                console.error('Error updating status:', err);
+                this.notificationService.error('Failed to update status');
+            }
+        });
+    }
+
+    private updateAccountInSignal(id: string, updatedNode: AccountNode) {
+        this.accounts.update(prev => {
+            const updateRecursive = (nodes: AccountNode[]): AccountNode[] => {
+                return nodes.map(node => {
+                    if (node.id === id) return { ...node, ...updatedNode };
+                    if (node.children) return { ...node, children: updateRecursive(node.children) };
+                    return node;
+                });
+            };
+            return updateRecursive(prev);
+        });
     }
 
     closeDeleteModal(): void {
-        this.accountToDelete = null;
-        this.bulkDeletePending = false;
+        this.accountToDelete.set(null);
+        this.bulkDeletePending.set(false);
     }
 
     confirmDelete(): void {
-        // Logic to remove from list (mock)
-        if (this.bulkDeletePending) {
-            this.accounts = this.accounts.filter(a => !this.selectedAccountIds.has(a.id));
-            this.selectedAccountIds.clear();
-        } else if (this.accountToDelete) {
-            this.accounts = this.deleteRecursively(this.accounts, this.accountToDelete.id);
-            this.selectedAccountIds.delete(this.accountToDelete.id);
+        const isBulk = this.bulkDeletePending();
+        const toDelete = this.accountToDelete();
+
+        if (isBulk) {
+            const ids = Array.from(this.selectedAccountIds());
+            this.coaService.deleteBulkAccounts(ids).subscribe({
+                next: () => {
+                    this.notificationService.success('Accounts deleted successfully');
+                    this.accounts.update(prev => this.removeIdsFromTree(prev, ids));
+                    this.selectedAccountIds.set(new Set<string>());
+                },
+                error: (err) => {
+                    console.error('Error deleting accounts:', err);
+                    this.notificationService.error('Failed to delete accounts');
+                }
+            });
+        } else if (toDelete) {
+            this.coaService.deleteAccount(toDelete.id).subscribe({
+                next: () => {
+                    this.notificationService.success('Account deleted successfully');
+                    this.accounts.update(prev => this.removeIdsFromTree(prev, [toDelete.id]));
+                },
+                error: (err) => {
+                    console.error('Error deleting account:', err);
+                    this.notificationService.error('Failed to delete account');
+                }
+            });
         }
         this.closeDeleteModal();
     }
 
-    private deleteRecursively(nodes: AccountNode[], id: string): AccountNode[] {
+    private removeIdsFromTree(nodes: AccountNode[], ids: string[]): AccountNode[] {
         return nodes.filter(node => {
-            if (node.id === id) return false;
-            if (node.children) node.children = this.deleteRecursively(node.children, id);
+            if (ids.includes(node.id)) return false;
+            if (node.children) node.children = this.removeIdsFromTree(node.children, ids);
             return true;
         });
     }
 
+
     handleBulkAction(action: string): void {
-        if (action === 'delete') this.bulkDeletePending = true;
+        if (action === 'delete') {
+            this.bulkDeletePending.set(true);
+        } else if (action === 'mark_active' || action === 'mark_inactive') {
+            const status = action === 'mark_active' ? 'Active' : 'Inactive';
+            const ids = Array.from(this.selectedAccountIds());
+            this.coaService.updateBulkStatus(ids, status).subscribe({
+                next: () => {
+                    this.notificationService.success(`Status updated to ${status}`);
+                    // Update local state instead of full load to avoid re-render
+                    this.accounts.update(prev => {
+                        const updateRecursive = (nodes: AccountNode[]): AccountNode[] => {
+                            return nodes.map(node => {
+                                let newNode = { ...node };
+                                if (ids.includes(node.id)) {
+                                    newNode.status = status;
+                                }
+                                if (node.children) {
+                                    newNode.children = updateRecursive(node.children);
+                                }
+                                return newNode;
+                            });
+                        };
+                        return updateRecursive(prev);
+                    });
+                    this.selectedAccountIds.set(new Set<string>());
+                },
+                error: (err) => {
+                    console.error('Error updating status:', err);
+                    this.notificationService.error('Failed to update status');
+                }
+            });
+        }
     }
 
-    onPageChange(page: number): void { this.currentPage = page; }
-    onItemsPerPageChange(size: number | 'All'): void { this.itemsPerPage = size; this.currentPage = 1; }
+    onPageChange(page: number): void { this.currentPage.set(page); }
+    onItemsPerPageChange(size: number | 'All'): void { this.itemsPerPage.set(size); this.currentPage.set(1); }
 
     // Create Modal Logic
-    get parentAccountOptions(): SelectOption[] {
+    parentAccountOptions = computed(() => {
         const options: SelectOption[] = [];
+        const toEdit = this.accountToEdit();
+        const excludeId = toEdit?.id;
+
         const flatten = (nodes: AccountNode[]) => {
             nodes.forEach(node => {
-                options.push({ label: node.name, value: node.id });
-                if (node.children) flatten(node.children);
+                if (node.id !== excludeId) {
+                    options.push({ label: node.name, value: node.id });
+                    if (node.children) flatten(node.children);
+                }
             });
         };
-        flatten(this.accounts);
+        flatten(this.accounts());
         return options;
-    }
+    });
 
     openCreateModal(): void {
-        this.isCreateModalOpen = true;
+        this.isCreateModalOpen.set(true);
     }
 
     closeCreateModal(): void {
-        this.isCreateModalOpen = false;
+        this.isCreateModalOpen.set(false);
+        this.accountToEdit.set(null);
     }
 
     saveAccount(data: any): void {
-        const newAccount: AccountNode = {
-            id: Math.random().toString(36).substr(2, 9),
-            name: data.name,
-            type: data.type,
-            status: 'Active',
-            isExpanded: false
+        const toEdit = this.accountToEdit();
+        const payload = {
+            ...data,
+            parentId: data.addParent ? data.parentId : null,
+            parent_id: data.addParent ? data.parentId : null 
         };
 
-        if (data.addParent && data.parentId) {
-            this.addChildToParent(this.accounts, data.parentId, newAccount);
+        if (toEdit) {
+            this.coaService.updateAccount(toEdit.id, payload).subscribe({
+                next: (res) => {
+                    this.notificationService.success('Account updated successfully');
+                    this.loadAccounts(); 
+                    this.closeCreateModal();
+                },
+                error: (err) => {
+                    console.error('Error updating account:', err);
+                    this.notificationService.error('Failed to update account');
+                }
+            });
         } else {
-            this.accounts = [...this.accounts, newAccount];
+            this.coaService.createAccount(payload).subscribe({
+                next: (res) => {
+                    this.notificationService.success('Account created successfully');
+                    this.loadAccounts();
+                    this.closeCreateModal();
+                },
+                error: (err) => {
+                    console.error('Error creating account:', err);
+                    this.notificationService.error('Failed to create account');
+                }
+            });
         }
-        this.closeCreateModal();
     }
 
-    private addChildToParent(nodes: AccountNode[], parentId: string, child: AccountNode): boolean {
-        for (const node of nodes) {
-            if (node.id === parentId) {
-                if (!node.children) node.children = [];
-                node.children.push(child);
-                node.isExpanded = true;
-                return true;
-            }
-            if (node.children && this.addChildToParent(node.children, parentId, child)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     // Navigation
     navigateToNew(): void {

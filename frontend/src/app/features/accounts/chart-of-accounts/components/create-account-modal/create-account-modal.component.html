@@ -10,7 +10,7 @@
     </div>
 
     <!-- Title -->
-    <h2 class="modal-title">Create Account</h2>
+    <h2 class="modal-title">{{ isEditMode() ? 'Edit Account' : 'Create Account' }}</h2>
 
     <!-- Form -->
     <form class="modal-form" (ngSubmit)="onSave()">
@@ -56,7 +56,7 @@
 
       <div class="modal-actions">
         <app-button variant="outline" type="button" (clicked)="closeModal()">Cancel</app-button>
-        <app-button variant="primary" type="submit">Save</app-button>
+        <app-button variant="primary" type="submit">{{ isEditMode() ? 'Update' : 'Save' }}</app-button>
       </div>
     </form>
   </div>

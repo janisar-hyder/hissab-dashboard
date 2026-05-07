@@ -4,8 +4,8 @@
         <div class="header-titles">
             <h1 class="page-title">Chart of Accounts</h1>
         </div>
-        <div class="header-actions" *ngIf="accounts.length > 0">
-            <app-bulk-actions [selectedCount]="selectedAccountIds.size" [actions]="bulkActions" (actionSelected)="handleBulkAction($event)"></app-bulk-actions>
+        <div class="header-actions" *ngIf="accounts().length > 0">
+            <app-bulk-actions [selectedCount]="selectedAccountIds().size" [actions]="dynamicBulkActions()" (actionSelected)="handleBulkAction($event)"></app-bulk-actions>
             <app-button variant="primary" iconPrefix="las la-plus" (clicked)="navigateToNew()">Add New Account</app-button>
             <app-button variant="outline">
                 <svg svg-icon width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -31,19 +31,19 @@
     </div>
 
     <!-- Data Card -->
-    <div class="data-card" *ngIf="accounts.length > 0 || searchQuery">
+    <div class="data-card" *ngIf="accounts().length > 0 || searchQuery()">
         <!-- Toolbar -->
         <div class="card-toolbar">
             <div class="search-box">
                 <i class="las la-search search-icon"></i>
-                <input type="text" placeholder="Search for something.." class="search-input" [(ngModel)]="searchQuery" (ngModelChange)="currentPage = 1">
-                <i class="las la-times clear-icon" *ngIf="searchQuery" (click)="clearSearch()"></i>
+                <input type="text" placeholder="Search for something.." class="search-input" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event); currentPage.set(1)">
+                <i class="las la-times clear-icon" *ngIf="searchQuery()" (click)="clearSearch()"></i>
             </div>
 
             <div class="toolbar-right">
                 <app-custom-filter
                     [options]="filterOptions"
-                    [currentFilter]="currentFilter"
+                    [currentFilter]="currentFilter()"
                     activeLabelPrefix="All Accounts"
                     (filterChange)="setFilter($event)">
                 </app-custom-filter>
@@ -64,22 +64,22 @@
                         </th>
                         <th *ngIf="availableColumns[0].visible">
                             Account Name
-                            <i [class]="sortColumn === 'name' 
-                                ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down')
+                            <i [class]="sortColumn() === 'name' 
+                                ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down')
                                 : 'las la-sort'"
                                (click)="sort('name', $event)"></i>
                         </th>
                         <th *ngIf="availableColumns[1].visible">
                             Type
-                            <i [class]="sortColumn === 'type' 
-                                ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down')
+                            <i [class]="sortColumn() === 'type' 
+                                ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down')
                                 : 'las la-sort'"
                                (click)="sort('type', $event)"></i>
                         </th>
                         <th *ngIf="availableColumns[2].visible">
                             Status
-                            <i [class]="sortColumn === 'status' 
-                                ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down')
+                            <i [class]="sortColumn() === 'status' 
+                                ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down')
                                 : 'las la-sort'"
                                (click)="sort('status', $event)"></i>
                         </th>
@@ -95,7 +95,7 @@
                             [ngClass]="'level-' + level">
                             <td class="col-checkbox">
                                 <label class="custom-checkbox">
-                                    <input type="checkbox" [checked]="selectedAccountIds.has(node.id)" (change)="toggleSelection(node, $event)">
+                                    <input type="checkbox" [checked]="selectedAccountIds().has(node.id)" (change)="toggleSelection(node, $event)">
                                     <span class="checkmark"></span>
                                 </label>
                             </td>
@@ -131,24 +131,17 @@
                                 </span>
                             </td>
                             <td class="col-actions">
-                                <div class="action-menu-container">
-                                    <button class="action-btn" (click)="toggleMenu(node.id, $event)">
-                                        <i class="las la-ellipsis-h"></i>
-                                    </button>
-                                    <div class="action-dropdown" *ngIf="openMenuId === node.id">
-                                        <button class="menu-item edit-btn">Edit</button>
-                                        <button class="menu-item delete-btn" (click)="openDeleteModal(node, $event)">
-                                            <div class="svg-icon" style="-webkit-mask-image: url('/icons/delete.svg'); mask-image: url('/icons/delete.svg');"></div>
-                                            Delete
-                                        </button>
-                                    </div>
-                                </div>
+                                <app-action-menu
+                                    [actions]="getActions(node)"
+                                    [data]="node"
+                                    (actionClick)="handleAction($event)">
+                                </app-action-menu>
                             </td>
                         </tr>
 
                         <!-- Render children recursively -->
                         <ng-container *ngIf="node.children?.length && node.isExpanded">
-                            <ng-container *ngFor="let child of node.children; let childLast = last">
+                            <ng-container *ngFor="let child of node.children; let childLast = last; trackBy: trackById">
                                 <ng-container *ngTemplateOutlet="nodeTemplate; context: { 
                                     node: child, 
                                     level: level + 1, 
@@ -159,7 +152,7 @@
                         </ng-container>
                     </ng-template>
 
-                    <ng-container *ngFor="let acc of paginatedAccounts; let last = last">
+                    <ng-container *ngFor="let acc of paginatedAccounts(); let last = last; trackBy: trackById">
                         <ng-container *ngTemplateOutlet="nodeTemplate; context: { 
                             node: acc, 
                             level: 0, 
@@ -168,7 +161,14 @@
                         }"></ng-container>
                     </ng-container>
                     
-                    <tr *ngIf="paginatedAccounts.length === 0">
+                    <tr *ngIf="isLoading()">
+                        <td colspan="5" class="text-center" style="padding: 40px;">
+                            <div class="loading-spinner"></div>
+                            <div class="text-muted mt-2">Loading accounts...</div>
+                        </td>
+                    </tr>
+                    
+                    <tr *ngIf="paginatedAccounts().length === 0 && !isLoading()">
                         <td colspan="5" style="padding: 0;">
                             <app-empty-state title="No Accounts Found." subtitle="Check your filters or add a new account."></app-empty-state>
                         </td>
@@ -177,28 +177,28 @@
             </table>
         </div>
 
-        <app-pagination [totalItems]="filteredAccounts.length" [itemsPerPage]="itemsPerPage" [currentPage]="currentPage" (pageChange)="onPageChange($event)" (itemsPerPageChange)="onItemsPerPageChange($event)"></app-pagination>
+        <app-pagination [totalItems]="filteredAccounts().length" [itemsPerPage]="itemsPerPage()" [currentPage]="currentPage()" (pageChange)="onPageChange($event)" (itemsPerPageChange)="onItemsPerPageChange($event)"></app-pagination>
     </div>
 
-    <app-empty-state *ngIf="accounts.length === 0 && !searchQuery" title="No Accounts Found."
+    <app-empty-state *ngIf="accounts().length === 0 && !searchQuery()" title="No Accounts Found."
         subtitle="It looks like you haven't added any accounts yet."
         actionLabel="Add New Account" actionIconClass="las la-plus" (actionClick)="navigateToNew()">
     </app-empty-state>
 
 </div>
 
-<app-manage-columns [isOpen]="isManageColumnsOpen" [columns]="availableColumns" (closePanel)="closeManageColumns()" (columnsChange)="onColumnsChange($event)"></app-manage-columns>
-<app-delete-modal [isOpen]="!!accountToDelete || bulkDeletePending" 
-    [title]="bulkDeletePending ? 'Delete Accounts' : 'Delete Account'"
-    [message]="bulkDeletePending 
-        ? 'Are you sure you want to delete ' + selectedAccountIds.size + ' selected account(s)? This action cannot be undone.'
+<app-delete-modal [isOpen]="!!accountToDelete() || bulkDeletePending()" 
+    [title]="bulkDeletePending() ? 'Delete Accounts' : 'Delete Account'"
+    [message]="bulkDeletePending() 
+        ? 'Are you sure you want to delete ' + selectedAccountIds().size + ' selected account(s)? This action cannot be undone.'
         : 'Are you sure you want to delete this account? This action cannot be undone.'"
     (cancel)="closeDeleteModal()" (confirm)="confirmDelete()">
 </app-delete-modal>
 
 <app-create-account-modal 
-    *ngIf="isCreateModalOpen"
-    [parentAccounts]="parentAccountOptions"
+    *ngIf="isCreateModalOpen()"
+    [parentAccounts]="parentAccountOptions()"
+    [accountData]="accountToEdit()"
     (close)="closeCreateModal()"
     (save)="saveAccount($event)">
 </app-create-account-modal>

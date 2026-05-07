@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, Input } from '@angular/core';
+import { Component, Output, EventEmitter, Input, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../../../../shared/components/button/button.component';
@@ -11,10 +11,13 @@ import { CustomSelectComponent, SelectOption } from '../../../../../shared/compo
   templateUrl: './create-account-modal.component.html',
   styleUrl: './create-account-modal.component.scss'
 })
-export class CreateAccountModalComponent {
+export class CreateAccountModalComponent implements OnInit {
   @Input() parentAccounts: SelectOption[] = [];
+  @Input() accountData: any = null;
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<any>();
+
+  isEditMode = signal(false);
 
   formData = {
     type: '',
@@ -23,6 +26,20 @@ export class CreateAccountModalComponent {
     parentId: '',
     description: ''
   };
+
+  ngOnInit() {
+    if (this.accountData) {
+      this.isEditMode.set(true);
+      const parentId = this.accountData.parentId || this.accountData.parent_id;
+      this.formData = {
+        type: this.accountData.type || '',
+        name: this.accountData.name || '',
+        addParent: !!parentId,
+        parentId: parentId || '',
+        description: this.accountData.description || ''
+      };
+    }
+  }
 
   accountTypeOptions: SelectOption[] = [
     { label: 'Other Asset', value: 'Other Asset' },
