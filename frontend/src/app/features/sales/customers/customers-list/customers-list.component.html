@@ -4,29 +4,22 @@
         <div class="header-titles">
             <h1 class="page-title">Customers</h1>
         </div>
-        <div class="header-actions" *ngIf="customers.length > 0">
-            <app-bulk-actions [selectedCount]="selectedCustomerIds.size" [actions]="bulkActions"
+        <div class="header-actions" *ngIf="customers().length > 0">
+            <app-bulk-actions [selectedCount]="selectedCustomerIds().size" [actions]="dynamicBulkActions()"
                 (actionSelected)="handleBulkAction($event)">
             </app-bulk-actions>
-            <app-button variant="primary" iconPrefix="las la-plus" (clicked)="navigateToNew()">Add New
-                Customer</app-button>
+            <app-button variant="primary" iconPrefix="las la-plus" (clicked)="navigateToNew()">Add New Customer</app-button>
             <app-button variant="outline">
                 <svg svg-icon width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 16V4M12 16L8 12M12 16L16 12" stroke="#6B7280" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                    <path
-                        d="M19 16V18C19 18.5304 18.7893 19.0391 18.4142 19.4142C18.0391 19.7893 17.5304 20 17 20H7C6.46957 20 5.96086 19.7893 5.58579 19.4142C5.21071 19.0391 5 18.5304 5 18V16"
-                        stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M12 16V4M12 16L8 12M12 16L16 12" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M19 16V18C19 18.5304 18.7893 19.0391 18.4142 19.4142C18.0391 19.7893 17.5304 20 17 20H7C6.46957 20 5.96086 19.7893 5.58579 19.4142C5.21071 19.0391 5 18.5304 5 18V16" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
                 Import
             </app-button>
             <app-button variant="outline">
                 <svg svg-icon width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 4V16M12 4L8 8M12 4L16 8" stroke="#6B7280" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                    <path
-                        d="M19 16V18C19 18.5304 18.7893 19.0391 18.4142 19.4142C18.0391 19.7893 17.5304 20 17 20H7C6.46957 20 5.96086 19.7893 5.58579 19.4142C5.21071 19.0391 5 18.5304 5 18V16"
-                        stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M12 4V16M12 4L8 8M12 4L16 8" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M19 16V18C19 18.5304 18.7893 19.0391 18.4142 19.4142C18.0391 19.7893 17.5304 20 17 20H7C6.46957 20 5.96086 19.7893 5.58579 19.4142C5.21071 19.0391 5 18.5304 5 18V16" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
                 Export
             </app-button>
@@ -34,17 +27,16 @@
     </div>
 
     <!-- Data Card -->
-    <div class="data-card" *ngIf="customers.length > 0 || searchQuery">
+    <div class="data-card" *ngIf="customers().length > 0 || searchQuery()">
 
         <!-- Toolbar -->
         <div class="card-toolbar">
             <div class="search-box">
                 <i class="las la-search search-icon"></i>
-                <input type="text" placeholder="Search for something.." class="search-input" [(ngModel)]="searchQuery" (ngModelChange)="currentPage = 1">
-                <i class="las la-times clear-icon" *ngIf="searchQuery" (click)="clearSearch()"></i>
+                <input type="text" placeholder="Search for something.." class="search-input" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event); currentPage.set(1)">
+                <i class="las la-times clear-icon" *ngIf="searchQuery()" (click)="clearSearch()"></i>
             </div>
-            <app-button variant="outline" iconPrefix="las la-sliders-h" (clicked)="toggleManageColumns()">Manage
-                Columns</app-button>
+            <app-button variant="outline" iconPrefix="las la-sliders-h" (clicked)="toggleManageColumns()">Manage Columns</app-button>
         </div>
 
         <!-- Table -->
@@ -61,8 +53,8 @@
                         <ng-container *ngFor="let col of availableColumns">
                             <th *ngIf="col.visible">
                                 {{ col.label }}
-                                <i [class]="sortColumn === col.id 
-                                    ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down')
+                                <i [class]="sortColumn() === col.id 
+                                    ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down')
                                     : 'las la-sort'"
                                    (click)="sort(col.id, $event)"
                                    style="cursor: pointer; margin-left: 4px;"></i>
@@ -72,50 +64,45 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let customer of paginatedCustomers">
+                    <tr *ngFor="let customer of paginatedCustomers(); trackBy: trackById">
                         <td class="col-checkbox">
                             <label class="custom-checkbox">
-                                <input type="checkbox" [checked]="selectedCustomerIds.has(customer.id)"
+                                <input type="checkbox" [checked]="selectedCustomerIds().has(customer.id)"
                                     (change)="toggleSelection(customer.id)">
                                 <span class="checkmark"></span>
                             </label>
                         </td>
                         <ng-container *ngFor="let col of availableColumns">
                             <td class="text-muted" *ngIf="col.visible" [ngSwitch]="col.id">
-                                <ng-container *ngSwitchCase="'displayName'">{{ customer.displayName }}</ng-container>
-                                <ng-container *ngSwitchCase="'companyName'">{{ customer.companyName }}</ng-container>
-                                <ng-container *ngSwitchCase="'workNumber'">{{ customer.workNumber }}</ng-container>
-                                <ng-container *ngSwitchCase="'email'">{{ customer.email }}</ng-container>
-                                <ng-container *ngSwitchCase="'receivables'">BHD {{ customer.receivables | number:'1.3-3' }}</ng-container>
-                                <ng-container *ngSwitchCase="'creditNote'">BHD {{ customer.creditNote | number:'1.3-3' }}</ng-container>
+                                <ng-container *ngSwitchCase="'name'">{{ customer.name }}</ng-container>
+                                <ng-container *ngSwitchCase="'email'">{{ customer.email || '-' }}</ng-container>
+                                <ng-container *ngSwitchCase="'phone'">{{ customer.phone || '-' }}</ng-container>
+                                <ng-container *ngSwitchCase="'receivables'">
+                                    {{ customer.currency?.code || 'BHD' }} {{ 0 | number:'1.3-3' }}
+                                </ng-container>
+                                <ng-container *ngSwitchCase="'status'">
+                                    <span class="status-pill" [ngClass]="customer.is_active ? 'active' : 'inactive'">
+                                        <span class="dot"></span> {{ customer.is_active ? 'Active' : 'Inactive' }}
+                                    </span>
+                                </ng-container>
                             </td>
                         </ng-container>
                         <td class="col-actions">
-                            <div class="action-menu-container">
-                                <button class="action-btn" (click)="toggleMenu(customer.id, $event)"><i
-                                        class="las la-ellipsis-h"></i></button>
-
-                                <div class="action-dropdown" *ngIf="openMenuId === customer.id">
-                                    <button class="menu-item edit-btn"
-                                        (click)="navigateToEdit(customer.id, $event)">Edit</button>
-                                    <button class="menu-item delete-btn" (click)="openDeleteModal(customer, $event)">
-                                        <div class="svg-icon"
-                                            style="-webkit-mask-image: url('/icons/delete.svg'); mask-image: url('/icons/delete.svg');">
-                                        </div>
-                                        Delete
-                                    </button>
-                                </div>
-                            </div>
+                            <app-action-menu
+                                [actions]="getActions(customer)"
+                                [data]="customer"
+                                (actionClick)="handleAction($event)">
+                            </app-action-menu>
                         </td>
                     </tr>
                     <!-- Empty State -->
-                    <tr *ngIf="paginatedCustomers.length === 0">
+                    <tr *ngIf="paginatedCustomers().length === 0">
                         <td colspan="8" style="padding: 0;">
                             <app-empty-state 
-                                [title]="searchQuery ? 'No Customers Found.' : 'No Customers Found.'"
-                                [subtitle]="searchQuery ? 'We couldn\'t find any customers matching \'' + searchQuery + '\'' : 'It looks like you haven\'t added any customers yet.'"
-                                [actionLabel]="searchQuery ? '' : 'Add New Customer'" 
-                                [actionIconClass]="searchQuery ? '' : 'las la-plus'" 
+                                [title]="searchQuery() ? 'No Customers Found.' : 'No Customers Found.'"
+                                [subtitle]="searchQuery() ? 'We couldn\'t find any customers matching \'' + searchQuery() + '\'' : 'It looks like you haven\'t added any customers yet.'"
+                                [actionLabel]="searchQuery() ? '' : 'Add New Customer'" 
+                                [actionIconClass]="searchQuery() ? '' : 'las la-plus'" 
                                 (actionClick)="navigateToNew()">
                             </app-empty-state>
                         </td>
@@ -124,14 +111,13 @@
             </table>
         </div>
 
-
         <!-- Footer Pagination -->
-        <app-pagination [totalItems]="filteredCustomers.length" [itemsPerPage]="itemsPerPage" [currentPage]="currentPage"
+        <app-pagination [totalItems]="filteredCustomers().length" [itemsPerPage]="itemsPerPage()" [currentPage]="currentPage()"
             (pageChange)="onPageChange($event)" (itemsPerPageChange)="onItemsPerPageChange($event)">
         </app-pagination>
     </div>
 
-    <app-empty-state *ngIf="customers.length === 0 && !searchQuery" title="No Customers Found."
+    <app-empty-state *ngIf="customers().length === 0 && !searchQuery()" title="No Customers Found."
         subtitle="It looks like you haven't added any customers yet." actionLabel="Add New Customer"
         actionIconClass="las la-plus" (actionClick)="navigateToNew()">
     </app-empty-state>
@@ -139,16 +125,16 @@
 </div>
 
 <!-- Manage Columns Side Panel -->
-<app-manage-columns [isOpen]="isManageColumnsOpen" [columns]="availableColumns" (closePanel)="closeManageColumns()"
+<app-manage-columns [isOpen]="isManageColumnsOpen()" [columns]="availableColumns" (closePanel)="closeManageColumns()"
     (columnsChange)="onColumnsChange($event)">
 </app-manage-columns>
 
 <!-- Delete Confirmation Modal -->
 <app-delete-modal
-    [isOpen]="!!customerToDelete || bulkDeletePending"
-    [title]="bulkDeletePending ? 'Delete Customers' : 'Delete Customer'"
-    [message]="bulkDeletePending
-        ? 'Are you sure you want to delete ' + selectedCustomerIds.size + ' selected customer(s)? This action cannot be undone.'
+    [isOpen]="!!customerToDelete() || bulkDeletePending()"
+    [title]="bulkDeletePending() ? 'Delete Customers' : 'Delete Customer'"
+    [message]="bulkDeletePending()
+        ? 'Are you sure you want to delete ' + selectedCustomerIds().size + ' selected customer(s)? This action cannot be undone.'
         : 'Are you sure you want to delete this customer? This action cannot be undone.'"
     (cancel)="closeDeleteModal()"
     (confirm)="confirmDelete()">

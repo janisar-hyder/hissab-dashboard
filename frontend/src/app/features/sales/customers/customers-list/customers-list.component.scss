@@ -43,6 +43,7 @@
     border: 1px solid var(--border-light);
     display: flex;
     flex-direction: column;
+    overflow: visible;
 }
 
 .card-toolbar {
@@ -101,7 +102,7 @@
 }
 
 .table-responsive {
-    overflow-x: auto;
+    overflow: visible;
     width: 100%;
 }
 

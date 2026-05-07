@@ -1,102 +1,143 @@
-import { Component, OnInit, HostListener, ElementRef } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { BulkActionsComponent, BulkAction } from '../../../../shared/components/bulk-actions/bulk-actions.component';
 import { ManageColumnsComponent, ColumnDef } from '../../../../shared/components/manage-columns/manage-columns.component';
 import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
-
-export interface Customer {
-    id: string;
-    displayName: string;
-    companyName: string;
-    workNumber: string;
-    email: string;
-    receivables: number;
-    creditNote: number;
-}
+import { ActionMenu, MenuAction } from '../../../../shared/components/action-menu/action-menu';
+import { CustomersService, Customer } from '../services/customers.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
 
 @Component({
     selector: 'app-customers-list',
     standalone: true,
-    imports: [CommonModule, FormsModule, ButtonComponent, DecimalPipe, EmptyStateComponent, PaginationComponent, BulkActionsComponent, ManageColumnsComponent, DeleteModalComponent],
+    imports: [
+        CommonModule, 
+        FormsModule, 
+        RouterModule,
+        ButtonComponent, 
+        DecimalPipe, 
+        EmptyStateComponent, 
+        PaginationComponent, 
+        BulkActionsComponent, 
+        ManageColumnsComponent, 
+        DeleteModalComponent,
+        ActionMenu
+    ],
     templateUrl: './customers-list.component.html',
-    styleUrls: ['./customers-list.component.scss']
+    styleUrls: ['./customers-list.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CustomersListComponent implements OnInit {
-    customers: Customer[] = [
-        { id: '1', displayName: 'APR Supply', companyName: 'APR Supply', workNumber: '3334 834', email: 'bertou@gmail.com', receivables: 21.150, creditNote: 0.050 },
-        { id: '2', displayName: 'THC', companyName: 'The Habegger Corp', workNumber: '3545 6632', email: 'igerrin@gmail.com', receivables: 841.500, creditNote: 1.500 },
-        { id: '3', displayName: 'Watsco', companyName: 'Watsco', workNumber: '3476 5456', email: 'dric@gmail.com', receivables: 159.600, creditNote: 0.200 },
-        { id: '4', displayName: "Sid Harvey's", companyName: "Sid Harvey's", workNumber: '3987 4234', email: 'cedennar@gmail.com', receivables: 8.925, creditNote: 0.025 },
-        { id: '5', displayName: 'ABCO HVACR Supply', companyName: 'ABCO HVACR Supply', workNumber: '3567 4367', email: 'lline@gmail.com', receivables: 184.400, creditNote: 0.200 },
-        { id: '6', displayName: 'YSC.', companyName: 'Young Supply Co.', workNumber: '3573 4342', email: 'tinest@gmail.com', receivables: 64.350, creditNote: 0.150 },
-        { id: '7', displayName: 'U.S Airconditioning', companyName: 'U.S Airconditioning', workNumber: '3323 4243', email: 'osgoodwy@gmail.com', receivables: 4970.000, creditNote: 5.000 },
-        { id: '8', displayName: 'Carrier Enterprise', companyName: 'Carrier Enterprise LLC', workNumber: '3654 7788', email: 'carrier@gmail.com', receivables: 275.800, creditNote: 0.300 },
-        // { id: '9', displayName: 'Johnstone Supply', companyName: 'Johnstone Supply Inc.', workNumber: '3890 1122', email: 'johnstone@gmail.com', receivables: 512.450, creditNote: 0.450 },
-        // { id: '10', displayName: 'Grainger', companyName: 'W.W. Grainger, Inc.', workNumber: '3765 9087', email: 'grainger@gmail.com', receivables: 920.600, creditNote: 0.600 },
-        // { id: '11', displayName: 'Ferguson HVAC', companyName: 'Ferguson Enterprises', workNumber: '3445 6677', email: 'ferguson@gmail.com', receivables: 1_240.750, creditNote: 0.750 },
+    private coaService = inject(CustomersService);
+    private notificationService = inject(NotificationService);
+    private router = inject(Router);
 
-    ];
+    customers = signal<Customer[]>([]);
+    isLoading = signal(false);
 
-    selectedCustomerIds = new Set<string>();
+    selectedCustomerIds = signal<Set<number>>(new Set<number>());
 
     // Pagination properties
-    currentPage = 1;
-    itemsPerPage: number | 'All' = 15;
+    currentPage = signal(1);
+    itemsPerPage = signal<number | 'All'>(15);
 
     // Bulk actions
     bulkActions: BulkAction[] = [
-        { id: 'delete', label: 'Delete Customers', colorClass: 'text-danger' }
+        { id: 'mark_active', label: 'Mark As Active', icon: 'las la-check-circle' },
+        { id: 'mark_inactive', label: 'Mark As Inactive', icon: 'las la-times-circle' },
+        { id: 'delete', label: 'Delete Customers', colorClass: 'text-danger', icon: 'las la-trash' }
     ];
 
-    isManageColumnsOpen = false;
-    openMenuId: string | null = null;
-    customerToDelete: Customer | null = null;
-    bulkDeletePending = false;
+    dynamicBulkActions = computed(() => {
+        const selectedIds = this.selectedCustomerIds();
+        if (selectedIds.size === 0) return [];
+
+        const selectedList = this.customers().filter(c => selectedIds.has(c.id));
+        const allActive = selectedList.every(c => c.is_active);
+        const allInactive = selectedList.every(c => !c.is_active);
+
+        return this.bulkActions.filter(action => {
+            if (action.id === 'mark_active') return !allActive;
+            if (action.id === 'mark_inactive') return !allInactive;
+            return true;
+        });
+    });
+
+    isManageColumnsOpen = signal(false);
+    customerToDelete = signal<Customer | null>(null);
+    bulkDeletePending = signal(false);
 
     // Sorting and Filter properties
-    sortColumn: string = '';
-    sortDirection: 'asc' | 'desc' = 'asc';
-    searchQuery: string = '';
+    sortColumn = signal('');
+    sortDirection = signal<'asc' | 'desc'>('asc');
+    searchQuery = signal('');
 
     availableColumns: ColumnDef[] = [
-        { id: 'displayName', label: 'Display Name', visible: true },
-        { id: 'companyName', label: 'Company Name (English)', visible: true },
-        { id: 'workNumber', label: 'Work Number', visible: true },
+        { id: 'name', label: 'Display Name', visible: true },
         { id: 'email', label: 'Email', visible: true },
+        { id: 'phone', label: 'Phone', visible: true },
         { id: 'receivables', label: 'Receivables', visible: true },
-        { id: 'creditNote', label: 'Credit Note', visible: true },
+        { id: 'status', label: 'Status', visible: true },
     ];
 
-    get filteredCustomers(): Customer[] {
-        let filtered = this.customers;
+    filteredCustomers = computed(() => {
+        let filtered = this.customers();
+        const query = this.searchQuery().toLowerCase();
 
-        if (this.searchQuery) {
-            const query = this.searchQuery.toLowerCase();
+        if (query) {
             filtered = filtered.filter(c => 
-                c.displayName.toLowerCase().includes(query) ||
-                c.companyName.toLowerCase().includes(query) ||
-                c.email.toLowerCase().includes(query)
+                c.name.toLowerCase().includes(query) ||
+                (c.email && c.email.toLowerCase().includes(query)) ||
+                (c.phone && c.phone.toLowerCase().includes(query))
             );
         }
 
+        const col = this.sortColumn();
+        const dir = this.sortDirection();
+        if (col) {
+            filtered = [...filtered].sort((a, b) => {
+                const valA = (a as any)[col] || '';
+                const valB = (b as any)[col] || '';
+                return dir === 'asc' 
+                    ? String(valA).localeCompare(String(valB))
+                    : String(valB).localeCompare(String(valA));
+            });
+        }
+
         return filtered;
+    });
+
+    paginatedCustomers = computed(() => {
+        const filtered = this.filteredCustomers();
+        const size = this.itemsPerPage();
+        if (size === 'All') return filtered;
+        const start = (this.currentPage() - 1) * size;
+        return filtered.slice(start, start + size);
+    });
+
+    ngOnInit(): void {
+        this.loadCustomers();
     }
 
-    get paginatedCustomers(): Customer[] {
-        const filtered = this.filteredCustomers;
-        if (this.itemsPerPage === 'All') return filtered;
-        const start = (this.currentPage - 1) * this.itemsPerPage;
-        return filtered.slice(start, start + this.itemsPerPage);
+    loadCustomers(): void {
+        this.isLoading.set(true);
+        this.coaService.getCustomers().subscribe({
+            next: (res) => {
+                this.customers.set(res.data);
+                this.isLoading.set(false);
+            },
+            error: (err) => {
+                console.error('Error loading customers:', err);
+                this.notificationService.error('Failed to load customers');
+                this.isLoading.set(false);
+            }
+        });
     }
-
-    constructor(private eRef: ElementRef, private router: Router) { }
-
-    ngOnInit(): void { }
 
     navigateToNew(): void {
         this.router.navigate(['/sales/customers/new']);
@@ -104,152 +145,167 @@ export class CustomersListComponent implements OnInit {
 
     sort(columnId: string, event: Event): void {
         event.stopPropagation();
-        if (this.sortColumn === columnId) {
-            this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+        if (this.sortColumn() === columnId) {
+            this.sortDirection.update(d => d === 'asc' ? 'desc' : 'asc');
         } else {
-            this.sortColumn = columnId;
-            this.sortDirection = 'asc';
+            this.sortColumn.set(columnId);
+            this.sortDirection.set('asc');
         }
+    }
 
-        this.customers.sort((a, b) => {
-            const valA = (a as any)[columnId];
-            const valB = (b as any)[columnId];
-
-            if (typeof valA === 'string' && typeof valB === 'string') {
-                return this.sortDirection === 'asc'
-                    ? valA.localeCompare(valB)
-                    : valB.localeCompare(valA);
-            } else {
-                return this.sortDirection === 'asc'
-                    ? (valA > valB ? 1 : -1)
-                    : (valA < valB ? 1 : -1);
-            }
+    toggleSelection(id: number): void {
+        this.selectedCustomerIds.update(set => {
+            const newSet = new Set(set);
+            if (newSet.has(id)) newSet.delete(id);
+            else newSet.add(id);
+            return newSet;
         });
     }
 
-    @HostListener('document:click', ['$event'])
-    clickout(event: Event) {
-        if (!this.eRef.nativeElement.contains(event.target)) {
-            this.openMenuId = null;
-        }
-    }
+    isAllSelected = computed(() => {
+        const list = this.paginatedCustomers();
+        const selected = this.selectedCustomerIds();
+        return list.length > 0 && list.every(c => selected.has(c.id));
+    });
 
-    toggleSelection(id: string): void {
-        if (this.selectedCustomerIds.has(id)) {
-            this.selectedCustomerIds.delete(id);
-        } else {
-            this.selectedCustomerIds.add(id);
-        }
-    }
-
-    isAllSelected(): boolean {
-        const currentList = this.paginatedCustomers;
-        return currentList.length > 0 && currentList.every(c => this.selectedCustomerIds.has(c.id));
-    }
-
-    isPartiallySelected(): boolean {
-        const currentList = this.paginatedCustomers;
-        const selectedInCurrent = currentList.filter(c => this.selectedCustomerIds.has(c.id)).length;
-        return selectedInCurrent > 0 && selectedInCurrent < currentList.length;
-    }
+    isPartiallySelected = computed(() => {
+        const list = this.paginatedCustomers();
+        const selected = this.selectedCustomerIds();
+        const selectedInPage = list.filter(c => selected.has(c.id)).length;
+        return selectedInPage > 0 && selectedInPage < list.length;
+    });
 
     toggleAll(event?: any): void {
-        const currentList = this.paginatedCustomers;
-        if (this.isAllSelected()) {
-            currentList.forEach(c => this.selectedCustomerIds.delete(c.id));
-        } else {
-            currentList.forEach(c => this.selectedCustomerIds.add(c.id));
-        }
+        const list = this.paginatedCustomers();
+        this.selectedCustomerIds.update(set => {
+            const newSet = new Set(set);
+            if (this.isAllSelected()) {
+                list.forEach(c => newSet.delete(c.id));
+            } else {
+                list.forEach(c => newSet.add(c.id));
+            }
+            return newSet;
+        });
+    }
+
+    trackById(index: number, item: Customer): number {
+        return item.id;
     }
 
     clearSearch() {
-        this.searchQuery = '';
-        this.currentPage = 1;
-    }
-
-    isColumnVisible(columnId: string): boolean {
-        const col = this.availableColumns.find(c => c.id === columnId);
-        return col ? col.visible : false;
+        this.searchQuery.set('');
+        this.currentPage.set(1);
     }
 
     toggleManageColumns() {
-        this.isManageColumnsOpen = true;
-        this.openMenuId = null;
+        this.isManageColumnsOpen.set(true);
     }
 
     closeManageColumns() {
-        this.isManageColumnsOpen = false;
+        this.isManageColumnsOpen.set(false);
     }
 
     onColumnsChange(updatedColumns: ColumnDef[]): void {
         this.availableColumns = updatedColumns;
     }
 
-    toggleMenu(id: string, event: Event): void {
-        event.stopPropagation();
-        if (this.openMenuId === id) {
-            this.openMenuId = null;
+    getActions(node: Customer): MenuAction[] {
+        const actions: MenuAction[] = [
+            { label: 'Edit', action: 'edit' },
+        ];
+
+        if (node.is_active) {
+            actions.push({ label: 'Mark As Inactive', action: 'mark_inactive' });
         } else {
-            this.openMenuId = id;
+            actions.push({ label: 'Mark As Active', action: 'mark_active' });
+        }
+
+        actions.push({ label: 'Delete', action: 'delete', customClass: 'delete-btn' });
+        return actions;
+    }
+
+    handleAction(event: { action: string, data: any }): void {
+        const { action, data: node } = event;
+        switch (action) {
+            case 'edit':
+                this.router.navigate(['/sales/customers/edit', node.id]);
+                break;
+            case 'mark_active':
+                this.updateStatus(node.id, true);
+                break;
+            case 'mark_inactive':
+                this.updateStatus(node.id, false);
+                break;
+            case 'delete':
+                this.customerToDelete.set(node);
+                break;
         }
     }
 
-    openDeleteModal(customer: Customer, event: Event): void {
-        event.stopPropagation();
-        this.customerToDelete = customer;
-        this.openMenuId = null; // Close the dropdown menu
-    }
-
-    navigateToEdit(id: string, event: Event): void {
-        event.stopPropagation();
-        this.openMenuId = null;
-        this.router.navigate(['/sales/customers/edit', id]);
+    updateStatus(id: number, isActive: boolean): void {
+        this.coaService.updateCustomer(id, { is_active: isActive }).subscribe({
+            next: () => {
+                this.notificationService.success(`Customer marked as ${isActive ? 'Active' : 'Inactive'}`);
+                this.customers.update(prev => prev.map(c => c.id === id ? { ...c, is_active: isActive } : c));
+            },
+            error: () => this.notificationService.error('Failed to update status')
+        });
     }
 
     closeDeleteModal(): void {
-        this.customerToDelete = null;
-        this.bulkDeletePending = false;
+        this.customerToDelete.set(null);
+        this.bulkDeletePending.set(false);
     }
 
     confirmDelete(): void {
-        const adjustPage = () => {
-            const Math = window.Math;
-            if (this.itemsPerPage !== 'All') {
-                const maxPage = Math.ceil(this.customers.length / this.itemsPerPage) || 1;
-                if (this.currentPage > maxPage) this.currentPage = maxPage;
-            } else {
-                this.currentPage = 1;
-            }
-        };
+        const isBulk = this.bulkDeletePending();
+        const toDelete = this.customerToDelete();
 
-        if (this.bulkDeletePending) {
-            // Bulk delete
-            this.customers = this.customers.filter(c => !this.selectedCustomerIds.has(c.id));
-            this.selectedCustomerIds.clear();
-            this.bulkDeletePending = false;
-            adjustPage();
-        } else if (this.customerToDelete) {
-            // Single delete
-            this.customers = this.customers.filter(c => c.id !== this.customerToDelete!.id);
-            this.selectedCustomerIds.delete(this.customerToDelete.id);
-            this.customerToDelete = null;
-            adjustPage();
+        if (isBulk) {
+            const ids = Array.from(this.selectedCustomerIds());
+            this.coaService.deleteBulkCustomers(ids).subscribe({
+                next: () => {
+                    this.notificationService.success('Customers deleted successfully');
+                    this.customers.update(prev => prev.filter(c => !ids.includes(c.id)));
+                    this.selectedCustomerIds.set(new Set<number>());
+                    this.closeDeleteModal();
+                },
+                error: () => this.notificationService.error('Failed to delete customers')
+            });
+        } else if (toDelete) {
+            this.coaService.deleteCustomer(toDelete.id).subscribe({
+                next: () => {
+                    this.notificationService.success('Customer deleted successfully');
+                    this.customers.update(prev => prev.filter(c => c.id !== toDelete.id));
+                    this.selectedCustomerIds.update(set => {
+                        const newSet = new Set(set);
+                        newSet.delete(toDelete.id);
+                        return newSet;
+                    });
+                    this.closeDeleteModal();
+                },
+                error: () => this.notificationService.error('Failed to delete customer')
+            });
         }
     }
 
     handleBulkAction(actionId: string): void {
         if (actionId === 'delete') {
-            // Show confirmation modal instead of deleting immediately
-            this.bulkDeletePending = true;
+            this.bulkDeletePending.set(true);
+        } else if (actionId === 'mark_active' || actionId === 'mark_inactive') {
+            const isActive = actionId === 'mark_active';
+            const ids = Array.from(this.selectedCustomerIds());
+            this.coaService.updateBulkStatus(ids, isActive).subscribe({
+                next: () => {
+                    this.notificationService.success(`Status updated for ${ids.length} customers`);
+                    this.customers.update(prev => prev.map(c => ids.includes(c.id) ? { ...c, is_active: isActive } : c));
+                    this.selectedCustomerIds.set(new Set<number>());
+                },
+                error: () => this.notificationService.error('Failed to update status')
+            });
         }
     }
 
-    onPageChange(page: number) {
-        this.currentPage = page;
-    }
-
-    onItemsPerPageChange(size: number | 'All') {
-        this.itemsPerPage = size;
-        this.currentPage = 1;
-    }
+    onPageChange(page: number) { this.currentPage.set(page); }
+    onItemsPerPageChange(size: number | 'All') { this.itemsPerPage.set(size); this.currentPage.set(1); }
 }

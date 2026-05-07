@@ -549,6 +549,7 @@ model Customer {
   primary_contact            String?            @db.VarChar(255)
   email                      String?            @db.VarChar(255)
   phone                      String?            @db.VarChar(50)
+  mobile                     String?            @db.VarChar(50)
   tax_treatment              String?            @db.VarChar(100)
   opening_balance            Decimal?           @default(0.000) @db.Decimal(18, 3)
   source_of_supply           String?            @db.VarChar(255)

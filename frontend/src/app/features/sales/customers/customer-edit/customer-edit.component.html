@@ -56,14 +56,14 @@
                         <!-- Customer Name -->
                         <div class="form-group">
                             <label>Customer Name <span class="required">*</span></label>
-                            <input type="text" class="form-control" [(ngModel)]="customerData.name" placeholder="Enter Customer Name">
+                            <input type="text" class="form-control" [(ngModel)]="customerData().name" placeholder="Enter Customer Name">
                         </div>
 
                         <!-- Customer Type -->
                         <div class="form-group">
                             <label>Customer Type</label>
                             <app-custom-select 
-                                [(ngModel)]="customerData.type" 
+                                [(ngModel)]="customerData().type" 
                                 [options]="customerTypeOptions" 
                                 placeholder="Select Customer Type">
                             </app-custom-select>
@@ -72,7 +72,7 @@
                         <!-- Primary Contact -->
                         <div class="form-group">
                             <label>Primary Contact</label>
-                            <input type="text" class="form-control" [(ngModel)]="customerData.primaryContact" placeholder="Enter Primary Contact Name">
+                            <input type="text" class="form-control" [(ngModel)]="customerData().primaryContact" placeholder="Enter Primary Contact Name">
                         </div>
 
                         <!-- Email -->
@@ -80,7 +80,7 @@
                             <label>Email</label>
                             <div class="input-with-icon">
                                 <i class="las la-at input-icon"></i>
-                                <input type="email" class="form-control pl-icon" [(ngModel)]="customerData.email" placeholder="Enter your Email">
+                                <input type="email" class="form-control pl-icon" [(ngModel)]="customerData().email" placeholder="Enter your Email">
                             </div>
                         </div>
 
@@ -88,7 +88,7 @@
                         <div class="form-group">
                             <label>Phone Number</label>
                             <app-phone-input 
-                                [(ngModel)]="customerData.phone"
+                                [(ngModel)]="customerData().phone"
                                 placeholder="Enter Telephone Number"
                                 defaultCountry="bh">
                             </app-phone-input>
@@ -98,7 +98,7 @@
                         <div class="form-group">
                             <label>Mobile Number</label>
                             <app-phone-input 
-                                [(ngModel)]="customerData.mobile"
+                                [(ngModel)]="customerData().mobile"
                                 placeholder="Enter Mobile Number"
                                 defaultCountry="bh">
                             </app-phone-input>
@@ -113,7 +113,7 @@
                         <div class="form-group">
                             <label>Tax Treatment <span class="required">*</span></label>
                             <app-custom-select 
-                                [(ngModel)]="customerData.taxTreatment" 
+                                [(ngModel)]="customerData().taxTreatment" 
                                 [options]="taxTreatmentOptions" 
                                 placeholder="Select Tax Treatment">
                             </app-custom-select>
@@ -122,15 +122,15 @@
                         <div class="form-group">
                             <label>Currency</label>
                             <app-custom-select 
-                                [(ngModel)]="customerData.currency" 
-                                [options]="currencyOptions">
+                                [(ngModel)]="customerData().currency_id" 
+                                [options]="currencyOptions()">
                             </app-custom-select>
                         </div>
                         <!-- Opening Balance -->
                         <div class="form-group">
                             <label>Opening Balance</label>
                             <div class="input-with-suffix">
-                                <input type="text" class="form-control pr-suffix" [(ngModel)]="customerData.openingBalance">
+                                <input type="text" class="form-control pr-suffix" [(ngModel)]="customerData().openingBalance">
                                 <span class="input-suffix">BHD</span>
                             </div>
                         </div>
@@ -139,7 +139,7 @@
                         <div class="form-group">
                             <label>Source of Supply <span class="required">*</span></label>
                             <app-custom-select 
-                                [(ngModel)]="customerData.sourceOfSupply" 
+                                [(ngModel)]="customerData().sourceOfSupply" 
                                 [options]="countryOptions">
                             </app-custom-select>
                         </div>
@@ -148,7 +148,7 @@
                         <div class="form-group">
                             <label>Payment Terms</label>
                             <app-custom-select 
-                                [(ngModel)]="customerData.paymentTerms" 
+                                [(ngModel)]="customerData().paymentTerms" 
                                 [options]="paymentTermsOptions">
                             </app-custom-select>
                         </div>
@@ -246,35 +246,37 @@
                                 <div class="contacts-th action-th"></div>
                             </div>
                             <div class="contacts-tbody">
-                                <div class="contacts-tr">
+                                <div class="contacts-tr" *ngFor="let contact of customerContacts; let i = index">
                                     <div class="contacts-td">
                                         <app-custom-select 
                                             [options]="salutationOptions" 
+                                            [(ngModel)]="contact.salutation"
                                             placeholder="Select"
                                             style="width: 100%;">
                                         </app-custom-select>
                                     </div>
                                     <div class="contacts-td">
-                                        <input type="text" class="form-control" placeholder="First Name">
+                                        <input type="text" class="form-control" [(ngModel)]="contact.first_name" placeholder="First Name">
                                     </div>
                                     <div class="contacts-td">
-                                        <input type="text" class="form-control" placeholder="Last Name">
+                                        <input type="text" class="form-control" [(ngModel)]="contact.last_name" placeholder="Last Name">
                                     </div>
                                     <div class="contacts-td">
-                                        <input type="email" class="form-control" placeholder="Email Address">
+                                        <input type="email" class="form-control" [(ngModel)]="contact.email" placeholder="Email Address">
                                     </div>
                                     <div class="contacts-td">
                                         <app-phone-input 
+                                            [(ngModel)]="contact.phone"
                                             placeholder="Number"
                                             defaultCountry="bh"
                                             [compact]="true">
                                         </app-phone-input>
                                     </div>
                                     <div class="contacts-td">
-                                        <input type="text" class="form-control" placeholder="Designation">
+                                        <input type="text" class="form-control" [(ngModel)]="contact.designation" placeholder="Designation">
                                     </div>
                                     <div class="contacts-td action-td">
-                                        <button class="icon-btn delete-btn">
+                                        <button class="icon-btn delete-btn" (click)="removeContactPerson(i)">
                                             <svg width="18" height="20" viewBox="0 0 18 20" fill="none"
                                                 xmlns="http://www.w3.org/2000/svg">
                                                 <path d="M1 4.5H17" stroke="#D1D5DB" stroke-width="1.5"
@@ -294,7 +296,7 @@
                             </div>
                         </div>
                         <div class="add-action-row">
-                            <button class="add-link-btn">
+                            <button class="add-link-btn" (click)="addContactPerson()">
                                 <i class="las la-plus"></i> Add Contact Person
                             </button>
                         </div>
@@ -306,7 +308,7 @@
                     <div class="form-card">
                         <div class="form-group">
                             <label>Remarks (For internal Use)</label>
-                            <textarea class="form-control" rows="8"
+                            <textarea class="form-control" rows="8" [(ngModel)]="remarks"
                                 placeholder="Enter Remarks"></textarea>
                         </div>
                     </div>
@@ -319,7 +321,7 @@
     <!-- Sticky Footer -->
     <div class="page-footer">
         <button class="footer-btn btn-cancel" (click)="goBack()">Cancel</button>
-        <button class="footer-btn btn-save" (click)="goBack()">{{ isEditMode ? 'Save & Update' : 'Save' }}</button>
+        <button class="footer-btn btn-save" (click)="onSave()">{{ isEditMode ? 'Save & Update' : 'Save' }}</button>
     </div>
 </div>
 
