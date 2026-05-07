@@ -60,6 +60,7 @@ export class SubCategoriesComponent implements OnInit {
   sortColumn = signal('');
   sortDirection = signal<'asc' | 'desc'>('asc');
   subCategoryToDelete = signal<SubCategory | null>(null);
+  subCategoryToEdit = signal<SubCategory | null>(null);
   bulkDeletePending = signal(false);
 
   availableColumns = signal<ColumnDef[]>([
@@ -163,23 +164,41 @@ export class SubCategoriesComponent implements OnInit {
   });
 
   onSaveSubCategory(data: any) {
-    this.subCategoryService.createSubCategory(data).subscribe({
-      next: (res) => {
-        // Need to fetch full list to get parent category name properly or manual update
-        this.loadSubCategories();
-        this.isAddModalOpen.set(false);
-        this.notificationService.success('Sub-category created successfully');
-      },
-      error: (err) => {
-        console.error('Error creating sub-category:', err);
-        this.notificationService.error(err.error?.message || 'Error creating sub-category');
-      }
-    });
+    const toEdit = this.subCategoryToEdit();
+    if (toEdit) {
+      this.subCategoryService.updateSubCategory(toEdit.id, data).subscribe({
+        next: () => {
+          this.loadSubCategories();
+          this.isAddModalOpen.set(false);
+          this.subCategoryToEdit.set(null);
+          this.notificationService.success('Sub-category updated successfully');
+        },
+        error: (err) => {
+          console.error('Error updating sub-category:', err);
+          this.notificationService.error(err.error?.message || 'Error updating sub-category');
+        }
+      });
+    } else {
+      this.subCategoryService.createSubCategory(data).subscribe({
+        next: (res) => {
+          this.loadSubCategories();
+          this.isAddModalOpen.set(false);
+          this.notificationService.success('Sub-category created successfully');
+        },
+        error: (err) => {
+          console.error('Error creating sub-category:', err);
+          this.notificationService.error(err.error?.message || 'Error creating sub-category');
+        }
+      });
+    }
   }
 
   handleAction(event: { action: string, data: SubCategory }) {
     if (event.action === 'delete') {
       this.subCategoryToDelete.set(event.data);
+    } else if (event.action === 'edit') {
+      this.subCategoryToEdit.set(event.data);
+      this.isAddModalOpen.set(true);
     } else if (event.action === 'mark_active') {
       this.updateStatus(event.data.id, 'Active');
     } else if (event.action === 'mark_inactive') {

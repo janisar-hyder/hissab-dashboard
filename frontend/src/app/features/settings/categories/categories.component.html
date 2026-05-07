@@ -134,7 +134,8 @@
 <!-- Modal -->
 <app-add-category-modal 
     *ngIf="isAddModalOpen()" 
-    (close)="isAddModalOpen.set(false)" 
+    [categoryData]="categoryToEdit()"
+    (close)="isAddModalOpen.set(false); categoryToEdit.set(null)" 
     (save)="onSaveCategory($event)">
 </app-add-category-modal>
 

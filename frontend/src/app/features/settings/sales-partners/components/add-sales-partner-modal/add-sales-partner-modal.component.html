@@ -6,7 +6,7 @@
                     <path d="M21.2742 17.8327C21.2742 20.9066 17.1222 23.4 11.9999 23.4C6.87759 23.4 2.72559 20.9066 2.72559 17.8327C2.72559 14.7569 6.87759 12.2635 11.9999 12.2635C17.1222 12.2635 21.2742 14.7569 21.2742 17.8327ZM6.76311 5.83681C6.76311 2.94361 9.10743 0.600006 11.9999 0.600006C14.8924 0.600006 17.2367 2.94385 17.2367 5.83681C17.2367 8.72929 14.8926 11.076 11.9999 11.076C9.10719 11.076 6.76311 8.72929 6.76311 5.83681Z" fill="#0052FF"/>
                 </svg>
             </div>
-            <h2>Add New Sales Partner</h2>
+            <h2>{{ isEditMode() ? 'Edit Sales Partner' : 'Add New Sales Partner' }}</h2>
         </div>
 
         <div class="modal-body">
@@ -34,7 +34,7 @@
 
         <div class="modal-footer">
             <button class="btn btn-cancel" (click)="close.emit()">Cancel</button>
-            <button class="btn btn-save" (click)="onSave()" [disabled]="!partner().name || partner().commission === null">Save</button>
+            <button class="btn btn-save" (click)="onSave()" [disabled]="!partner().name || partner().commission === null">{{ isEditMode() ? 'Update' : 'Save' }}</button>
         </div>
     </div>
 </div>

@@ -58,6 +58,7 @@ export class SalesPersonsComponent implements OnInit {
   sortColumn = signal('');
   sortDirection = signal<'asc' | 'desc'>('asc');
   personToDelete = signal<SalesPerson | null>(null);
+  personToEdit = signal<SalesPerson | null>(null);
   bulkDeletePending = signal(false);
 
   availableColumns = signal<ColumnDef[]>([
@@ -154,22 +155,41 @@ export class SalesPersonsComponent implements OnInit {
   });
 
   onSaveSalesPerson(data: any) {
-    this.salesPersonService.createSalesPerson(data).subscribe({
-      next: (res) => {
-        this.salesPersons.update(prev => [res.data, ...prev]);
-        this.isAddModalOpen.set(false);
-        this.notificationService.success('Sales person created successfully');
-      },
-      error: (err) => {
-        console.error('Error creating sales person:', err);
-        this.notificationService.error(err.error?.message || 'Error creating sales person');
-      }
-    });
+    const toEdit = this.personToEdit();
+    if (toEdit) {
+      this.salesPersonService.updateSalesPerson(toEdit.id, data).subscribe({
+        next: (res) => {
+          this.salesPersons.update(prev => prev.map(p => p.id === toEdit.id ? res.data : p));
+          this.isAddModalOpen.set(false);
+          this.personToEdit.set(null);
+          this.notificationService.success('Sales person updated successfully');
+        },
+        error: (err) => {
+          console.error('Error updating sales person:', err);
+          this.notificationService.error(err.error?.message || 'Error updating sales person');
+        }
+      });
+    } else {
+      this.salesPersonService.createSalesPerson(data).subscribe({
+        next: (res) => {
+          this.salesPersons.update(prev => [res.data, ...prev]);
+          this.isAddModalOpen.set(false);
+          this.notificationService.success('Sales person created successfully');
+        },
+        error: (err) => {
+          console.error('Error creating sales person:', err);
+          this.notificationService.error(err.error?.message || 'Error creating sales person');
+        }
+      });
+    }
   }
 
   handleAction(event: { action: string, data: SalesPerson }) {
     if (event.action === 'delete') {
       this.personToDelete.set(event.data);
+    } else if (event.action === 'edit') {
+      this.personToEdit.set(event.data);
+      this.isAddModalOpen.set(true);
     } else if (event.action === 'mark_active') {
       this.updateStatus(event.data.id, 'Active');
     } else if (event.action === 'mark_inactive') {

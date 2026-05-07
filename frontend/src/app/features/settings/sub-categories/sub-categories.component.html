@@ -133,7 +133,8 @@
 
 <app-add-sub-category-modal 
     *ngIf="isAddModalOpen()" 
-    (close)="isAddModalOpen.set(false)"
+    [subCategoryData]="subCategoryToEdit()"
+    (close)="isAddModalOpen.set(false); subCategoryToEdit.set(null)"
     (save)="onSaveSubCategory($event)">
 </app-add-sub-category-modal>
 

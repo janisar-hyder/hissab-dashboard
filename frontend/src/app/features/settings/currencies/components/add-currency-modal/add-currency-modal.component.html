@@ -14,7 +14,7 @@
                     </defs>
                   </svg>
             </div>
-            <h2>Add New Currency</h2>
+            <h2>{{ isEditMode() ? 'Edit Currency' : 'Add New Currency' }}</h2>
         </div>
 
         <div class="modal-body">
@@ -24,6 +24,7 @@
                     [ngModel]="currency().code" 
                     [options]="codeOptions" 
                     placeholder="Select Currency Code"
+                    [disabled]="isEditMode()"
                     (ngModelChange)="updateField('code', $event)">
                 </app-custom-select>
             </div>
@@ -58,7 +59,7 @@
 
         <div class="modal-footer">
             <button class="btn btn-cancel" (click)="close.emit()">Cancel</button>
-            <button class="btn btn-save" (click)="onSave()" [disabled]="!currency().code || !currency().symbol || !currency().name">Save</button>
+            <button class="btn btn-save" (click)="onSave()" [disabled]="!currency().code || !currency().symbol || !currency().name">{{ isEditMode() ? 'Update' : 'Save' }}</button>
         </div>
     </div>
 </div>

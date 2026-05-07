@@ -140,7 +140,8 @@
 <!-- Modal -->
 <app-add-sales-partner-modal 
     *ngIf="isAddModalOpen()" 
-    (close)="isAddModalOpen.set(false)" 
+    [partnerData]="partnerToEdit()"
+    (close)="isAddModalOpen.set(false); partnerToEdit.set(null)" 
     (save)="onSaveSalesPartner($event)">
 </app-add-sales-partner-modal>
 

@@ -137,7 +137,8 @@
 <!-- Modal -->
 <app-add-currency-modal 
     *ngIf="isAddModalOpen()" 
-    (close)="isAddModalOpen.set(false)" 
+    [currencyData]="currencyToEdit()"
+    (close)="isAddModalOpen.set(false); currencyToEdit.set(null)" 
     (save)="onSaveCurrency($event)">
 </app-add-currency-modal>
 

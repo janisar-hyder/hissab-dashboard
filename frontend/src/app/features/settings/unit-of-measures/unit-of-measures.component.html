@@ -130,7 +130,8 @@
 <!-- Modal -->
 <app-add-uom-modal 
     *ngIf="isAddModalOpen()" 
-    (close)="isAddModalOpen.set(false)" 
+    [uomData]="uomToEdit()"
+    (close)="isAddModalOpen.set(false); uomToEdit.set(null)" 
     (save)="onSaveUom($event)">
 </app-add-uom-modal>
 

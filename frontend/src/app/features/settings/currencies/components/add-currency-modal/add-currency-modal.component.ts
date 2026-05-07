@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, EventEmitter, Output, Input, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as cc from 'currency-codes';
@@ -15,9 +15,11 @@ import { CustomSelectComponent, SelectOption } from '../../../../../shared/compo
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AddCurrencyModalComponent implements OnInit {
+  @Input() currencyData: any = null;
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<any>();
 
+  isEditMode = signal(false);
   currency = signal({
     code: '',
     symbol: '',
@@ -38,6 +40,17 @@ export class AddCurrencyModalComponent implements OnInit {
       value: code,
       label: code
     })).sort((a, b) => a.label.localeCompare(b.label));
+
+    if (this.currencyData) {
+      this.isEditMode.set(true);
+      this.currency.set({
+        code: this.currencyData.code || '',
+        symbol: this.currencyData.symbol || '',
+        name: this.currencyData.name || '',
+        decimal_places: (this.currencyData.decimal_places ?? 2).toString(),
+        format: this.currencyData.format || ''
+      });
+    }
   }
 
   updateField(field: string, value: any) {

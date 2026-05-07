@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, EventEmitter, Output, Input, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../../../../shared/components/button/button.component';
@@ -11,19 +11,35 @@ import { ButtonComponent } from '../../../../../shared/components/button/button.
   styleUrls: ['./add-category-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AddCategoryModalComponent {
+export class AddCategoryModalComponent implements OnInit {
+  @Input() categoryData: any = null;
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<any>();
 
-  category = {
+  isEditMode = signal(false);
+  category = signal({
     name: '',
     description: ''
-  };
+  });
+
+  ngOnInit() {
+    if (this.categoryData) {
+      this.isEditMode.set(true);
+      this.category.set({
+        name: this.categoryData.name || '',
+        description: this.categoryData.description || ''
+      });
+    }
+  }
+
+  updateCategoryField(field: string, value: any) {
+    this.category.update(c => ({ ...c, [field]: value }));
+  }
 
   onSave() {
-    if (this.category.name.trim()) {
-      this.save.emit(this.category);
-      this.close.emit();
+    const data = this.category();
+    if (data.name.trim()) {
+      this.save.emit(data);
     }
   }
 

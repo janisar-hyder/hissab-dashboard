@@ -14,7 +14,7 @@
                     </defs>
                 </svg>
             </div>
-            <h2 class="modal-title">Add New VAT Rate</h2>
+            <h2 class="modal-title">{{ isEditMode() ? 'Edit VAT Rate' : 'Add New VAT Rate' }}</h2>
         </div>
 
         <div class="modal-body">
@@ -44,7 +44,7 @@
 
         <div class="modal-actions">
             <app-button variant="outline" (clicked)="onCancel()">Cancel</app-button>
-            <app-button variant="primary" (clicked)="onSave()" [disabled]="!vatRate().name.trim() || vatRate().rate === null">Save</app-button>
+            <app-button variant="primary" (clicked)="onSave()" [disabled]="!vatRate().name.trim() || vatRate().rate === null">{{ isEditMode() ? 'Update' : 'Save' }}</app-button>
         </div>
     </div>
 </div>

@@ -55,6 +55,7 @@ export class CurrenciesComponent implements OnInit {
   sortColumn = signal('');
   sortDirection = signal<'asc' | 'desc'>('asc');
   currencyToDelete = signal<Currency | null>(null);
+  currencyToEdit = signal<Currency | null>(null);
   bulkDeletePending = signal(false);
 
   availableColumns = signal<ColumnDef[]>([
@@ -136,17 +137,33 @@ export class CurrenciesComponent implements OnInit {
   });
 
   onSaveCurrency(data: any) {
-    this.currencyService.createCurrency(data).subscribe({
-      next: (res) => {
-        this.currencies.update(prev => [res.data, ...prev]);
-        this.isAddModalOpen.set(false);
-        this.notificationService.success('Currency created successfully');
-      },
-      error: (err) => {
-        console.error('Error creating currency:', err);
-        this.notificationService.error(err.error?.message || 'Error creating currency');
-      }
-    });
+    const toEdit = this.currencyToEdit();
+    if (toEdit) {
+      this.currencyService.updateCurrency(toEdit.id, data).subscribe({
+        next: (res) => {
+          this.currencies.update(prev => prev.map(c => c.id === toEdit.id ? res.data : c));
+          this.isAddModalOpen.set(false);
+          this.currencyToEdit.set(null);
+          this.notificationService.success('Currency updated successfully');
+        },
+        error: (err) => {
+          console.error('Error updating currency:', err);
+          this.notificationService.error(err.error?.message || 'Error updating currency');
+        }
+      });
+    } else {
+      this.currencyService.createCurrency(data).subscribe({
+        next: (res) => {
+          this.currencies.update(prev => [res.data, ...prev]);
+          this.isAddModalOpen.set(false);
+          this.notificationService.success('Currency created successfully');
+        },
+        error: (err) => {
+          console.error('Error creating currency:', err);
+          this.notificationService.error(err.error?.message || 'Error creating currency');
+        }
+      });
+    }
   }
 
   handleAction(event: { action: string, data: Currency }) {
@@ -155,7 +172,9 @@ export class CurrenciesComponent implements OnInit {
         this.notificationService.error('Cannot delete base currency');
         return;
       }
-      this.currencyToDelete.set(event.data);
+    } else if (event.action === 'edit') {
+      this.currencyToEdit.set(event.data);
+      this.isAddModalOpen.set(true);
     }
   }
 

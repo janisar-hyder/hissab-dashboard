@@ -137,7 +137,8 @@
 <!-- Modal -->
 <app-add-sales-person-modal 
     *ngIf="isAddModalOpen()" 
-    (close)="isAddModalOpen.set(false)" 
+    [personData]="personToEdit()"
+    (close)="isAddModalOpen.set(false); personToEdit.set(null)" 
     (save)="onSaveSalesPerson($event)">
 </app-add-sales-person-modal>
 

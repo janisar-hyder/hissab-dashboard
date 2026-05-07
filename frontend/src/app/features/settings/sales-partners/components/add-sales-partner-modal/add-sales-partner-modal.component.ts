@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, EventEmitter, Output, Input, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -10,15 +10,28 @@ import { FormsModule } from '@angular/forms';
   styleUrls: ['./add-sales-partner-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AddSalesPartnerModalComponent {
+export class AddSalesPartnerModalComponent implements OnInit {
+  @Input() partnerData: any = null;
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<any>();
 
+  isEditMode = signal(false);
   partner = signal({
     name: '',
     commission: null as number | null,
     description: ''
   });
+
+  ngOnInit() {
+    if (this.partnerData) {
+      this.isEditMode.set(true);
+      this.partner.set({
+        name: this.partnerData.name || '',
+        commission: this.partnerData.commission || null,
+        description: this.partnerData.description || ''
+      });
+    }
+  }
 
   updateField(field: string, value: any) {
     this.partner.update(p => ({ ...p, [field]: value }));

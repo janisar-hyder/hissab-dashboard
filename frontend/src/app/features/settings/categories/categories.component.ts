@@ -55,6 +55,7 @@ export class CategoriesComponent implements OnInit {
   sortColumn = signal('');
   sortDirection = signal<'asc' | 'desc'>('asc');
   categoryToDelete = signal<Category | null>(null);
+  categoryToEdit = signal<Category | null>(null);
   bulkDeletePending = signal(false);
 
   availableColumns = signal<ColumnDef[]>([
@@ -159,22 +160,41 @@ export class CategoriesComponent implements OnInit {
   });
 
   onSaveCategory(data: any) {
-    this.categoryService.createCategory(data).subscribe({
-      next: (res) => {
-        this.categories.update(prev => [res.data, ...prev]);
-        this.isAddModalOpen.set(false);
-        this.notificationService.success('Category created successfully');
-      },
-      error: (err) => {
-        console.error('Error creating category:', err);
-        this.notificationService.error(err.error?.message || 'Error creating category');
-      }
-    });
+    const toEdit = this.categoryToEdit();
+    if (toEdit) {
+      this.categoryService.updateCategory(toEdit.id, data).subscribe({
+        next: (res) => {
+          this.categories.update(prev => prev.map(c => c.id === toEdit.id ? res.data : c));
+          this.isAddModalOpen.set(false);
+          this.categoryToEdit.set(null);
+          this.notificationService.success('Category updated successfully');
+        },
+        error: (err) => {
+          console.error('Error updating category:', err);
+          this.notificationService.error(err.error?.message || 'Error updating category');
+        }
+      });
+    } else {
+      this.categoryService.createCategory(data).subscribe({
+        next: (res) => {
+          this.categories.update(prev => [res.data, ...prev]);
+          this.isAddModalOpen.set(false);
+          this.notificationService.success('Category created successfully');
+        },
+        error: (err) => {
+          console.error('Error creating category:', err);
+          this.notificationService.error(err.error?.message || 'Error creating category');
+        }
+      });
+    }
   }
 
   handleAction(event: { action: string, data: Category }) {
     if (event.action === 'delete') {
       this.categoryToDelete.set(event.data);
+    } else if (event.action === 'edit') {
+      this.categoryToEdit.set(event.data);
+      this.isAddModalOpen.set(true);
     } else if (event.action === 'mark_active') {
       this.updateStatus(event.data.id, 'Active');
     } else if (event.action === 'mark_inactive') {

@@ -16,10 +16,12 @@ import { CategoryService } from '../../../categories/services/category.service';
 export class AddSubCategoryModalComponent implements OnInit {
   private categoryService = inject(CategoryService);
 
-  parentCategories = signal<SelectOption[]>([]);
+  @Input() subCategoryData: any = null;
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<any>();
 
+  isEditMode = signal(false);
+  parentCategories = signal<SelectOption[]>([]);
   subCategory = signal({
     name: '',
     category_id: null as number | null,
@@ -28,6 +30,14 @@ export class AddSubCategoryModalComponent implements OnInit {
 
   ngOnInit() {
     this.loadParentCategories();
+    if (this.subCategoryData) {
+      this.isEditMode.set(true);
+      this.subCategory.set({
+        name: this.subCategoryData.name || '',
+        category_id: this.subCategoryData.category_id || null,
+        description: this.subCategoryData.description || ''
+      });
+    }
   }
 
   loadParentCategories() {

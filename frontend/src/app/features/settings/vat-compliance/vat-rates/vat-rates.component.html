@@ -136,7 +136,8 @@
 <!-- Modal -->
 <app-add-vat-rate-modal 
     *ngIf="isAddModalOpen()" 
-    (close)="isAddModalOpen.set(false)"
+    [rateData]="rateToEdit()"
+    (close)="isAddModalOpen.set(false); rateToEdit.set(null)"
     (save)="onSaveRate($event)">
 </app-add-vat-rate-modal>
 

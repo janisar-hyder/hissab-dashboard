@@ -58,6 +58,7 @@ export class VatRatesComponent implements OnInit {
   sortColumn = signal('');
   sortDirection = signal<'asc' | 'desc'>('asc');
   rateToDelete = signal<VatRate | null>(null);
+  rateToEdit = signal<VatRate | null>(null);
   bulkDeletePending = signal(false);
 
   availableColumns = signal<ColumnDef[]>([
@@ -158,22 +159,41 @@ export class VatRatesComponent implements OnInit {
   });
 
   onSaveRate(data: any) {
-    this.vatRateService.createVatRate(data).subscribe({
-      next: (res) => {
-        this.vatRates.update(prev => [res.data, ...prev]);
-        this.isAddModalOpen.set(false);
-        this.notificationService.success('VAT rate created successfully');
-      },
-      error: (err) => {
-        console.error('Error creating VAT rate:', err);
-        this.notificationService.error(err.error?.message || 'Error creating VAT rate');
-      }
-    });
+    const toEdit = this.rateToEdit();
+    if (toEdit) {
+      this.vatRateService.updateVatRate(toEdit.id, data).subscribe({
+        next: (res) => {
+          this.vatRates.update(prev => prev.map(v => v.id === toEdit.id ? res.data : v));
+          this.isAddModalOpen.set(false);
+          this.rateToEdit.set(null);
+          this.notificationService.success('VAT rate updated successfully');
+        },
+        error: (err) => {
+          console.error('Error updating VAT rate:', err);
+          this.notificationService.error(err.error?.message || 'Error updating VAT rate');
+        }
+      });
+    } else {
+      this.vatRateService.createVatRate(data).subscribe({
+        next: (res) => {
+          this.vatRates.update(prev => [res.data, ...prev]);
+          this.isAddModalOpen.set(false);
+          this.notificationService.success('VAT rate created successfully');
+        },
+        error: (err) => {
+          console.error('Error creating VAT rate:', err);
+          this.notificationService.error(err.error?.message || 'Error creating VAT rate');
+        }
+      });
+    }
   }
 
   handleAction(event: { action: string, data: VatRate }) {
     if (event.action === 'delete') {
       this.rateToDelete.set(event.data);
+    } else if (event.action === 'edit') {
+      this.rateToEdit.set(event.data);
+      this.isAddModalOpen.set(true);
     } else if (event.action === 'mark_active') {
       this.updateStatus(event.data.id, 'Active');
     } else if (event.action === 'mark_inactive') {

@@ -57,6 +57,7 @@ export class UnitOfMeasuresComponent implements OnInit {
   sortColumn = signal('');
   sortDirection = signal<'asc' | 'desc'>('asc');
   uomToDelete = signal<UOM | null>(null);
+  uomToEdit = signal<UOM | null>(null);
   bulkDeletePending = signal(false);
 
   availableColumns = signal<ColumnDef[]>([
@@ -151,22 +152,41 @@ export class UnitOfMeasuresComponent implements OnInit {
   });
 
   onSaveUom(data: any) {
-    this.uomService.createUnit(data).subscribe({
-      next: (res) => {
-        this.uoms.update(prev => [res.data, ...prev]);
-        this.isAddModalOpen.set(false);
-        this.notificationService.success('Unit of measure created');
-      },
-      error: (err) => {
-        console.error('Error creating unit:', err);
-        this.notificationService.error(err.error?.message || 'Error creating unit');
-      }
-    });
+    const toEdit = this.uomToEdit();
+    if (toEdit) {
+      this.uomService.updateUnit(toEdit.id, data).subscribe({
+        next: (res) => {
+          this.uoms.update(prev => prev.map(u => u.id === toEdit.id ? res.data : u));
+          this.isAddModalOpen.set(false);
+          this.uomToEdit.set(null);
+          this.notificationService.success('Unit of measure updated');
+        },
+        error: (err) => {
+          console.error('Error updating unit:', err);
+          this.notificationService.error(err.error?.message || 'Error updating unit');
+        }
+      });
+    } else {
+      this.uomService.createUnit(data).subscribe({
+        next: (res) => {
+          this.uoms.update(prev => [res.data, ...prev]);
+          this.isAddModalOpen.set(false);
+          this.notificationService.success('Unit of measure created');
+        },
+        error: (err) => {
+          console.error('Error creating unit:', err);
+          this.notificationService.error(err.error?.message || 'Error creating unit');
+        }
+      });
+    }
   }
 
   handleAction(event: { action: string, data: UOM }) {
     if (event.action === 'delete') {
       this.uomToDelete.set(event.data);
+    } else if (event.action === 'edit') {
+      this.uomToEdit.set(event.data);
+      this.isAddModalOpen.set(true);
     } else if (event.action === 'mark_active') {
       this.updateStatus(event.data.id, 'Active');
     } else if (event.action === 'mark_inactive') {

@@ -58,6 +58,7 @@ export class SalesPartnersComponent implements OnInit {
   sortColumn = signal('');
   sortDirection = signal<'asc' | 'desc'>('asc');
   partnerToDelete = signal<SalesPartner | null>(null);
+  partnerToEdit = signal<SalesPartner | null>(null);
   bulkDeletePending = signal(false);
 
   availableColumns = signal<ColumnDef[]>([
@@ -160,22 +161,41 @@ export class SalesPartnersComponent implements OnInit {
   });
 
   onSaveSalesPartner(data: any) {
-    this.salesPartnerService.createSalesPartner(data).subscribe({
-      next: (res) => {
-        this.salesPartners.update(prev => [res.data, ...prev]);
-        this.isAddModalOpen.set(false);
-        this.notificationService.success('Sales partner created successfully');
-      },
-      error: (err) => {
-        console.error('Error creating sales partner:', err);
-        this.notificationService.error(err.error?.message || 'Error creating sales partner');
-      }
-    });
+    const toEdit = this.partnerToEdit();
+    if (toEdit) {
+      this.salesPartnerService.updateSalesPartner(toEdit.id, data).subscribe({
+        next: (res) => {
+          this.salesPartners.update(prev => prev.map(p => p.id === toEdit.id ? res.data : p));
+          this.isAddModalOpen.set(false);
+          this.partnerToEdit.set(null);
+          this.notificationService.success('Sales partner updated successfully');
+        },
+        error: (err) => {
+          console.error('Error updating sales partner:', err);
+          this.notificationService.error(err.error?.message || 'Error updating sales partner');
+        }
+      });
+    } else {
+      this.salesPartnerService.createSalesPartner(data).subscribe({
+        next: (res) => {
+          this.salesPartners.update(prev => [res.data, ...prev]);
+          this.isAddModalOpen.set(false);
+          this.notificationService.success('Sales partner created successfully');
+        },
+        error: (err) => {
+          console.error('Error creating sales partner:', err);
+          this.notificationService.error(err.error?.message || 'Error creating sales partner');
+        }
+      });
+    }
   }
 
   handleAction(event: { action: string, data: SalesPartner }) {
     if (event.action === 'delete') {
       this.partnerToDelete.set(event.data);
+    } else if (event.action === 'edit') {
+      this.partnerToEdit.set(event.data);
+      this.isAddModalOpen.set(true);
     } else if (event.action === 'mark_active') {
       this.updateStatus(event.data.id, 'Active');
     } else if (event.action === 'mark_inactive') {
