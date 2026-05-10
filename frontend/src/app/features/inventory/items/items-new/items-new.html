@@ -4,9 +4,9 @@
         <div class="header-titles">
             <app-breadcrumbs [items]="[
                 { label: 'Items', url: '/inventory/items' },
-                { label: 'Add New Item' }
+                { label: isEditMode ? 'Edit Item' : 'Add New Item' }
             ]"></app-breadcrumbs>
-            <h1 class="page-title">Add New Item</h1>
+            <h1 class="page-title">{{ isEditMode ? 'Edit Item' : 'Add New Item' }}</h1>
         </div>
     </div>
 

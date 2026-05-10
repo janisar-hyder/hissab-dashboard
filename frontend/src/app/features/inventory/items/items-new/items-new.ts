@@ -1,10 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { BreadcrumbsComponent } from '../../../../shared/components/breadcrumbs/breadcrumbs.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CustomSelectComponent, SelectOption } from '../../../../shared/components/custom-select/custom-select.component';
+import { ItemsService, InventoryItem } from '../services/items.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-items-new',
@@ -13,8 +15,16 @@ import { CustomSelectComponent, SelectOption } from '../../../../shared/componen
   templateUrl: './items-new.html',
   styleUrl: './items-new.scss'
 })
-export class ItemsNewComponent {
+export class ItemsNewComponent implements OnInit {
+  private itemsService = inject(ItemsService);
+  private notificationService = inject(NotificationService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private cdr = inject(ChangeDetectorRef);
+
   activeTab: string = 'basic-info';
+  isEditMode = false;
+  editItemId: number | null = null;
 
   tabs = [
     { id: 'basic-info', label: 'Basic Information' },
@@ -24,7 +34,7 @@ export class ItemsNewComponent {
   ];
 
   itemData = {
-    itemId: 'ITM-001',
+    itemId: 'Auto Generated',
     itemName: '',
     uom: '',
     category: '',
@@ -51,70 +61,118 @@ export class ItemsNewComponent {
     inventoryDescription: ''
   };
 
-  uomOptions: SelectOption[] = [
-    { label: 'Pcs', value: 'pcs' },
-    { label: 'Unit', value: 'unit' },
-    { label: 'Hour', value: 'hour' }
-  ];
-
-  categoryOptions: SelectOption[] = [
-    { label: 'Hardware', value: 'hardware' },
-    { label: 'Software', value: 'software' },
-    { label: 'Service', value: 'service' }
-  ];
-
-  subCategoryOptions: SelectOption[] = [
-    { label: 'Laptops', value: 'laptops' },
-    { label: 'Servers', value: 'servers' },
-    { label: 'Networking', value: 'networking' }
-  ];
-
-  vatPreferenceOptions: SelectOption[] = [
-    { label: 'Taxable', value: 'taxable' },
-    { label: 'Non-Taxable', value: 'non-taxable' },
-    { label: 'Exempt', value: 'exempt' }
-  ];
-
-  salesAccountOptions: SelectOption[] = [
-    { label: 'Sales', value: 'sales' },
-    { label: 'Discount', value: 'discount' },
-    { label: 'General Income', value: 'general-income' }
-  ];
-
-  purchaseAccountOptions: SelectOption[] = [
-    { label: 'Cost of Goods Sold', value: 'cost-of-goods-sold' },
-    { label: 'Inventory Asset', value: 'inventory-asset' },
-    { label: 'Expense', value: 'expense' }
-  ];
-
-  inventoryAccountOptions: SelectOption[] = [
-    { label: 'Inventory Asset', value: 'Inventory Asset' }
-  ];
-
-  vendorOptions: SelectOption[] = [
-    { label: 'Vendor 1', value: 'vendor-1' },
-    { label: 'Vendor 2', value: 'vendor-2' }
-  ];
-
-  weightUomOptions: SelectOption[] = [
-    { label: 'kg', value: 'kg' },
-    { label: 'g', value: 'g' },
-    { label: 'lb', value: 'lb' }
-  ];
+  uomOptions: SelectOption[] = [];
+  categoryOptions: SelectOption[] = [];
+  subCategoryOptions: SelectOption[] = [];
+  vatPreferenceOptions: SelectOption[] = [];
+  salesAccountOptions: SelectOption[] = [];
+  purchaseAccountOptions: SelectOption[] = [];
+  inventoryAccountOptions: SelectOption[] = [];
+  vendorOptions: SelectOption[] = [];
+  weightUomOptions: SelectOption[] = [];
+  volumeUomOptions: SelectOption[] = [];
 
   valuationMethodOptions: SelectOption[] = [
-    { label: 'FIFO', value: 'fifo' },
-    { label: 'LIFO', value: 'lifo' },
-    { label: 'Average Cost', value: 'average' }
+    { label: 'FIFO', value: 'FIFO' },
+    { label: 'LIFO', value: 'LIFO' },
+    { label: 'Average Cost', value: 'Average Cost' }
   ];
 
-  volumeUomOptions: SelectOption[] = [
-    { label: 'L', value: 'l' },
-    { label: 'ml', value: 'ml' },
-    { label: 'gal', value: 'gal' }
-  ];
+  isSaving = false;
 
-  constructor(private router: Router) {}
+  ngOnInit() {
+    this.loadDropdownData();
+    this.checkEditMode();
+  }
+
+  checkEditMode() {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.isEditMode = true;
+      this.editItemId = Number(id);
+      this.loadItemDetails(this.editItemId);
+    }
+  }
+
+  loadItemDetails(id: number) {
+    this.itemsService.getItemById(id).subscribe({
+      next: (res) => {
+        const item = res.data;
+        this.itemData = {
+          itemId: item.item_code,
+          itemName: item.name,
+          uom: item.uom_id?.toString() || '',
+          category: item.category_id?.toString() || '',
+          subCategory: item.sub_category_id?.toString() || '',
+          sku: item.sku || '',
+          description: item.description || '',
+          salesRate: item.sales_rate,
+          vatPreference: item.vat_rate_id?.toString() || '',
+          salesAccount: item.sales_account_id?.toString() || '',
+          salesDescription: item.sales_description || '',
+          purchaseCost: item.purchase_cost,
+          reorderQty: item.reorder_point?.toString() || '',
+          purchaseAccount: item.purchase_account_id?.toString() || '',
+          purchaseDescription: item.purchase_description || '',
+          inventoryAccount: item.inventory_account_id?.toString() || '',
+          warrantyPeriod: item.warranty_period || '',
+          shelfLife: item.shelf_life || '',
+          vendor: item.vendor_id?.toString() || '',
+          weightPerUnit: item.weight_per_unit?.toString() || '',
+          weightUom: item.weight_uom_id?.toString() || '',
+          valuationMethod: item.valuation_method || '',
+          volumePerUnit: item.volume_per_unit?.toString() || '',
+          volumeUom: item.volume_uom_id?.toString() || '',
+          inventoryDescription: item.inventory_description || ''
+        };
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.notificationService.error('Failed to load item details');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  loadDropdownData() {
+    this.itemsService.getCategories().subscribe(res => {
+      this.categoryOptions = res.data.map((c: any) => ({ label: c.name, value: c.id.toString() }));
+      this.cdr.detectChanges();
+    });
+    this.itemsService.getSubCategories().subscribe(res => {
+      this.subCategoryOptions = res.data.map((c: any) => ({ label: c.name, value: c.id.toString() }));
+      this.cdr.detectChanges();
+    });
+    this.itemsService.getUoms().subscribe(res => {
+      this.uomOptions = res.data.map((u: any) => ({ label: u.name, value: u.id.toString() }));
+      this.weightUomOptions = this.uomOptions;
+      this.volumeUomOptions = this.uomOptions;
+      this.cdr.detectChanges();
+    });
+    this.itemsService.getVatRates().subscribe(res => {
+      this.vatPreferenceOptions = res.data.map((v: any) => ({ label: v.name + ' (' + v.rate + '%)', value: v.id.toString() }));
+      this.cdr.detectChanges();
+    });
+    this.itemsService.getVendors().subscribe(res => {
+      this.vendorOptions = res.data.map((v: any) => ({ label: v.name, value: v.id.toString() }));
+      this.cdr.detectChanges();
+    });
+    this.itemsService.getChartOfAccounts().subscribe(res => {
+      const accounts = res.data || [];
+      this.salesAccountOptions = accounts
+        .filter((a: any) => a.type === 'Income' || a.type === 'Sales')
+        .map((a: any) => ({ label: a.name, value: a.id.toString() }));
+      
+      this.purchaseAccountOptions = accounts
+        .filter((a: any) => a.type === 'Expense' || a.type === 'Cost of Goods Sold')
+        .map((a: any) => ({ label: a.name, value: a.id.toString() }));
+
+      this.inventoryAccountOptions = accounts
+        .filter((a: any) => a.type === 'Asset' || a.name.includes('Inventory'))
+        .map((a: any) => ({ label: a.name, value: a.id.toString() }));
+      this.cdr.detectChanges();
+    });
+  }
 
   setTab(tabId: string) {
     this.activeTab = tabId;
@@ -125,7 +183,56 @@ export class ItemsNewComponent {
   }
 
   save() {
-    console.log('Saving item:', this.itemData);
-    this.router.navigate(['/inventory/items']);
+    if (!this.itemData.itemName || !this.itemData.uom || !this.itemData.category) {
+      this.notificationService.error('Please fill in Name, Category, and UOM.');
+      this.activeTab = 'basic-info';
+      return;
+    }
+
+    this.isSaving = true;
+
+    const payload: Partial<InventoryItem> = {
+      name: this.itemData.itemName,
+      item_code: this.itemData.itemId === 'Auto Generated' ? '' : this.itemData.itemId,
+      uom_id: Number(this.itemData.uom),
+      category_id: Number(this.itemData.category),
+      sub_category_id: this.itemData.subCategory ? Number(this.itemData.subCategory) : undefined,
+      sku: this.itemData.sku,
+      description: this.itemData.description,
+      sales_rate: this.itemData.salesRate ? Number(this.itemData.salesRate) : undefined,
+      vat_rate_id: this.itemData.vatPreference ? Number(this.itemData.vatPreference) : undefined,
+      sales_account_id: this.itemData.salesAccount ? Number(this.itemData.salesAccount) : undefined,
+      sales_description: this.itemData.salesDescription,
+      purchase_cost: this.itemData.purchaseCost ? Number(this.itemData.purchaseCost) : undefined,
+      reorder_point: this.itemData.reorderQty ? Number(this.itemData.reorderQty) : undefined,
+      purchase_account_id: this.itemData.purchaseAccount ? Number(this.itemData.purchaseAccount) : undefined,
+      purchase_description: this.itemData.purchaseDescription,
+      inventory_account_id: this.itemData.inventoryAccount ? Number(this.itemData.inventoryAccount) : undefined,
+      warranty_period: this.itemData.warrantyPeriod,
+      shelf_life: this.itemData.shelfLife,
+      vendor_id: this.itemData.vendor ? Number(this.itemData.vendor) : undefined,
+      weight_per_unit: this.itemData.weightPerUnit ? Number(this.itemData.weightPerUnit) : undefined,
+      weight_uom_id: this.itemData.weightUom ? Number(this.itemData.weightUom) : undefined,
+      valuation_method: this.itemData.valuationMethod,
+      volume_per_unit: this.itemData.volumePerUnit ? Number(this.itemData.volumePerUnit) : undefined,
+      volume_uom_id: this.itemData.volumeUom ? Number(this.itemData.volumeUom) : undefined,
+      inventory_description: this.itemData.inventoryDescription,
+      status: 'Active'
+    };
+
+    const request$ = this.isEditMode && this.editItemId
+      ? this.itemsService.updateItem(this.editItemId, payload)
+      : this.itemsService.createItem(payload);
+
+    request$.subscribe({
+      next: () => {
+        this.notificationService.success(this.isEditMode ? 'Item updated successfully' : 'Item created successfully');
+        this.router.navigate(['/inventory/items']);
+      },
+      error: (err) => {
+        this.isSaving = false;
+        this.notificationService.error(err.error?.message || `Failed to ${this.isEditMode ? 'update' : 'create'} item`);
+      }
+    });
   }
 }

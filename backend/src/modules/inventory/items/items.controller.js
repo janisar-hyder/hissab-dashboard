@@ -84,10 +84,15 @@ exports.createItem = async (req, res, next) => {
     const { clientId, userId } = req.user;
     const data = req.body;
 
-    if (!data.name || !data.item_code || !data.uom_id || !data.category_id) {
-      const error = new Error('Item code, name, UOM, and category are required');
+    if (!data.name || !data.uom_id || !data.category_id) {
+      const error = new Error('Item name, UOM, and category are required');
       error.statusCode = 400;
       throw error;
+    }
+
+    if (!data.item_code) {
+      const count = await prisma.inventoryItem.count({ where: { client_id: clientId } });
+      data.item_code = `ITM-${String(count + 1).padStart(5, '0')}`;
     }
 
     const item = await prisma.inventoryItem.create({

@@ -114,6 +114,7 @@ export const routes: Routes = [
             { path: 'admin/settings/general', component: AdminSettings },
             { path: 'inventory/items', component: ItemsList },
             { path: 'inventory/items/new', component: ItemsNewComponent },
+            { path: 'inventory/items/edit/:id', component: ItemsNewComponent },
             { path: 'inventory/adjustments', loadComponent: () => import('./features/inventory/adjustments/adjustments-list/adjustments-list.component').then(m => m.AdjustmentsListComponent) },
             { path: 'inventory/adjustments/new', loadComponent: () => import('./features/inventory/adjustments/adjustments-new/adjustments-new').then(m => m.AdjustmentsNew) },
             {

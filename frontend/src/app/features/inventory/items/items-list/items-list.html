@@ -6,8 +6,8 @@
         <!-- Projected into the [custom-actions] slot, appears before Add New Item -->
         <app-bulk-actions
             custom-actions
-            [selectedCount]="selectedItemIds.size"
-            [actions]="bulkActions"
+            [selectedCount]="selectedItemIds().size"
+            [actions]="bulkActions()"
             (actionSelected)="handleBulkAction($event)">
         </app-bulk-actions>
     </app-page-header>
@@ -17,14 +17,14 @@
         <div class="toolbar">
             <div class="search-box">
                 <i class="las la-search search-icon"></i>
-                <input type="text" placeholder="Search for something.." [(ngModel)]="searchQuery" class="search-input" (ngModelChange)="currentPage = 1">
-                <i class="las la-times clear-icon" *ngIf="searchQuery" (click)="clearSearch()"></i>
+                <input type="text" placeholder="Search for something.." [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event); currentPage.set(1)" class="search-input">
+                <i class="las la-times clear-icon" *ngIf="searchQuery()" (click)="clearSearch()"></i>
             </div>
 
             <div class="toolbar-actions" style="display: flex; gap: var(--space-sm); align-items: center;">
                 <app-custom-filter
                     [options]="itemFilterOptions"
-                    [currentFilter]="selectedFilter"
+                    [currentFilter]="selectedFilter()"
                     activeLabelPrefix="All Items"
                     (filterChange)="onFilterChange($event)">
                 </app-custom-filter>
@@ -47,24 +47,24 @@
                 </div>
                 <ng-container *ngFor="let col of availableColumns">
                     <ng-container *ngIf="col.visible" [ngSwitch]="col.id">
-                        <div *ngSwitchCase="'name'"        class="col-name header-cell">{{ col.label }} <i [class]="sortColumn === 'name' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('name', $event)"></i></div>
-                        <div *ngSwitchCase="'stockInHand'" class="col-stock header-cell">{{ col.label }} <i [class]="sortColumn === 'stockInHand' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('stockInHand', $event)"></i></div>
-                        <div *ngSwitchCase="'unit'"        class="col-unit header-cell">{{ col.label }} <i [class]="sortColumn === 'unit' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('unit', $event)"></i></div>
-                        <div *ngSwitchCase="'sellingPrice'" class="col-price header-cell">{{ col.label }} <i [class]="sortColumn === 'sellingPrice' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('sellingPrice', $event)"></i></div>
-                        <div *ngSwitchCase="'costPrice'"   class="col-price header-cell">{{ col.label }} <i [class]="sortColumn === 'costPrice' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('costPrice', $event)"></i></div>
-                        <div *ngSwitchCase="'stockValue'"  class="col-price header-cell">{{ col.label }} <i [class]="sortColumn === 'stockValue' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('stockValue', $event)"></i></div>
-                        <div *ngSwitchCase="'status'"      class="col-status header-cell">{{ col.label }} <i [class]="sortColumn === 'status' ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('status', $event)"></i></div>
+                        <div *ngSwitchCase="'name'"        class="col-name header-cell">{{ col.label }} <i [class]="sortColumn() === 'name' ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('name', $event)"></i></div>
+                        <div *ngSwitchCase="'stockInHand'" class="col-stock header-cell">{{ col.label }} <i [class]="sortColumn() === 'stockInHand' ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('stockInHand', $event)"></i></div>
+                        <div *ngSwitchCase="'unit'"        class="col-unit header-cell">{{ col.label }} <i [class]="sortColumn() === 'unit' ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('unit', $event)"></i></div>
+                        <div *ngSwitchCase="'sellingPrice'" class="col-price header-cell">{{ col.label }} <i [class]="sortColumn() === 'sellingPrice' ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('sellingPrice', $event)"></i></div>
+                        <div *ngSwitchCase="'costPrice'"   class="col-price header-cell">{{ col.label }} <i [class]="sortColumn() === 'costPrice' ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('costPrice', $event)"></i></div>
+                        <div *ngSwitchCase="'stockValue'"  class="col-price header-cell">{{ col.label }} <i [class]="sortColumn() === 'stockValue' ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('stockValue', $event)"></i></div>
+                        <div *ngSwitchCase="'status'"      class="col-status header-cell">{{ col.label }} <i [class]="sortColumn() === 'status' ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('status', $event)"></i></div>
                     </ng-container>
                 </ng-container>
                 <div class="col-actions"></div>
             </div>
 
             <div class="list-body">
-                <div class="list-row" *ngFor="let item of displayedItems">
+                <div class="list-row" *ngFor="let item of displayedItems()">
                     <div class="col-checkbox">
                         <label class="custom-checkbox">
                             <input type="checkbox"
-                                   [checked]="selectedItemIds.has(item.id)"
+                                   [checked]="selectedItemIds().has(item.id)"
                                    (change)="toggleSelection(item.id)">
                             <span class="checkmark"></span>
                         </label>
@@ -76,14 +76,14 @@
                                 <div class="item-name">{{ item.name }}</div>
                                 <div class="item-desc">{{ item.description }}</div>
                             </div>
-                            <div *ngSwitchCase="'stockInHand'" class="col-stock text-muted">{{ item.stockInHand !== null ? item.stockInHand : '-' }}</div>
-                            <div *ngSwitchCase="'unit'"        class="col-unit text-muted">{{ item.unit ? item.unit : '-' }}</div>
-                            <div *ngSwitchCase="'sellingPrice'" class="col-price text-muted">{{ item.sellingPrice !== null ? 'BHD ' + (item.sellingPrice | number:'1.3-3') : '-' }}</div>
-                            <div *ngSwitchCase="'costPrice'"   class="col-price text-muted">{{ item.costPrice !== null ? 'BHD ' + (item.costPrice | number:'1.3-3') : '-' }}</div>
-                            <div *ngSwitchCase="'stockValue'"  class="col-price text-muted">{{ item.stockValue !== null ? 'BHD ' + (item.stockValue | number:'1.3-3') : '-' }}</div>
+                            <div *ngSwitchCase="'stockInHand'" class="col-stock text-muted">{{ item.stock_in_hand !== null ? item.stock_in_hand : '-' }}</div>
+                            <div *ngSwitchCase="'unit'"        class="col-unit text-muted">{{ item.uom?.name ? item.uom.name : '-' }}</div>
+                            <div *ngSwitchCase="'sellingPrice'" class="col-price text-muted">{{ item.sales_rate !== null ? 'BHD ' + (item.sales_rate | number:'1.3-3') : '-' }}</div>
+                            <div *ngSwitchCase="'costPrice'"   class="col-price text-muted">{{ item.purchase_cost !== null ? 'BHD ' + (item.purchase_cost | number:'1.3-3') : '-' }}</div>
+                            <div *ngSwitchCase="'stockValue'"  class="col-price text-muted">-</div>
                             <div *ngSwitchCase="'status'" class="col-status">
-                                <span class="status-pill" [ngClass]="item.status.toLowerCase()">
-                                    <span class="dot"></span> {{ item.status }}
+                                <span class="status-pill" [ngClass]="(item.status || 'Active').toLowerCase()">
+                                    <span class="dot"></span> {{ item.status || 'Active' }}
                                 </span>
                             </div>
                         </ng-container>
@@ -99,12 +99,12 @@
                 </div>
 
                 <!-- Empty State -->
-                <div *ngIf="displayedItems.length === 0" class="empty-state-row">
+                <div *ngIf="displayedItems().length === 0" class="empty-state-row">
                     <app-empty-state
-                        [title]="searchQuery ? 'No Items Found.' : 'No Items Found.'"
-                        [subtitle]="searchQuery ? 'We couldn\'t find any items matching \'' + searchQuery + '\'' : 'It looks like you haven\'t added any items yet.'"
-                        [actionLabel]="searchQuery ? '' : 'Add New Item'"
-                        [actionIconClass]="searchQuery ? '' : 'las la-plus'"
+                        [title]="searchQuery() ? 'No Items Found.' : 'No Items Found.'"
+                        [subtitle]="searchQuery() ? 'We couldn\'t find any items matching \'' + searchQuery() + '\'' : 'It looks like you haven\'t added any items yet.'"
+                        [actionLabel]="searchQuery() ? '' : 'Add New Item'"
+                        [actionIconClass]="searchQuery() ? '' : 'las la-plus'"
                         (actionClick)="navigateToNew()">
                     </app-empty-state>
                 </div>
@@ -113,9 +113,9 @@
 
 
         <app-pagination 
-            [totalItems]="totalEntries" 
-            [itemsPerPage]="itemsPerPage !== -1 ? itemsPerPage : 'All'" 
-            [currentPage]="currentPage"
+            [totalItems]="totalEntries()" 
+            [itemsPerPage]="itemsPerPage() !== -1 ? itemsPerPage() : 'All'" 
+            [currentPage]="currentPage()"
             (pageChange)="onPageChange($event)" 
             (itemsPerPageChange)="onItemsPerPageChange($event)">
         </app-pagination>
@@ -123,7 +123,7 @@
 
     <!-- Manage Columns Side Panel -->
     <app-manage-columns 
-        [isOpen]="isManageColumnsOpen" 
+        [isOpen]="isManageColumnsOpen()" 
         [columns]="availableColumns" 
         (closePanel)="closeManageColumns()"
         (columnsChange)="onColumnsChange($event)">
@@ -131,10 +131,10 @@
 
     <!-- Delete Confirmation Modal -->
     <app-delete-modal
-        [isOpen]="!!itemToDelete || bulkDeletePending"
-        [title]="bulkDeletePending ? 'Delete Items' : 'Delete Item'"
-        [message]="bulkDeletePending
-            ? 'Are you sure you want to delete ' + selectedItemIds.size + ' selected item(s)? This action cannot be undone.'
+        [isOpen]="!!itemToDelete() || bulkDeletePending()"
+        [title]="bulkDeletePending() ? 'Delete Items' : 'Delete Item'"
+        [message]="bulkDeletePending()
+            ? 'Are you sure you want to delete ' + selectedItemIds().size + ' selected item(s)? This action cannot be undone.'
             : 'Are you sure you want to delete this item? This action cannot be undone.'"
         (cancel)="closeDeleteModal()"
         (confirm)="confirmDelete()">

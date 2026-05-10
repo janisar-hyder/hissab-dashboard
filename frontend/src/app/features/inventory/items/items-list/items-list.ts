@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -11,18 +11,11 @@ import { ActionMenu, MenuAction } from '../../../../shared/components/action-men
 import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { BulkActionsComponent, BulkAction } from '../../../../shared/components/bulk-actions/bulk-actions.component';
+import { ItemsService, InventoryItem } from '../services/items.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
 
-export interface Item {
-  id: string;
-  name: string;
-  description: string;
-  stockInHand: number | null;
-  unit: string | null;
-  sellingPrice: number | null;
-  costPrice: number | null;
-  stockValue: number | null;
-  status: 'Active' | 'Inactive';
-}
+
+
 
 @Component({
   selector: 'app-items-list',
@@ -43,41 +36,59 @@ export interface Item {
   ],
   templateUrl: './items-list.html',
   styleUrl: './items-list.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ItemsList {
-  searchQuery = '';
-  selectedFilter = 'All';
+export class ItemsList implements OnInit {
+  private itemsService = inject(ItemsService);
+  private notificationService = inject(NotificationService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+
+  searchQuery = signal('');
+  selectedFilter = signal('All');
+  isLoading = signal(false);
 
   itemFilterOptions: FilterOption[] = [
     { label: 'Active', value: 'Active', colorHex: '#10B981' },
     { label: 'Inactive', value: 'Inactive', colorHex: '#6B7280' }
   ];
 
-  items: Item[] = [
-    { id: '1', name: 'Dell Latitude 5440', description: '14" Business Laptop, i7, 16GB RAM.', stockInHand: 12, unit: 'Pcs', sellingPrice: 345.000, costPrice: 280.000, stockValue: 3360.000, status: 'Active' },
-    { id: '2', name: 'On Site Support', description: 'Cloud infrastructure & migration.', stockInHand: null, unit: 'Hour', sellingPrice: 15.000, costPrice: null, stockValue: null, status: 'Active' },
-    { id: '3', name: 'LG 27" 4K Monitor', description: 'Ultra-fine display for design/coding.', stockInHand: 25, unit: 'Pcs', sellingPrice: 135.000, costPrice: 95.000, stockValue: 2375.000, status: 'Inactive' },
-    { id: '4', name: 'Cisco C9200L Switch', description: '24-Port managed network switch.', stockInHand: 5, unit: 'Unit', sellingPrice: 1150.000, costPrice: 820.000, stockValue: 4100.000, status: 'Active' },
-    { id: '5', name: 'Logitech MX Master 3S', description: 'Ergonomic high-precision wireless mouse.', stockInHand: 40, unit: 'Pcs', sellingPrice: 38.000, costPrice: 24.500, stockValue: 980.000, status: 'Active' },
-    { id: '6', name: 'Basic Web Development', description: '5-page responsive corporate website.', stockInHand: null, unit: null, sellingPrice: 350.000, costPrice: 150.000, stockValue: null, status: 'Active' },
-    { id: '7', name: 'Mobile App Dev', description: 'Native iOS/Android app core build.', stockInHand: null, unit: null, sellingPrice: 38.000, costPrice: null, stockValue: null, status: 'Active' },
-  ];
+  items = signal<InventoryItem[]>([]);
+  selectedItemIds = signal<Set<number>>(new Set<number>());
+  currentPage = signal(1);
+  itemsPerPage = signal<number | 'All'>(15);
 
-  selectedItemIds = new Set<string>();
-  currentPage = 1;
-  itemsPerPage: number | 'All' = 15;
-
-  isManageColumnsOpen = false;
-  itemToDelete: Item | null = null;
-  bulkDeletePending = false;
+  isManageColumnsOpen = signal(false);
+  itemToDelete = signal<InventoryItem | null>(null);
+  bulkDeletePending = signal(false);
 
   // Sorting properties
-  sortColumn: string = '';
-  sortDirection: 'asc' | 'desc' = 'asc';
+  sortColumn = signal<string>('');
+  sortDirection = signal<'asc' | 'desc'>('asc');
 
-  bulkActions: BulkAction[] = [
-    { id: 'delete', label: 'Delete Items', colorClass: 'text-danger' }
-  ];
+  bulkActions = computed<BulkAction[]>(() => {
+    const selectedIds = this.selectedItemIds();
+    const allItems = this.items();
+    const selectedItems = allItems.filter(item => selectedIds.has(item.id));
+    
+    const actions: BulkAction[] = [
+      { id: 'delete', label: 'Delete Items', colorClass: 'text-danger' }
+    ];
+
+    if (selectedItems.length === 0) return actions;
+
+    const hasActive = selectedItems.some(i => (i.status || 'Active') === 'Active');
+    const hasInactive = selectedItems.some(i => i.status === 'Inactive');
+
+    if (hasInactive) {
+      actions.unshift({ id: 'mark_active', label: 'Mark as Active' });
+    }
+    if (hasActive) {
+      actions.unshift({ id: 'mark_inactive', label: 'Mark as Inactive' });
+    }
+
+    return actions;
+  });
   
   availableColumns: ColumnDef[] = [
     { id: 'name', label: 'Item & Description', visible: true},
@@ -89,39 +100,83 @@ export class ItemsList {
     { id: 'status', label: 'Status', visible: true }
   ];
 
-  constructor(private router: Router, private route: ActivatedRoute) {}
+  ngOnInit() {
+    this.loadItems();
+  }
 
-  get filteredItems() {
-    let filtered = this.items;
+  loadItems() {
+    this.isLoading.set(true);
+    this.itemsService.getItems().subscribe({
+      next: (res) => {
+        this.items.set(res.data);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        this.notificationService.error('Failed to load items');
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  filteredItems = computed(() => {
+    let filtered = this.items();
     
-    if (this.selectedFilter && this.selectedFilter !== 'All') {
-      filtered = filtered.filter(i => i.status === this.selectedFilter);
+    const filterVal = this.selectedFilter();
+    if (filterVal && filterVal !== 'All') {
+      filtered = filtered.filter(i => i.status === filterVal);
     }
     
-    if (this.searchQuery) {
-      const lowerQuery = this.searchQuery.toLowerCase();
+    const query = this.searchQuery();
+    if (query) {
+      const lowerQuery = query.toLowerCase();
       filtered = filtered.filter(i => 
-        i.name.toLowerCase().includes(lowerQuery) || 
-        i.description.toLowerCase().includes(lowerQuery)
+        i.name?.toLowerCase().includes(lowerQuery) || 
+        i.description?.toLowerCase().includes(lowerQuery)
       );
+    }
+
+    const sortCol = this.sortColumn();
+    const sortDir = this.sortDirection();
+    
+    if (sortCol) {
+      filtered = [...filtered].sort((a, b) => {
+        let valA = (a as any)[sortCol];
+        let valB = (b as any)[sortCol];
+
+        // Map frontend labels to backend properties
+        if (sortCol === 'stockInHand') { valA = a.stock_in_hand; valB = b.stock_in_hand; }
+        if (sortCol === 'unit') { valA = a.uom?.name; valB = b.uom?.name; }
+        if (sortCol === 'sellingPrice') { valA = a.sales_rate; valB = b.sales_rate; }
+        if (sortCol === 'costPrice') { valA = a.purchase_cost; valB = b.purchase_cost; }
+
+        if (valA === null || valA === undefined) return 1;
+        if (valB === null || valB === undefined) return -1;
+
+        if (typeof valA === 'string' && typeof valB === 'string') {
+          return sortDir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        } else {
+          return sortDir === 'asc' ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
+        }
+      });
     }
     
     return filtered;
-  }
+  });
 
-  get displayedItems() {
-    if (this.itemsPerPage === 'All' || this.itemsPerPage === -1) {
-      return this.filteredItems;
+  displayedItems = computed(() => {
+    const items = this.filteredItems();
+    const perPage = this.itemsPerPage();
+    
+    if (perPage === 'All' || perPage === -1) {
+      return items;
     }
-    const startIndex = (this.currentPage - 1) * (this.itemsPerPage as number);
-    return this.filteredItems.slice(startIndex, startIndex + (this.itemsPerPage as number));
-  }
+    const startIndex = (this.currentPage() - 1) * (perPage as number);
+    return items.slice(startIndex, startIndex + (perPage as number));
+  });
   
-  get totalEntries() {
-    return this.filteredItems.length;
-  }
+  totalEntries = computed(() => this.filteredItems().length);
 
-  getItemActions(item: Item): MenuAction[] {
+  getItemActions(item: InventoryItem): MenuAction[] {
     return [
       { label: 'Edit', action: 'edit', svgIconPath: '/icons/edit.svg', customClass: 'edit-btn' },
       item.status === 'Active' 
@@ -133,22 +188,28 @@ export class ItemsList {
 
   handleItemAction(event: { action: string, data: any }) {
     if (event.action === 'edit') {
-      // Setup edit navigation path mapping future
+      this.router.navigate(['edit', event.data.id], { relativeTo: this.route });
     } else if (event.action === 'delete') {
-      this.itemToDelete = event.data;
-    } else if (event.action === 'mark_active') {
-      event.data.status = 'Active';
-    } else if (event.action === 'mark_inactive') {
-      event.data.status = 'Inactive';
+      this.itemToDelete.set(event.data);
+    } else if (event.action === 'mark_active' || event.action === 'mark_inactive') {
+      const isActive = event.action === 'mark_active';
+      const status = isActive ? 'Active' : 'Inactive';
+      this.itemsService.updateItem(event.data.id, { status }).subscribe({
+        next: () => {
+          this.notificationService.success(`Item marked as ${status}`);
+          this.items.update(prev => prev.map(i => i.id === event.data.id ? { ...i, status } : i));
+        },
+        error: () => this.notificationService.error('Failed to update status')
+      });
     }
   }
 
   isAllSelected(): boolean {
-    return this.displayedItems.length > 0 && this.selectedItemIds.size === this.displayedItems.length;
+    return this.displayedItems().length > 0 && this.selectedItemIds().size === this.displayedItems().length;
   }
 
   isPartiallySelected(): boolean {
-    return this.selectedItemIds.size > 0 && this.selectedItemIds.size < this.displayedItems.length;
+    return this.selectedItemIds().size > 0 && this.selectedItemIds().size < this.displayedItems().length;
   }
 
   isColumnVisible(columnId: string): boolean {
@@ -158,23 +219,29 @@ export class ItemsList {
 
   toggleAll(event: any) {
     if (event.target.checked) {
-      this.displayedItems.forEach(i => this.selectedItemIds.add(i.id));
+      const newSet = new Set(this.selectedItemIds());
+      this.displayedItems().forEach(i => newSet.add(i.id));
+      this.selectedItemIds.set(newSet);
     } else {
-      this.displayedItems.forEach(i => this.selectedItemIds.delete(i.id));
+      const newSet = new Set(this.selectedItemIds());
+      this.displayedItems().forEach(i => newSet.delete(i.id));
+      this.selectedItemIds.set(newSet);
     }
   }
 
   clearSearch() {
-    this.searchQuery = '';
-    this.currentPage = 1;
+    this.searchQuery.set('');
+    this.currentPage.set(1);
   }
 
-  toggleSelection(itemId: string) {
-    if (this.selectedItemIds.has(itemId)) {
-      this.selectedItemIds.delete(itemId);
+  toggleSelection(itemId: number) {
+    const newSet = new Set(this.selectedItemIds());
+    if (newSet.has(itemId)) {
+      newSet.delete(itemId);
     } else {
-      this.selectedItemIds.add(itemId);
+      newSet.add(itemId);
     }
+    this.selectedItemIds.set(newSet);
   }
 
   navigateToNew() {
@@ -183,56 +250,38 @@ export class ItemsList {
 
   sort(columnId: string, event: Event): void {
     event.stopPropagation();
-    if (this.sortColumn === columnId) {
-      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    if (this.sortColumn() === columnId) {
+      this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
     } else {
-      this.sortColumn = columnId;
-      this.sortDirection = 'asc';
+      this.sortColumn.set(columnId);
+      this.sortDirection.set('asc');
     }
-
-    this.items.sort((a, b) => {
-      const valA = (a as any)[columnId];
-      const valB = (b as any)[columnId];
-
-      if (valA === null || valA === undefined) return 1;
-      if (valB === null || valB === undefined) return -1;
-
-      if (typeof valA === 'string' && typeof valB === 'string') {
-        return this.sortDirection === 'asc'
-          ? valA.localeCompare(valB)
-          : valB.localeCompare(valA);
-      } else {
-        return this.sortDirection === 'asc'
-          ? (valA > valB ? 1 : -1)
-          : (valA < valB ? 1 : -1);
-      }
-    });
   }
 
   onPageChange(page: number) {
-    this.currentPage = page;
+    this.currentPage.set(page);
   }
 
   onItemsPerPageChange(event: number | 'All') {
     if (event === 'All') {
-      this.itemsPerPage = -1;
+      this.itemsPerPage.set(-1);
     } else {
-      this.itemsPerPage = event;
+      this.itemsPerPage.set(event);
     }
-    this.currentPage = 1;
+    this.currentPage.set(1);
   }
 
   onFilterChange(newFilter: string) {
-    this.selectedFilter = newFilter;
-    this.currentPage = 1;
+    this.selectedFilter.set(newFilter);
+    this.currentPage.set(1);
   }
 
   toggleManageColumns() {
-    this.isManageColumnsOpen = true;
+    this.isManageColumnsOpen.set(true);
   }
 
   closeManageColumns() {
-    this.isManageColumnsOpen = false;
+    this.isManageColumnsOpen.set(false);
   }
 
   onColumnsChange(updatedColumns: ColumnDef[]) {
@@ -240,37 +289,70 @@ export class ItemsList {
   }
 
   closeDeleteModal() {
-    this.itemToDelete = null;
-    this.bulkDeletePending = false;
+    this.itemToDelete.set(null);
+    this.bulkDeletePending.set(false);
   }
 
   confirmDelete() {
+    const isBulk = this.bulkDeletePending();
+    const toDelete = this.itemToDelete();
+
     const adjustPage = () => {
-      const Math = window.Math;
-      if (typeof this.itemsPerPage === 'number' && this.itemsPerPage !== -1) {
-        const maxPage = Math.ceil(this.items.length / this.itemsPerPage) || 1;
-        if (this.currentPage > maxPage) this.currentPage = maxPage;
+      const perPage = this.itemsPerPage();
+      if (typeof perPage === 'number' && perPage !== -1) {
+        const maxPage = Math.ceil(this.items().length / perPage) || 1;
+        if (this.currentPage() > maxPage) this.currentPage.set(maxPage);
       } else {
-        this.currentPage = 1;
+        this.currentPage.set(1);
       }
     };
 
-    if (this.bulkDeletePending) {
-      this.items = this.items.filter(i => !this.selectedItemIds.has(i.id));
-      this.selectedItemIds.clear();
-      this.bulkDeletePending = false;
-      adjustPage();
-    } else if (this.itemToDelete) {
-      this.items = this.items.filter(i => i.id !== this.itemToDelete!.id);
-      this.selectedItemIds.delete(this.itemToDelete.id);
-      this.itemToDelete = null;
-      adjustPage();
+    if (isBulk) {
+      const ids = Array.from(this.selectedItemIds());
+      this.itemsService.deleteBulkItems(ids).subscribe({
+        next: () => {
+          this.notificationService.success('Items deleted successfully');
+          this.items.update(prev => prev.filter(i => !ids.includes(i.id)));
+          this.selectedItemIds.set(new Set<number>());
+          this.closeDeleteModal();
+          adjustPage();
+        },
+        error: () => this.notificationService.error('Failed to delete items')
+      });
+    } else if (toDelete) {
+      this.itemsService.deleteItem(toDelete.id).subscribe({
+        next: () => {
+          this.notificationService.success('Item deleted successfully');
+          this.items.update(prev => prev.filter(i => i.id !== toDelete.id));
+          
+          const newSet = new Set(this.selectedItemIds());
+          newSet.delete(toDelete.id);
+          this.selectedItemIds.set(newSet);
+          
+          this.closeDeleteModal();
+          adjustPage();
+        },
+        error: () => this.notificationService.error('Failed to delete item')
+      });
     }
   }
 
   handleBulkAction(actionId: string): void {
     if (actionId === 'delete') {
-      this.bulkDeletePending = true;
+      this.bulkDeletePending.set(true);
+    } else if (actionId === 'mark_active' || actionId === 'mark_inactive') {
+      const isActive = actionId === 'mark_active';
+      const status = isActive ? 'Active' : 'Inactive';
+      const ids = Array.from(this.selectedItemIds());
+      
+      this.itemsService.updateBulkStatus(ids, status).subscribe({
+        next: () => {
+          this.notificationService.success(`Items marked as ${status}`);
+          this.items.update(prev => prev.map(i => ids.includes(i.id) ? { ...i, status } : i));
+          this.selectedItemIds.set(new Set<number>()); // Clear selection
+        },
+        error: () => this.notificationService.error('Failed to update status')
+      });
     }
   }
 }
