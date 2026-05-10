@@ -1,202 +1,139 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { CustomFilterComponent } from '../../../../shared/components/custom-filter/custom-filter';
-
-export interface QuotationItem {
-    name: string;
-    description: string;
-    qty: number;
-    rate: number;
-    discount: number;
-    vat: number; // percentage
-}
-
-export interface Quotation {
-    id: string;
-    quotationNumber: string;
-    date: string;
-    dueDate: string;
-    customerName: string;
-    customerContact: string;
-    customerAddress: string[];
-    amount: number;
-    status: 'Sent' | 'Invoiced' | 'Draft';
-    items: QuotationItem[];
-    notes?: string;
-    termsAndConditions?: string;
-    grossAmount: number;
-    totalDiscount: number;
-    grandTotal: number;
-}
+import { QuotationsService, Quotation } from '../services/quotations.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
 
 @Component({
     selector: 'app-quotation-info',
     standalone: true,
     imports: [CommonModule, RouterModule, FormsModule, DecimalPipe, PaginationComponent, CustomFilterComponent],
     templateUrl: './quotation-info.html',
-    styleUrls: ['./quotation-info.scss']
+    styleUrls: ['./quotation-info.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class QuotationInfoComponent implements OnInit {
-    quotations: Quotation[] = [
-        { 
-            id: '1', 
-            quotationNumber: 'QT-004', 
-            date: '01 Apr, 2026', 
-            dueDate: '15 Apr, 2026',
-            customerName: 'Transpak Equipment', 
-            customerContact: 'John Doe',
-            customerAddress: ['Suite 200, Building 5', 'Al-Seef District, Bahrain'],
-            amount: 1267.000, 
-            status: 'Sent',
-            items: [
-                { name: 'Server Maintenance', description: 'Full monthly server maintenance and backup.', qty: 1, rate: 1200.000, discount: 50.000, vat: 10 },
-                { name: 'SSL Certificate', description: 'Annual SSL certificate renewal.', qty: 1, rate: 17.000, discount: 0, vat: 0 }
-            ],
-            notes: 'Thank you for your business!',
-            termsAndConditions: 'A deposit of 60% is required upfront to initiate the project.',
-            grossAmount: 1217.000,
-            totalDiscount: 50.000,
-            grandTotal: 1267.000
-        },
-        { 
-            id: '2', 
-            quotationNumber: 'QT-003', 
-            date: '16 Mar, 2026', 
-            dueDate: '30 Mar, 2026',
-            customerName: 'Sigler Wholesale', 
-            customerContact: 'Sarah Smith',
-            customerAddress: ['Office 42, Trade Tower', 'Manama, Bahrain'],
-            amount: 9847.000, 
-            status: 'Invoiced',
-            items: [
-                { name: 'HVAC Units', description: 'Supply of industrial HVAC units.', qty: 5, rate: 1900.000, discount: 200.000, vat: 10 },
-                { name: 'Installation Fee', description: 'Labor and parts for installation.', qty: 1, rate: 547.000, discount: 0, vat: 0 }
-            ],
-            notes: 'Payment is due within 14 days.',
-            grossAmount: 10047.000,
-            totalDiscount: 200.000,
-            grandTotal: 9847.000
-        },
-        { 
-            id: '3', 
-            quotationNumber: 'QT-002', 
-            date: '10 Mar, 2026', 
-            dueDate: '24 Mar, 2026',
-            customerName: 'The Habegger Corp', 
-            customerContact: 'Michael Brown',
-            customerAddress: ['Unit 12, Industrial Area', 'Hidd, Bahrain'],
-            amount: 550.000, 
-            status: 'Draft',
-            items: [
-                { name: 'Consulting Services', description: 'Technical consulting for project phase 1.', qty: 5, rate: 100.000, discount: 0, vat: 10 }
-            ],
-            notes: 'Draft quotation for review.',
-            termsAndConditions: 'Subject to availability of consultants.',
-            grossAmount: 500.000,
-            totalDiscount: 0,
-            grandTotal: 550.000
-        },
-        { 
-            id: '4', 
-            quotationNumber: 'QT-001', 
-            date: '04 Mar, 2026', 
-            dueDate: '04 Apr, 2026',
-            customerName: 'ABCO HVACR Supply', 
-            customerContact: 'Khalid Al-Jabri',
-            customerAddress: ['Shop No. 6, Building 5277, Road 1239,', 'Block 812, Isa Town, Bahrain'],
-            amount: 88.000, 
-            status: 'Sent',
-            items: [
-                { name: 'Website Development', description: 'Basic, responsive website consisting of up to four pages.', qty: 1, rate: 100.000, discount: 20.000, vat: 10 }
-            ],
-            notes: 'We look forward to a successful partnership.',
-            grossAmount: 100.000,
-            totalDiscount: 20.000,
-            grandTotal: 88.000
-        }
-    ];
+    private quotationsService = inject(QuotationsService);
+    private notificationService = inject(NotificationService);
+    private route = inject(ActivatedRoute);
+    private router = inject(Router);
+    private cdr = inject(ChangeDetectorRef);
 
-    selectedQuotation: Quotation | null = null;
-    searchTerm: string = '';
-    selectedStatus: string = 'All';
+    quotations = signal<Quotation[]>([]);
+    selectedQuotation = signal<Quotation | null>(null);
+    isLoading = signal(false);
+    isLoadingDetails = signal(false);
+
+    searchTerm = signal('');
+    selectedStatus = signal('All');
 
     filterOptions = [
         { label: 'Sent', value: 'Sent', colorHex: '#11A9EF' },
         { label: 'Invoiced', value: 'Invoiced', colorHex: '#10B981' },
-        { label: 'Draft', value: 'Draft', colorHex: '#94A3B8' }
+        { label: 'Draft', value: 'Draft', colorHex: '#94A3B8' },
+        { label: 'Accepted', value: 'Accepted', colorHex: '#8B5CF6' }
     ];
 
     // Pagination properties
-    currentPage = 1;
-    itemsPerPage: number | 'All' = 15;
+    currentPage = signal(1);
+    itemsPerPage = signal<number | 'All'>(15);
 
-    constructor(
-        private route: ActivatedRoute,
-        private router: Router
-    ) {}
+    filteredQuotations = computed(() => {
+        let filtered = [...this.quotations()];
+        const term = this.searchTerm().toLowerCase();
+        const status = this.selectedStatus();
+
+        if (term) {
+            filtered = filtered.filter(q => 
+                (q.customer?.name || '').toLowerCase().includes(term) || 
+                q.quotation_number.toLowerCase().includes(term)
+            );
+        }
+
+        if (status !== 'All') {
+            filtered = filtered.filter(q => q.status === status);
+        }
+
+        return filtered;
+    });
+
+    paginatedQuotations = computed(() => {
+        const filtered = this.filteredQuotations();
+        const perPage = this.itemsPerPage();
+        if (perPage === 'All' || perPage === -1) return filtered;
+        const startIndex = (this.currentPage() - 1) * (perPage as number);
+        return filtered.slice(startIndex, startIndex + (perPage as number));
+    });
 
     ngOnInit(): void {
+        this.loadQuotations();
         this.route.params.subscribe(params => {
             const id = params['id'];
             if (id) {
-                this.selectQuotation(id);
-            } else if (this.quotations.length > 0) {
-                this.selectQuotation(this.quotations[0].id);
+                this.loadQuotationDetails(id);
             }
         });
     }
 
-    get filteredQuotations(): Quotation[] {
-        let filtered = this.quotations;
+    loadQuotations() {
+        this.isLoading.set(true);
+        this.quotationsService.getQuotations().subscribe({
+            next: (res) => {
+                this.quotations.set(res.data);
+                this.isLoading.set(false);
+                // If no ID in route, select first one
+                if (!this.route.snapshot.paramMap.get('id') && res.data.length > 0) {
+                    this.onQuotationClick(res.data[0].id);
+                }
+                this.cdr.detectChanges();
+            },
+            error: () => {
+                this.notificationService.error('Failed to load quotations');
+                this.isLoading.set(false);
+                this.cdr.detectChanges();
+            }
+        });
+    }
 
-        if (this.searchTerm) {
-            const term = this.searchTerm.toLowerCase();
-            filtered = filtered.filter(q => 
-                q.customerName.toLowerCase().includes(term) || 
-                q.quotationNumber.toLowerCase().includes(term)
-            );
-        }
-
-        if (this.selectedStatus !== 'All') {
-            filtered = filtered.filter(q => q.status === this.selectedStatus);
-        }
-
-        return filtered;
+    loadQuotationDetails(id: number | string) {
+        this.isLoadingDetails.set(true);
+        this.quotationsService.getQuotationById(id).subscribe({
+            next: (res) => {
+                this.selectedQuotation.set(res.data);
+                this.isLoadingDetails.set(false);
+                this.cdr.detectChanges();
+            },
+            error: () => {
+                this.notificationService.error('Failed to load quotation details');
+                this.isLoadingDetails.set(false);
+                this.cdr.detectChanges();
+            }
+        });
     }
 
     onFilterChange(status: string): void {
-        this.selectedStatus = status;
-        this.currentPage = 1;
+        this.selectedStatus.set(status);
+        this.currentPage.set(1);
     }
 
-    get paginatedQuotations(): Quotation[] {
-        const filtered = this.filteredQuotations;
-        if (this.itemsPerPage === 'All') return filtered;
-        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-        return filtered.slice(startIndex, startIndex + Number(this.itemsPerPage));
-    }
-
-    selectQuotation(id: string): void {
-        const found = this.quotations.find(q => q.id === id);
-        if (found) {
-            this.selectedQuotation = found;
-        }
-    }
-
-    onQuotationClick(id: string): void {
+    onQuotationClick(id: number | string): void {
         this.router.navigate(['/sales/quotations/info', id]);
     }
 
     onPageChange(page: number) {
-        this.currentPage = page;
+        this.currentPage.set(page);
     }
 
     onItemsPerPageChange(size: number | 'All') {
-        this.itemsPerPage = size;
-        this.currentPage = 1;
+        if (size === 'All') {
+            this.itemsPerPage.set(-1);
+        } else {
+            this.itemsPerPage.set(size);
+        }
+        this.currentPage.set(1);
     }
 
     closeInfo(): void {
@@ -204,7 +141,8 @@ export class QuotationInfoComponent implements OnInit {
     }
 
     async downloadPdf() {
-        if (!this.selectedQuotation) return;
+        const quotation = this.selectedQuotation();
+        if (!quotation) return;
 
         const { default: jsPDF } = await import('jspdf');
         const { default: html2canvas } = await import('html2canvas');
@@ -213,7 +151,7 @@ export class QuotationInfoComponent implements OnInit {
         if (!element) return;
 
         const canvas = await html2canvas(element, {
-            scale: 2, // Higher resolution
+            scale: 2,
             useCORS: true,
             logging: false,
             backgroundColor: '#ffffff'
@@ -222,11 +160,10 @@ export class QuotationInfoComponent implements OnInit {
         const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF('p', 'mm', 'a4');
         
-        const imgWidth = 210; // A4 width
-        const pageHeight = 297; // A4 height
+        const imgWidth = 210;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
         
         pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-        pdf.save(`Quotation-${this.selectedQuotation.quotationNumber}.pdf`);
+        pdf.save(`Quotation-${quotation.quotation_number}.pdf`);
     }
 }

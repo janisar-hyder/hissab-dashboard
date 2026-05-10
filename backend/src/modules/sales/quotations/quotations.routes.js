@@ -79,24 +79,6 @@ router.post('/', quotationsController.createQuotation);
 
 /**
  * @swagger
- * /api/v1/sales/quotations/{id}:
- *   patch:
- *     summary: Update an existing quotation
- *     tags: [Quotations]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Quotation updated successfully
- */
-router.patch('/:id', quotationsController.updateQuotation);
-
-/**
- * @swagger
  * /api/v1/sales/quotations/bulk-status:
  *   patch:
  *     summary: Update status for multiple quotations
@@ -126,8 +108,8 @@ router.patch('/bulk-status', quotationsController.updateBulkStatus);
 /**
  * @swagger
  * /api/v1/sales/quotations/{id}:
- *   delete:
- *     summary: Soft delete a quotation
+ *   patch:
+ *     summary: Update an existing quotation
  *     tags: [Quotations]
  *     parameters:
  *       - in: path
@@ -137,9 +119,9 @@ router.patch('/bulk-status', quotationsController.updateBulkStatus);
  *           type: integer
  *     responses:
  *       200:
- *         description: Quotation deleted successfully
+ *         description: Quotation updated successfully
  */
-router.delete('/:id', quotationsController.deleteQuotation);
+router.patch('/:id', quotationsController.updateQuotation);
 
 /**
  * @swagger
@@ -163,5 +145,23 @@ router.delete('/:id', quotationsController.deleteQuotation);
  *         description: Quotations deleted successfully
  */
 router.delete('/', quotationsController.deleteQuotations);
+
+/**
+ * @swagger
+ * /api/v1/sales/quotations/{id}:
+ *   delete:
+ *     summary: Soft delete a quotation
+ *     tags: [Quotations]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Quotation deleted successfully
+ */
+router.delete('/:id', quotationsController.deleteQuotation);
 
 module.exports = router;

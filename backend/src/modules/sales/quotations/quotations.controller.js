@@ -89,6 +89,34 @@ exports.createQuotation = async (req, res, next) => {
       throw error;
     }
 
+    if (quotationData.quotation_date) {
+      quotationData.quotation_date = new Date(quotationData.quotation_date);
+    }
+    if (quotationData.expiry_date) {
+      quotationData.expiry_date = new Date(quotationData.expiry_date);
+    }
+    if (quotationData.valid_until) {
+      quotationData.valid_until = new Date(quotationData.valid_until);
+    }
+
+    // Auto-generate quotation_number if not provided
+    if (!quotationData.quotation_number) {
+      const lastQuotation = await prisma.quotation.findFirst({
+        where: { client_id: clientId },
+        orderBy: { id: 'desc' },
+        select: { quotation_number: true }
+      });
+
+      let nextNumber = 1;
+      if (lastQuotation && lastQuotation.quotation_number) {
+        const match = lastQuotation.quotation_number.match(/(\d+)$/);
+        if (match) {
+          nextNumber = parseInt(match[1], 10) + 1;
+        }
+      }
+      quotationData.quotation_number = `QT-${String(nextNumber).padStart(4, '0')}`;
+    }
+
     // Start a transaction
     const result = await prisma.$transaction(async (tx) => {
       const quotation = await tx.quotation.create({
@@ -97,16 +125,21 @@ exports.createQuotation = async (req, res, next) => {
           client_id: clientId,
           created_by: userId,
           details: {
-            create: details.map(item => ({
-              item_id: item.item_id,
-              quantity: item.quantity,
-              rate: item.rate,
-              discount_amount: item.discount_amount || 0,
-              vat_rate_id: item.vat_rate_id,
-              vat_amount: item.vat_amount || 0,
-              line_total: item.line_total,
-              description: item.description
-            }))
+            create: details.map(item => {
+              const detail = {
+                item_id: item.item_id,
+                quantity: item.quantity,
+                rate: item.rate,
+                discount_amount: item.discount_amount || 0,
+                line_total: item.line_total,
+                description: item.description || ''
+              };
+              // Only include vat_rate_id if it has a valid value
+              if (item.vat_rate_id != null) {
+                detail.vat_rate_id = item.vat_rate_id;
+              }
+              return detail;
+            })
           }
         }
       });
@@ -146,6 +179,16 @@ exports.updateQuotation = async (req, res, next) => {
     // Filter out restricted fields
     const { id: _, client_id: __, created_by: ___, created_date: ____, ...updateData } = quotationData;
 
+    if (updateData.quotation_date) {
+      updateData.quotation_date = new Date(updateData.quotation_date);
+    }
+    if (updateData.expiry_date) {
+      updateData.expiry_date = new Date(updateData.expiry_date);
+    }
+    if (updateData.valid_until) {
+      updateData.valid_until = new Date(updateData.valid_until);
+    }
+
     const result = await prisma.$transaction(async (tx) => {
       // 1. Update the header
       const updatedQuotation = await tx.quotation.update({
@@ -173,7 +216,6 @@ exports.updateQuotation = async (req, res, next) => {
             rate: item.rate,
             discount_amount: item.discount_amount || 0,
             vat_rate_id: item.vat_rate_id,
-            vat_amount: item.vat_amount || 0,
             line_total: item.line_total,
             description: item.description
           }))
@@ -272,7 +314,7 @@ exports.updateBulkStatus = async (req, res, next) => {
 exports.deleteQuotations = async (req, res, next) => {
   try {
     const { clientId, userId } = req.user;
-    const { ids } = req.body;
+    const { ids } = req.body || {};
 
     if (!ids || !Array.isArray(ids)) {
       const error = new Error('IDs array is required');

@@ -45,6 +45,7 @@ export const routes: Routes = [
             { path: 'sales/customers/edit/:id', component: CustomerEditComponent },
             { path: 'sales/quotations', component: QuotationsListComponent },
             { path: 'sales/quotations/new', component: QuotationsNew },
+            { path: 'sales/quotations/edit/:id', component: QuotationsNew },
             { path: 'sales/invoices', component: InvoicesListComponent },
             { path: 'sales/invoices/new', component: InvoicesNew },
             { path: 'sales/receipts', component: ReceiptsListComponent },

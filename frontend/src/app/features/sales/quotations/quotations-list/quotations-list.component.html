@@ -4,8 +4,8 @@
         <div class="header-titles">
             <h1 class="page-title">Quotations</h1>
         </div>
-        <div class="header-actions" *ngIf="quotations.length > 0">
-            <app-bulk-actions [selectedCount]="selectedQuotationIds.size" [actions]="bulkActions"
+        <div class="header-actions" *ngIf="quotations().length > 0">
+            <app-bulk-actions [selectedCount]="selectedQuotationIds().size" [actions]="bulkActions()"
                 (actionSelected)="handleBulkAction($event)">
             </app-bulk-actions>
             <app-button variant="primary" iconPrefix="las la-plus" (clicked)="navigateToNew()">Add New
@@ -34,20 +34,20 @@
     </div>
 
     <!-- Data Card -->
-    <div class="data-card" *ngIf="quotations.length > 0 || searchQuery">
+    <div class="data-card" *ngIf="quotations().length > 0 || searchQuery()">
 
         <!-- Toolbar -->
         <div class="card-toolbar">
             <div class="search-box">
                 <i class="las la-search search-icon"></i>
-                <input type="text" placeholder="Search for something.." class="search-input" [(ngModel)]="searchQuery" (ngModelChange)="currentPage = 1">
-                <i class="las la-times clear-icon" *ngIf="searchQuery" (click)="clearSearch()"></i>
+                <input type="text" placeholder="Search for something.." class="search-input" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event); currentPage.set(1)">
+                <i class="las la-times clear-icon" *ngIf="searchQuery()" (click)="clearSearch()"></i>
             </div>
 
             <div class="toolbar-right">
                 <app-custom-filter
                     [options]="quotationFilterOptions"
-                    [currentFilter]="currentFilter"
+                    [currentFilter]="currentFilter()"
                     activeLabelPrefix="All Quotations"
                     (filterChange)="setFilter($event)">
                 </app-custom-filter>
@@ -57,7 +57,7 @@
         </div>
 
         <!-- Table -->
-        <div class="table-responsive">
+        <div class="table-responsive" [class.loading]="isLoading()">
             <table class="data-table">
                 <thead>
                     <tr>
@@ -70,8 +70,8 @@
                         <ng-container *ngFor="let col of availableColumns">
                             <th *ngIf="col.visible">
                                 {{ col.label }}
-                                <i [class]="sortColumn === col.id 
-                                    ? (sortDirection === 'asc' ? 'las la-sort-up' : 'las la-sort-down')
+                                <i [class]="sortColumn() === col.id 
+                                    ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down')
                                     : 'las la-sort'"
                                    (click)="sort(col.id, $event)"
                                    style="cursor: pointer; margin-left: 4px;"></i>
@@ -80,11 +80,11 @@
                         <th class="col-actions"></th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr *ngFor="let quotation of paginatedQuotations" class="clickable-row" (click)="navigateToInfo(quotation.id)">
+                <tbody *ngIf="!isLoading()">
+                    <tr *ngFor="let quotation of paginatedQuotations()" class="clickable-row" (click)="navigateToInfo(quotation.id)">
                         <td class="col-checkbox" (click)="$event.stopPropagation()">
                             <label class="custom-checkbox">
-                                <input type="checkbox" [checked]="selectedQuotationIds.has(quotation.id)"
+                                <input type="checkbox" [checked]="selectedQuotationIds().has(quotation.id)"
                                     (change)="toggleSelection(quotation.id)">
                                 <span class="checkmark"></span>
                             </label>
@@ -92,16 +92,16 @@
                         <ng-container *ngFor="let col of availableColumns">
                             <td *ngIf="col.visible" [ngSwitch]="col.id">
                                 <ng-container *ngSwitchCase="'quotationNumber'">
-                                    <span class="text-muted">{{ quotation.quotationNumber }}</span>
+                                    <span class="text-muted">{{ quotation.quotation_number }}</span>
                                 </ng-container>
                                 <ng-container *ngSwitchCase="'date'">
-                                    <span class="text-muted">{{ quotation.date }}</span>
+                                    <span class="text-muted">{{ quotation.quotation_date | date:'dd MMM, yyyy' }}</span>
                                 </ng-container>
                                 <ng-container *ngSwitchCase="'customerName'">
-                                    <span class="text-muted">{{ quotation.customerName }}</span>
+                                    <span class="text-muted">{{ quotation.customer?.name }}</span>
                                 </ng-container>
                                 <ng-container *ngSwitchCase="'amount'">
-                                    <span class="text-muted text-right">BHD {{ quotation.amount | number:'1.3-3' }}</span>
+                                    <span class="text-muted text-right">BHD {{ quotation.grand_total | number:'1.3-3' }}</span>
                                 </ng-container>
                                 <ng-container *ngSwitchCase="'status'">
                                     <span class="status-pill" [ngClass]="'status-' + quotation.status.toLowerCase()">
@@ -115,7 +115,7 @@
                             <div class="action-menu-container">
                                 <button class="action-btn" (click)="toggleMenu(quotation.id, $event)"><i
                                         class="las la-ellipsis-h"></i></button>
-                                <div class="action-dropdown" *ngIf="openMenuId === quotation.id">
+                                <div class="action-dropdown" *ngIf="openMenuId() === quotation.id">
                                     <button class="menu-item edit-btn"
                                         (click)="navigateToEdit(quotation.id, $event)">Edit</button>
                                     <button class="menu-item delete-btn" (click)="openDeleteModal(quotation, $event)">
@@ -129,13 +129,13 @@
                         </td>
                     </tr>
                     <!-- Empty State -->
-                    <tr *ngIf="paginatedQuotations.length === 0">
+                    <tr *ngIf="paginatedQuotations().length === 0">
                         <td colspan="7" style="padding: 0;">
                             <app-empty-state 
-                                [title]="searchQuery ? 'No Quotations Found.' : 'No Quotations Found.'"
-                                [subtitle]="searchQuery ? 'We couldn\'t find any quotations matching \'' + searchQuery + '\'' : 'It looks like you haven\'t added any quotations yet.'"
-                                [actionLabel]="searchQuery ? '' : 'Add New Quotation'" 
-                                [actionIconClass]="searchQuery ? '' : 'las la-plus'" 
+                                [title]="searchQuery() ? 'No Quotations Found.' : 'No Quotations Found.'"
+                                [subtitle]="searchQuery() ? 'We couldn\'t find any quotations matching \'' + searchQuery() + '\'' : 'It looks like you haven\'t added any quotations yet.'"
+                                [actionLabel]="searchQuery() ? '' : 'Add New Quotation'" 
+                                [actionIconClass]="searchQuery() ? '' : 'las la-plus'" 
                                 (actionClick)="navigateToNew()">
                             </app-empty-state>
                         </td>
@@ -145,8 +145,8 @@
         </div>
 
         <!-- Footer Pagination -->
-        <app-pagination [totalItems]="filteredQuotations.length" [itemsPerPage]="itemsPerPage"
-            [currentPage]="currentPage" (pageChange)="onPageChange($event)"
+        <app-pagination [totalItems]="filteredQuotations().length" [itemsPerPage]="itemsPerPage()"
+            [currentPage]="currentPage()" (pageChange)="onPageChange($event)"
             (itemsPerPageChange)="onItemsPerPageChange($event)">
         </app-pagination>
     </div>
@@ -154,11 +154,11 @@
 
 
 <!-- Global Shared Output Models -->
-<app-manage-columns [isOpen]="isManageColumnsOpen" [columns]="availableColumns" (closePanel)="closeManageColumns()"
+<app-manage-columns [isOpen]="isManageColumnsOpen()" [columns]="availableColumns" (closePanel)="closeManageColumns()"
     (columnsChange)="onColumnsChange($event)">
 </app-manage-columns>
 
-<app-delete-modal [isOpen]="!!quotationToDelete" title="Delete Quotation"
-    message="Are you sure you want to delete this quotation? This action cannot be undone."
+<app-delete-modal [isOpen]="!!quotationToDelete()" title="Delete Quotation"
+    [message]="bulkDeletePending() ? 'Are you sure you want to delete these quotations? This action cannot be undone.' : 'Are you sure you want to delete this quotation? This action cannot be undone.'"
     (cancel)="closeDeleteModal()" (confirm)="confirmDelete()">
 </app-delete-modal>
