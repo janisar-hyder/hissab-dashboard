@@ -138,7 +138,8 @@ export const routes: Routes = [
             { path: 'settings/currencies', component: CurrenciesComponent },
             { path: 'settings/sales-persons', component: SalesPersonsComponent },
             { path: 'settings/sales-partners', component: SalesPartnersComponent },
-            { path: 'settings/organization/profile', component: CompanyProfileComponent }
+            { path: 'settings/organization/profile', component: CompanyProfileComponent },
+            { path: 'settings/sales/:module', loadComponent: () => import('./features/settings/sales-settings/sales-settings.component').then(m => m.SalesSettingsComponent) }
         ]
     },
     { path: 'login', component: LoginComponent },

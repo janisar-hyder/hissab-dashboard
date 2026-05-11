@@ -1,0 +1,43 @@
+<div class="page-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-titles">
+            <app-breadcrumbs [items]="[
+                { label: 'Settings', url: '/settings' },
+                { label: moduleConfig.title }
+            ]"></app-breadcrumbs>
+            <h1 class="page-title">{{ moduleConfig.title }}</h1>
+        </div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="form-card">
+        <!-- Note -->
+        <div class="form-group">
+            <label class="form-label">Note</label>
+            <textarea 
+                class="form-textarea" 
+                [(ngModel)]="note" 
+                placeholder="Enter Notes"
+                rows="5">
+            </textarea>
+        </div>
+
+        <!-- Terms & Conditions -->
+        <div class="form-group">
+            <label class="form-label">Terms & Conditions</label>
+            <textarea 
+                class="form-textarea" 
+                [(ngModel)]="termsAndConditions" 
+                placeholder="Enter Terms & Conditions"
+                rows="5">
+            </textarea>
+        </div>
+    </div>
+
+    <!-- Sticky Footer -->
+    <div class="page-footer">
+        <button class="footer-btn btn-cancel" (click)="cancel()">Cancel</button>
+        <button class="footer-btn btn-save" (click)="save()" [disabled]="isSaving">Save</button>
+    </div>
+</div>
