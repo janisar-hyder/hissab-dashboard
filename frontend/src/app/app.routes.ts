@@ -48,6 +48,7 @@ export const routes: Routes = [
             { path: 'sales/quotations/edit/:id', component: QuotationsNew },
             { path: 'sales/invoices', component: InvoicesListComponent },
             { path: 'sales/invoices/new', component: InvoicesNew },
+            { path: 'sales/invoices/edit/:id', component: InvoicesNew },
             { path: 'sales/receipts', component: ReceiptsListComponent },
             { path: 'sales/receipts/new', component: ReceiptsNew },
             { path: 'sales/receipts/info/:id', component: ReceiptsInfoComponent },

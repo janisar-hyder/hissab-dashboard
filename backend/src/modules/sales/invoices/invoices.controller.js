@@ -92,6 +92,30 @@ exports.createInvoice = async (req, res, next) => {
       throw error;
     }
 
+    // Parse date fields
+    const dateFields = ['invoice_date', 'due_date', 'expiry_date'];
+    dateFields.forEach(field => {
+      if (invoiceData[field]) {
+        invoiceData[field] = new Date(invoiceData[field]);
+      }
+    });
+
+    // Auto-generate invoice_number if not provided
+    if (!invoiceData.invoice_number) {
+      const year = new Date().getFullYear();
+      const lastInvoice = await prisma.invoice.findFirst({
+        where: { client_id: clientId },
+        orderBy: { id: 'desc' },
+        select: { invoice_number: true }
+      });
+      let nextNum = 1;
+      if (lastInvoice && lastInvoice.invoice_number) {
+        const match = lastInvoice.invoice_number.match(/(\d+)$/);
+        if (match) nextNum = parseInt(match[1]) + 1;
+      }
+      invoiceData.invoice_number = `INV-${year}-${String(nextNum).padStart(3, '0')}`;
+    }
+
     // Start a transaction
     const result = await prisma.$transaction(async (tx) => {
       const invoice = await tx.invoice.create({
@@ -101,16 +125,18 @@ exports.createInvoice = async (req, res, next) => {
           created_by: userId,
           balance_due: invoiceData.grand_total, // Initially balance due is grand total
           details: {
-            create: details.map(item => ({
-              item_id: item.item_id,
-              quantity: item.quantity,
-              rate: item.rate,
-              discount_amount: item.discount_amount || 0,
-              vat_rate_id: item.vat_rate_id,
-              vat_amount: item.vat_amount || 0,
-              line_total: item.line_total,
-              description: item.description
-            }))
+            create: details.map(item => {
+              const detail = {
+                item_id: parseInt(item.item_id),
+                quantity: item.quantity,
+                rate: item.rate,
+                discount_amount: item.discount_amount || 0,
+                line_total: item.line_total
+              };
+              if (item.vat_rate_id != null) detail.vat_rate_id = parseInt(item.vat_rate_id);
+              if (item.description) detail.description = item.description;
+              return detail;
+            })
           }
         }
       });
@@ -150,6 +176,14 @@ exports.updateInvoice = async (req, res, next) => {
     // Filter out restricted fields
     const { id: _, client_id: __, created_by: ___, created_date: ____, ...updateData } = invoiceData;
 
+    // Parse date fields
+    const dateFields = ['invoice_date', 'due_date', 'expiry_date'];
+    dateFields.forEach(field => {
+      if (updateData[field]) {
+        updateData[field] = new Date(updateData[field]);
+      }
+    });
+
     const result = await prisma.$transaction(async (tx) => {
       // 1. Update the header
       const updatedInvoice = await tx.invoice.update({
@@ -168,17 +202,19 @@ exports.updateInvoice = async (req, res, next) => {
         });
 
         await tx.invoiceDetail.createMany({
-          data: details.map(item => ({
-            invoice_id: parseInt(id),
-            item_id: item.item_id,
-            quantity: item.quantity,
-            rate: item.rate,
-            discount_amount: item.discount_amount || 0,
-            vat_rate_id: item.vat_rate_id,
-            vat_amount: item.vat_amount || 0,
-            line_total: item.line_total,
-            description: item.description
-          }))
+          data: details.map(item => {
+            const detail = {
+              invoice_id: parseInt(id),
+              item_id: parseInt(item.item_id),
+              quantity: item.quantity,
+              rate: item.rate,
+              discount_amount: item.discount_amount || 0,
+              line_total: item.line_total
+            };
+            if (item.vat_rate_id != null) detail.vat_rate_id = parseInt(item.vat_rate_id);
+            if (item.description) detail.description = item.description;
+            return detail;
+          })
         });
       }
 

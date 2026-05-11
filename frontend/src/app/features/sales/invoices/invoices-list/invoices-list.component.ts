@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, ElementRef } from '@angular/core';
+import { Component, OnInit, HostListener, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -9,16 +9,18 @@ import { BulkActionsComponent, BulkAction } from '../../../../shared/components/
 import { ManageColumnsComponent, ColumnDef } from '../../../../shared/components/manage-columns/manage-columns.component';
 import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
 import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
+import { InvoicesService } from '../services/invoices.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
 
 export interface Invoice {
-    id: string;
+    id: number;
     invoiceNumber: string;
     date: string;
     customerName: string;
     dueDate: string;
     amount: number;
     balanceDue: number;
-    status: 'Overdue' | 'Paid' | 'Partially Paid' | 'Due in 20 Days' | string;
+    status: string;
 }
 
 @Component({
@@ -29,28 +31,38 @@ export interface Invoice {
     styleUrls: ['./invoices-list.component.scss']
 })
 export class InvoicesListComponent implements OnInit {
-    invoices: Invoice[] = [
-        { id: '1', invoiceNumber: 'INV-004', date: '11 Feb, 2026', customerName: 'Transpak Equipment', dueDate: '01 Mar, 2026', amount: 1267.000, balanceDue: 1267.000, status: 'Overdue' },
-        { id: '2', invoiceNumber: 'INV-003', date: '06 Feb, 2026', customerName: 'Sigler Wholesale', dueDate: '06 Mar, 2026', amount: 2800.000, balanceDue: 0.000, status: 'Paid' },
-        { id: '3', invoiceNumber: 'INV-002', date: '05 Feb, 2026', customerName: 'The Habegger Corp', dueDate: '10 Mar, 2026', amount: 550.000, balanceDue: 275.000, status: 'Partially Paid' },
-        { id: '4', invoiceNumber: 'INV-001', date: '21 Jan, 2026', customerName: 'ABCO HVACR Supply', dueDate: '21 Feb, 2026', amount: 88.000, balanceDue: 88.000, status: 'Due in 20 Days' }
-    ];
+    invoices: Invoice[] = [];
+    isLoading = true;
 
-    selectedInvoiceIds = new Set<string>();
+    selectedInvoiceIds = new Set<number>();
 
     // Pagination properties
     currentPage = 1;
     itemsPerPage: number | 'All' = 15;
 
-    // Bulk actions
-    bulkActions: BulkAction[] = [
-        { id: 'delete', label: 'Delete Invoices', colorClass: 'text-danger' }
-    ];
+    // Bulk actions — dynamic based on selection
+    get bulkActions(): BulkAction[] {
+        const actions: BulkAction[] = [];
+        const selectedInvoices = this.invoices.filter(i => this.selectedInvoiceIds.has(i.id));
+
+        const allDraft = selectedInvoices.every(i => i.status === 'Draft');
+        const allSent = selectedInvoices.every(i => i.status === 'Sent');
+        const allPaid = selectedInvoices.every(i => i.status === 'Paid');
+
+        if (!allDraft) actions.push({ id: 'draft', label: 'Mark as Draft', colorClass: 'text-muted' });
+        if (!allSent) actions.push({ id: 'sent', label: 'Mark as Sent', colorClass: 'text-primary' });
+        if (!allPaid) actions.push({ id: 'paid', label: 'Mark as Paid', colorClass: 'text-success' });
+
+        actions.push({ id: 'delete', label: 'Delete Invoices', colorClass: 'text-danger' });
+
+        return actions;
+    }
 
     isManageColumnsOpen = false;
-    openMenuId: string | null = null;
+    openMenuId: number | null = null;
     invoiceToDelete: Invoice | null = null;
-    currentFilter: 'All' | 'Overdue' | 'Paid' | 'Partially Paid' | string = 'All';
+    bulkDeletePending = false;
+    currentFilter: string = 'All';
 
     // Sorting and Filter properties
     sortColumn: string = '';
@@ -58,14 +70,13 @@ export class InvoicesListComponent implements OnInit {
     searchQuery: string = '';
 
     invoiceFilterOptions: FilterOption[] = [
-        { label: 'Overdue', value: 'Overdue', colorHex: '#ef4444' },
+        { label: 'Draft', value: 'Draft', colorHex: '#6b7280' },
+        { label: 'Sent', value: 'Sent', colorHex: '#0ea5e9' },
         { label: 'Paid', value: 'Paid', colorHex: '#10b981' },
-        { label: 'Partially Paid', value: 'Partially Paid', colorHex: '#f59e0b' },
-        { label: 'Due in 20 Days', value: 'Due in 20 Days', colorHex: '#0ea5e9' }
     ];
 
     availableColumns: ColumnDef[] = [
-        { id: 'invoiceNumber', label: 'Invoice Number', visible: true},
+        { id: 'invoiceNumber', label: 'Invoice Number', visible: true },
         { id: 'date', label: 'Date', visible: true },
         { id: 'customerName', label: 'Customer Name', visible: true },
         { id: 'dueDate', label: 'Due Date', visible: true },
@@ -83,7 +94,7 @@ export class InvoicesListComponent implements OnInit {
 
         if (this.searchQuery) {
             const query = this.searchQuery.toLowerCase();
-            filtered = filtered.filter(i => 
+            filtered = filtered.filter(i =>
                 i.invoiceNumber.toLowerCase().includes(query) ||
                 i.customerName.toLowerCase().includes(query)
             );
@@ -99,9 +110,42 @@ export class InvoicesListComponent implements OnInit {
         return filtered.slice(startIndex, startIndex + this.itemsPerPage);
     }
 
-    constructor(private eRef: ElementRef, private router: Router) { }
+    constructor(
+        private eRef: ElementRef,
+        private router: Router,
+        private cdr: ChangeDetectorRef,
+        private invoicesService: InvoicesService,
+        private notificationService: NotificationService
+    ) { }
 
-    ngOnInit(): void { }
+    ngOnInit(): void {
+        this.loadInvoices();
+    }
+
+    loadInvoices(): void {
+        this.isLoading = true;
+        this.invoicesService.getInvoices().subscribe({
+            next: (res) => {
+                this.invoices = (res.data || []).map((inv: any) => ({
+                    id: inv.id,
+                    invoiceNumber: inv.invoice_number,
+                    date: inv.invoice_date ? new Date(inv.invoice_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
+                    customerName: inv.customer?.name || 'Unknown',
+                    dueDate: inv.due_date ? new Date(inv.due_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—',
+                    amount: Number(inv.grand_total) || 0,
+                    balanceDue: Number(inv.balance_due) || 0,
+                    status: inv.status || 'Draft'
+                }));
+                this.isLoading = false;
+                this.cdr.detectChanges();
+            },
+            error: (err) => {
+                this.notificationService.error('Failed to load invoices');
+                this.isLoading = false;
+                this.cdr.detectChanges();
+            }
+        });
+    }
 
     navigateToNew(): void {
         this.router.navigate(['/sales/invoices/new']);
@@ -139,7 +183,7 @@ export class InvoicesListComponent implements OnInit {
         }
     }
 
-    toggleSelection(id: string): void {
+    toggleSelection(id: number): void {
         if (this.selectedInvoiceIds.has(id)) {
             this.selectedInvoiceIds.delete(id);
         } else {
@@ -195,7 +239,7 @@ export class InvoicesListComponent implements OnInit {
         this.currentPage = 1;
     }
 
-    toggleMenu(id: string, event: Event): void {
+    toggleMenu(id: number, event: Event): void {
         event.stopPropagation();
         if (this.openMenuId === id) {
             this.openMenuId = null;
@@ -210,51 +254,74 @@ export class InvoicesListComponent implements OnInit {
         this.openMenuId = null;
     }
 
-    navigateToEdit(id: string, event: Event): void {
+    navigateToEdit(id: number, event: Event): void {
         event.stopPropagation();
         this.openMenuId = null;
-        console.log('Navigate to edit invoice', id);
+        this.router.navigate(['/sales/invoices/edit', id]);
     }
 
-    navigateToInfo(id: string): void {
+    navigateToInfo(id: number): void {
         this.router.navigate(['/sales/invoices/info', id]);
     }
 
     closeDeleteModal(): void {
         this.invoiceToDelete = null;
+        this.bulkDeletePending = false;
     }
 
     confirmDelete(): void {
-        if (this.invoiceToDelete) {
-            this.invoices = this.invoices.filter(i => i.id !== this.invoiceToDelete!.id);
-            this.selectedInvoiceIds.delete(this.invoiceToDelete.id);
-            this.invoiceToDelete = null;
-
-            const Math = window.Math;
-            if (this.itemsPerPage !== 'All') {
-                const maxPage = Math.ceil(this.invoices.length / this.itemsPerPage) || 1;
-                if (this.currentPage > maxPage) {
-                    this.currentPage = maxPage;
+        if (this.bulkDeletePending) {
+            const ids = Array.from(this.selectedInvoiceIds);
+            this.invoicesService.deleteBulkInvoices(ids).subscribe({
+                next: () => {
+                    this.notificationService.success(`Deleted ${ids.length} invoices`);
+                    this.selectedInvoiceIds.clear();
+                    this.closeDeleteModal();
+                    this.loadInvoices();
+                },
+                error: () => {
+                    this.notificationService.error('Failed to delete invoices');
+                    this.closeDeleteModal();
                 }
-            } else {
-                this.currentPage = 1;
-            }
+            });
+        } else if (this.invoiceToDelete) {
+            this.invoicesService.deleteInvoice(this.invoiceToDelete.id).subscribe({
+                next: () => {
+                    this.notificationService.success('Invoice deleted successfully');
+                    this.closeDeleteModal();
+                    this.loadInvoices();
+                },
+                error: () => {
+                    this.notificationService.error('Failed to delete invoice');
+                    this.closeDeleteModal();
+                }
+            });
         }
     }
 
     handleBulkAction(actionId: string): void {
-        if (actionId === 'delete') {
-            this.invoices = this.invoices.filter(i => !this.selectedInvoiceIds.has(i.id));
-            this.selectedInvoiceIds.clear();
+        const ids = Array.from(this.selectedInvoiceIds);
+        if (ids.length === 0) return;
 
-            const Math = window.Math;
-            if (this.itemsPerPage !== 'All') {
-                const maxPage = Math.ceil(this.invoices.length / this.itemsPerPage) || 1;
-                if (this.currentPage > maxPage) {
-                    this.currentPage = maxPage;
-                }
-            } else {
-                this.currentPage = 1;
+        if (actionId === 'delete') {
+            this.bulkDeletePending = true;
+            this.invoiceToDelete = {} as Invoice; // Trigger the modal
+        } else {
+            const statusMap: Record<string, string> = {
+                'draft': 'Draft',
+                'sent': 'Sent',
+                'paid': 'Paid'
+            };
+            const status = statusMap[actionId];
+            if (status) {
+                this.invoicesService.updateBulkStatus(ids, status).subscribe({
+                    next: () => {
+                        this.notificationService.success(`Updated ${ids.length} invoices to ${status}`);
+                        this.selectedInvoiceIds.clear();
+                        this.loadInvoices();
+                    },
+                    error: () => this.notificationService.error('Failed to update status')
+                });
             }
         }
     }

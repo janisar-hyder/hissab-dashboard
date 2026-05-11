@@ -83,24 +83,6 @@ router.post('/', invoicesController.createInvoice);
 
 /**
  * @swagger
- * /api/v1/sales/invoices/{id}:
- *   patch:
- *     summary: Update an existing invoice
- *     tags: [Invoices]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Invoice updated successfully
- */
-router.patch('/:id', invoicesController.updateInvoice);
-
-/**
- * @swagger
  * /api/v1/sales/invoices/bulk-status:
  *   patch:
  *     summary: Update status for multiple invoices
@@ -126,6 +108,24 @@ router.patch('/:id', invoicesController.updateInvoice);
  *         description: Status updated successfully
  */
 router.patch('/bulk-status', invoicesController.updateBulkStatus);
+
+/**
+ * @swagger
+ * /api/v1/sales/invoices/{id}:
+ *   patch:
+ *     summary: Update an existing invoice
+ *     tags: [Invoices]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Invoice updated successfully
+ */
+router.patch('/:id', invoicesController.updateInvoice);
 
 /**
  * @swagger

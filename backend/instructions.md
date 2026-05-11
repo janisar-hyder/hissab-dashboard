@@ -901,18 +901,18 @@ Fetch all invoices.
     ```json
     {
       "invoice_number": "INV-1001",
-      "customer_id": 1,
+      "customer_id": 3,
       "invoice_date": "2026-05-03",
-      "currency_id": 1,
-      "sales_partner_id": 1,
+      "currency_id": 12,
+      "sales_partner_id": 7,
       "commission_percentage": 10,
       "grand_total": 1050,
       "details": [
         {
-          "item_id": 1,
+          "item_id": 8,
           "quantity": 4,
           "rate": 250,
-          "vat_rate_id": 1,
+          "vat_rate_id": 7,
           "line_total": 1050
         }
       ]

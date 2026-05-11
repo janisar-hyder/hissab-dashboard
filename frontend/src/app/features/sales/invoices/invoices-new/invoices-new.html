@@ -4,9 +4,9 @@
         <div class="header-titles">
             <app-breadcrumbs [items]="[
                 { label: 'Invoices', url: '/sales/invoices' },
-                { label: 'Add New Invoice' }
+                { label: isEditMode ? 'Edit Invoice' : 'Add New Invoice' }
             ]"></app-breadcrumbs>
-            <h1 class="page-title">Add New Invoice</h1>
+            <h1 class="page-title">{{ isEditMode ? 'Edit Invoice' : 'Add New Invoice' }}</h1>
         </div>
         <div class="header-actions">
             <app-button variant="outline" (clicked)="openAttachmentsModal()">
@@ -47,14 +47,15 @@
             <div class="form-group full-width" style="margin-bottom: 24px;">
                 <label>Customer <span class="required">*</span></label>
                 <app-custom-select 
-                    [(ngModel)]="invoiceData.customer" 
+                    [(ngModel)]="invoiceData.customer_id" 
                     [options]="customerOptions" 
-                    placeholder="Select Customer">
+                    placeholder="Select Customer"
+                    (ngModelChange)="onCustomerChange()">
                 </app-custom-select>
             </div>
 
             <!-- Conditional Addresses -->
-            <div class="address-row" *ngIf="invoiceData.customer" style="margin-bottom: 24px;">
+            <div class="address-row" *ngIf="selectedCustomer" style="margin-bottom: 24px;">
                 <!-- Billing Address Box -->
                 <div class="address-box">
                     <div class="address-header">
@@ -66,9 +67,15 @@
                             </svg>
                         </button>
                     </div>
-                    <div class="address-content">
-                        <div class="address-name">{{ dummyBillingAddress.name }}</div>
-                        <div class="address-details">{{ dummyBillingAddress.details }}</div>
+                    <div class="address-content" *ngIf="selectedCustomer.billing_address_attention || selectedCustomer.billing_address_details">
+                        <div class="address-name" *ngIf="selectedCustomer.billing_address_attention">{{ selectedCustomer.billing_address_attention }}</div>
+                        <div class="address-details" *ngIf="selectedCustomer.billing_address_details">{{ selectedCustomer.billing_address_details }}</div>
+                        <div class="address-details" *ngIf="selectedCustomer.billing_address_city">{{ selectedCustomer.billing_address_city }}<span *ngIf="selectedCustomer.billing_address_country">, {{ selectedCustomer.billing_address_country }}</span></div>
+                    </div>
+                    <div class="address-content empty" *ngIf="!selectedCustomer.billing_address_attention && !selectedCustomer.billing_address_details">
+                        <button class="add-address-link">
+                            <span class="plus-icon">+</span> Add Address
+                        </button>
                     </div>
                 </div>
 
@@ -83,7 +90,12 @@
                             </svg>
                         </button>
                     </div>
-                    <div class="address-content empty">
+                    <div class="address-content" *ngIf="selectedCustomer.shipment_address_attention || selectedCustomer.shipment_address_details">
+                        <div class="address-name" *ngIf="selectedCustomer.shipment_address_attention">{{ selectedCustomer.shipment_address_attention }}</div>
+                        <div class="address-details" *ngIf="selectedCustomer.shipment_address_details">{{ selectedCustomer.shipment_address_details }}</div>
+                        <div class="address-details" *ngIf="selectedCustomer.shipment_address_city">{{ selectedCustomer.shipment_address_city }}<span *ngIf="selectedCustomer.shipment_address_country">, {{ selectedCustomer.shipment_address_country }}</span></div>
+                    </div>
+                    <div class="address-content empty" *ngIf="!selectedCustomer.shipment_address_attention && !selectedCustomer.shipment_address_details">
                         <button class="add-address-link">
                             <span class="plus-icon">+</span> Add Address
                         </button>
@@ -124,7 +136,7 @@
                 <div class="form-group">
                     <label>Sales Person</label>
                     <app-custom-select 
-                        [(ngModel)]="invoiceData.salesPerson" 
+                        [(ngModel)]="invoiceData.salesPersonId" 
                         [options]="salesPersonOptions" 
                         placeholder="Select Sales Person">
                     </app-custom-select>
@@ -148,7 +160,11 @@
             <div class="form-grid form-grid-3">
                 <div class="form-group">
                     <label>Sales Partner</label>
-                    <input type="text" class="form-control" [(ngModel)]="commissionData.salesPartner" placeholder="Enter Sales Partner">
+                    <app-custom-select 
+                        [(ngModel)]="commissionData.salesPartnerId" 
+                        [options]="salesPartnerOptions" 
+                        placeholder="Select Sales Partner">
+                    </app-custom-select>
                 </div>
                 <div class="form-group">
                     <label>Commission Percentage</label>
@@ -161,7 +177,7 @@
             </div>
         </div>
 
-        <!-- Items Table Card (Always exists, logic handles visibility/tabs if needed, but per plan we keep it below info) -->
+        <!-- Items Table Card -->
         <div class="form-card items-card" [hidden]="activeTab !== 'Invoice Information'">
             <div class="items-table" [class.transaction-level]="invoiceData.discountAt === 'Transaction Level'">
 
@@ -183,7 +199,7 @@
                         <div class="td-item-desc">
                             <div class="item-select-wrapper">
                                 <app-custom-select 
-                                    [(ngModel)]="item.name" 
+                                    [(ngModel)]="item.item_id" 
                                     [options]="itemSelectOptions" 
                                     placeholder="Select Item"
                                     (ngModelChange)="onItemSelect(item)">
@@ -222,7 +238,7 @@
                         <div class="td-cell td-vat">
                             <div class="vat-select-wrapper">
                                 <app-custom-select 
-                                    [(ngModel)]="item.vat" 
+                                    [(ngModel)]="item.vat_rate_id" 
                                     [options]="vatSelectOptions" 
                                     placeholder="Select"
                                     (ngModelChange)="updateAmount(item)">
@@ -323,8 +339,8 @@
     <!-- Sticky Footer -->
     <div class="page-footer">
         <button class="footer-btn btn-cancel" (click)="cancel()">Cancel</button>
-        <button class="footer-btn btn-draft" (click)="saveAsDraft()">Save as Draft</button>
-        <button class="footer-btn btn-save" (click)="save()">Save</button>
+        <button class="footer-btn btn-draft" (click)="saveAsDraft()" [disabled]="isSaving">Save as Draft</button>
+        <button class="footer-btn btn-save" (click)="save()" [disabled]="isSaving">{{ isEditMode ? 'Update' : 'Save' }}</button>
     </div>
 </div>
 
@@ -367,7 +383,7 @@
             </label>
             <label class="bulk-item-row" *ngFor="let item of filteredBulkItems">
                 <div class="checkbox-wrapper">
-                    <input type="checkbox" [checked]="selectedBulkItems.has(item.name)" (change)="toggleBulkItem(item.name)">
+                    <input type="checkbox" [checked]="selectedBulkItems.has(item.id.toString())" (change)="toggleBulkItem(item.id.toString())">
                     <span class="checkmark"></span>
                 </div>
                 <span class="item-name-label">{{ item.name }}</span>
