@@ -227,13 +227,13 @@ export class InvoicesNew implements OnInit {
           this.items = inv.details.map((d: any, index: number) => {
             const item: InvoiceItem = {
               id: index + 1,
-              item_id: d.item_id,
+              item_id: d.item_id?.toString() || null,
               description: d.description || '',
               rate: Number(d.rate) || 0,
               qty: Number(d.quantity) || 0,
               discount: Number(d.discount_amount) || 0,
               discountType: '%',
-              vat_rate_id: d.vat_rate_id ? d.vat_rate_id.toString() : null,
+              vat_rate_id: d.vat_rate_id?.toString() || null,
               amount: Number(d.line_total) || 0,
             };
             return item;
