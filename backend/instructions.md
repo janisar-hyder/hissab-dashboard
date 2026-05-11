@@ -780,9 +780,14 @@ Fetch all quotations.
           "vat_rate_id": 5,
           "line_total": 525
         }
-      ]
+      ],
+      "save_note_for_future": true,
+      "save_terms_for_future": false
     }
     ```
+*   **Optional Fields**: 
+    *   `save_note_for_future`: (Boolean) Save the `customer_notes` as the global default for all future quotations.
+    *   `save_terms_for_future`: (Boolean) Save the `terms_and_conditions` as the global default for all future quotations.
 
 ### C. Update Quotation
 *   **Method**: `PATCH`
@@ -815,8 +820,54 @@ Fetch all quotations.
 
 ---
 
+## 🧾 11. Invoices Module
+Manage customer billing and payments.
 
-## 🔁 11. Recurring Invoices Module
+### A. List Invoices
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/sales/invoices`
+
+### B. Create Invoice
+*   **Method**: `POST`
+*   **URL**: `{{base_url}}/api/v1/sales/invoices`
+*   **Body (JSON)**:
+    ```json
+    {
+      "invoice_number": "INV-1001",
+      "customer_id": 11,
+      "invoice_date": "2026-05-11",
+      "due_date": "2026-05-15",
+      "currency_id": 11,
+      "sub_total": 100,
+      "grand_total": 105,
+      "details": [
+        {
+          "item_id": 4,
+          "quantity": 1,
+          "rate": 100,
+          "vat_rate_id": 5,
+          "line_total": 105
+        }
+      ],
+      "save_note_for_future": true,
+      "save_terms_for_future": false
+    }
+    ```
+*   **Optional Fields**: 
+    *   `save_note_for_future`: (Boolean) Save the `customer_notes` as the global default for all future invoices.
+    *   `save_terms_for_future`: (Boolean) Save the `terms_and_conditions` as the global default for all future invoices.
+
+### C. Update Invoice
+*   **Method**: `PATCH`
+*   **URL**: `{{base_url}}/api/v1/sales/invoices/:id`
+
+### D. Delete Invoice
+*   **Method**: `DELETE`
+*   **URL**: `{{base_url}}/api/v1/sales/invoices/:id`
+
+---
+
+## 🔁 12. Recurring Invoices Module
 Automated billing profiles for repeat customers.
 
 ### A. List Recurring Invoices
@@ -1208,6 +1259,41 @@ Manage sales returns and apply credits to invoices.
 
 ---
 
+## ⚙️ 15. Sales Settings Module
+Manage global defaults for sales documents like Quotations and Invoices.
+
+### A. Get Module Settings
+Fetch default notes and terms for a specific module.
+*   **Method**: `GET`
+*   **URL**: `{{base_url}}/api/v1/sales/settings/:module` 
+    *   Valid values for `:module`: `quotation`, `invoice`, `recurring-invoice`, `delivery-note`, `credit-note`, `receipt`
+*   **Response**: `200 OK`
+    ```json
+    {
+      "status": "success",
+      "data": {
+        "module": "quotation",
+        "default_note": "Thank you for your business!",
+        "default_terms": "Standard payment terms apply."
+      }
+    }
+    ```
+
+### B. Update Module Settings
+Update global default notes and terms for a module.
+*   **Method**: `PUT`
+*   **URL**: `{{base_url}}/api/v1/sales/settings/:module`
+*   **Body (JSON)**:
+    ```json
+    {
+      "default_note": "New default note",
+      "default_terms": "New default terms"
+    }
+    ```
+*   **Response**: `200 OK`
+
+---
+
 ## 🛠️ Error Reference
 
 | Error Code | Meaning | Likely Cause |
@@ -1217,4 +1303,4 @@ Manage sales returns and apply credits to invoices.
 | **500 Internal Error**| Server Crash | Check the terminal for error logs. |
 
 ---
-*Last Updated: 2026-04-15*
+*Last Updated: 2026-05-11*

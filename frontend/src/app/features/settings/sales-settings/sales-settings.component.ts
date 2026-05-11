@@ -1,9 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BreadcrumbsComponent } from '../../../shared/components/breadcrumbs/breadcrumbs.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { SalesSettingsService } from '../services/sales-settings.service';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 interface SalesModuleConfig {
   title: string;
@@ -34,7 +36,10 @@ export class SalesSettingsComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private salesSettingsService: SalesSettingsService,
+    private notificationService: NotificationService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -42,23 +47,43 @@ export class SalesSettingsComponent implements OnInit {
       const module = params['module'];
       if (this.modulesMap[module]) {
         this.moduleConfig = this.modulesMap[module];
+        this.loadSettings();
       } else {
         this.router.navigate(['/settings']);
       }
     });
   }
 
+  loadSettings(): void {
+    this.salesSettingsService.getSettings(this.moduleConfig.routeKey).subscribe({
+      next: (res) => {
+        if (res.data) {
+          this.note = res.data.default_note || '';
+          this.termsAndConditions = res.data.default_terms || '';
+          this.cdr.detectChanges();
+        }
+      },
+      error: () => {
+        this.notificationService.error('Failed to load settings');
+      }
+    });
+  }
+
   save(): void {
     this.isSaving = true;
-    console.log(`Saving ${this.moduleConfig.title} settings:`, {
-      note: this.note,
-      termsAndConditions: this.termsAndConditions
+    this.salesSettingsService.updateSettings(this.moduleConfig.routeKey, {
+      default_note: this.note,
+      default_terms: this.termsAndConditions
+    }).subscribe({
+      next: () => {
+        this.notificationService.success(`${this.moduleConfig.title} settings saved`);
+        this.isSaving = false;
+      },
+      error: () => {
+        this.notificationService.error('Failed to save settings');
+        this.isSaving = false;
+      }
     });
-
-    // TODO: Wire to API when backend endpoint is ready
-    setTimeout(() => {
-      this.isSaving = false;
-    }, 500);
   }
 
   cancel(): void {

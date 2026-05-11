@@ -84,7 +84,7 @@ exports.getInvoiceById = async (req, res, next) => {
 exports.createInvoice = async (req, res, next) => {
   try {
     const { clientId, userId } = req.user;
-    const { details, ...invoiceData } = req.body;
+    const { details, save_note_for_future, save_terms_for_future, ...invoiceData } = req.body;
 
     if (!invoiceData.customer_id || !details || !Array.isArray(details) || details.length === 0) {
       const error = new Error('Customer and at least one item are required');
@@ -144,6 +144,26 @@ exports.createInvoice = async (req, res, next) => {
       return invoice;
     });
 
+    if (save_note_for_future || save_terms_for_future) {
+      const updateData = {};
+      const createData = { client_id: clientId, module: 'invoice' };
+
+      if (save_note_for_future) {
+        updateData.default_note = invoiceData.customer_notes || '';
+        createData.default_note = invoiceData.customer_notes || '';
+      }
+      if (save_terms_for_future) {
+        updateData.default_terms = invoiceData.terms_and_conditions || '';
+        createData.default_terms = invoiceData.terms_and_conditions || '';
+      }
+
+      await prisma.salesModuleSettings.upsert({
+        where: { client_id_module: { client_id: clientId, module: 'invoice' } },
+        update: updateData,
+        create: createData
+      });
+    }
+
     res.status(201).json({
       success: true,
       data: result
@@ -161,7 +181,7 @@ exports.updateInvoice = async (req, res, next) => {
   try {
     const { clientId, userId } = req.user;
     const { id } = req.params;
-    const { details, ...invoiceData } = req.body;
+    const { details, save_note_for_future, save_terms_for_future, ...invoiceData } = req.body;
 
     const existing = await prisma.invoice.findFirst({
       where: { id: parseInt(id), client_id: clientId }
@@ -220,6 +240,26 @@ exports.updateInvoice = async (req, res, next) => {
 
       return updatedInvoice;
     });
+
+    if (save_note_for_future || save_terms_for_future) {
+      const updateData = {};
+      const createData = { client_id: clientId, module: 'invoice' };
+
+      if (save_note_for_future) {
+        updateData.default_note = invoiceData.customer_notes || '';
+        createData.default_note = invoiceData.customer_notes || '';
+      }
+      if (save_terms_for_future) {
+        updateData.default_terms = invoiceData.terms_and_conditions || '';
+        createData.default_terms = invoiceData.terms_and_conditions || '';
+      }
+
+      await prisma.salesModuleSettings.upsert({
+        where: { client_id_module: { client_id: clientId, module: 'invoice' } },
+        update: updateData,
+        create: createData
+      });
+    }
 
     res.status(200).json({
       success: true,

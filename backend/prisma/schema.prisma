@@ -129,6 +129,7 @@ model Client {
   deliveryNotes           DeliveryNote[]
   receipts                Receipt[]
   creditNotes             CreditNote[]
+  salesModuleSettings     SalesModuleSettings[]
 
   @@map("clients")
 }
@@ -360,6 +361,23 @@ model PurchaseVendor {
   updatedByUser              ClientUser?             @relation("VendorUpdatedBy", fields: [updated_by], references: [id])
 
   @@map("purchase_vendors")
+}
+
+model SalesModuleSettings {
+  id            Int      @id @default(autoincrement())
+  client_id     Int
+  client        Client   @relation(fields: [client_id], references: [id])
+  module        String   @db.VarChar(50) // 'quotation', 'invoice', etc.
+  default_note  String?  @db.Text
+  default_terms String?  @db.Text
+
+  created_by    Int?
+  created_date  DateTime @default(now())
+  updated_by    Int?
+  updated_date  DateTime @default(now()) @updatedAt
+
+  @@unique([client_id, module])
+  @@map("sales_module_settings")
 }
 
 model PurchaseVendorContact {

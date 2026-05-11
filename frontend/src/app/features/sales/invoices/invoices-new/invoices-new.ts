@@ -8,6 +8,7 @@ import { AttachmentsModal } from '../../../../shared/components/attachments-moda
 import { CustomSelectComponent, SelectOption } from '../../../../shared/components/custom-select/custom-select.component';
 import { InvoicesService } from '../services/invoices.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { SalesSettingsService } from '../../../settings/services/sales-settings.service';
 
 interface InvoiceItem {
   id: number;
@@ -117,7 +118,8 @@ export class InvoicesNew implements OnInit {
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
     private invoicesService: InvoicesService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private salesSettingsService: SalesSettingsService
   ) {}
 
   ngOnInit(): void {
@@ -131,7 +133,21 @@ export class InvoicesNew implements OnInit {
       this.isEditMode = true;
       this.editId = parseInt(id);
       this.loadInvoiceDetails(this.editId);
+    } else {
+      this.loadDefaultSettings();
     }
+  }
+
+  loadDefaultSettings() {
+    this.salesSettingsService.getSettings('invoice').subscribe({
+      next: (res) => {
+        if (res.data) {
+          this.note = res.data.default_note || '';
+          this.termsAndConditions = res.data.default_terms || '';
+          this.cdr.detectChanges();
+        }
+      }
+    });
   }
 
   loadDropdownData() {
@@ -447,19 +463,18 @@ export class InvoicesNew implements OnInit {
     this.isSaving = true;
     const payload = {
       invoice_number: this.invoiceData.invoiceNumber === 'Auto Generated' ? undefined : this.invoiceData.invoiceNumber,
-      customer_id: Number(this.invoiceData.customer_id),
+      customer_id: parseInt(this.invoiceData.customer_id),
       invoice_date: this.invoiceData.invoiceDate,
-      due_date: this.invoiceData.dueDate || undefined,
-      payment_terms: this.invoiceData.paymentTerms || undefined,
+      due_date: this.invoiceData.dueDate,
       reference_number: this.invoiceData.referenceNumber,
-      sales_person_id: this.invoiceData.salesPersonId ? Number(this.invoiceData.salesPersonId) : undefined,
+      sales_person_id: this.invoiceData.salesPersonId ? parseInt(this.invoiceData.salesPersonId) : undefined,
       currency_id: this.baseCurrencyId || undefined,
-      sales_partner_id: this.commissionData.salesPartnerId ? Number(this.commissionData.salesPartnerId) : undefined,
-      commission_percentage: Number(this.commissionData.commissionPercentage) || undefined,
-      commission_amount: Number(this.commissionData.commissionAmount) || undefined,
+      sales_partner_id: this.commissionData.salesPartnerId ? parseInt(this.commissionData.salesPartnerId) : undefined,
+      commission_percentage: this.commissionData.commissionPercentage,
+      commission_amount: this.commissionData.commissionAmount,
       status: status,
       discount_level: this.invoiceData.discountAt,
-      discount_amount: Number(this.invoiceData.transactionDiscount) || 0,
+      discount_amount: this.invoiceData.transactionDiscount,
       discount_type: this.invoiceData.transactionDiscountType,
       sub_total: this.subtotal,
       total_discount: this.totalDiscount,
@@ -467,15 +482,17 @@ export class InvoicesNew implements OnInit {
       grand_total: this.grandTotal,
       customer_notes: this.note,
       terms_and_conditions: this.termsAndConditions,
-      details: validItems.map(i => ({
-        item_id: i.item_id as number,
-        description: i.description || undefined,
-        quantity: Number(i.qty) || 0,
-        rate: Number(i.rate) || 0,
-        discount_amount: Number(i.discount) || 0,
-        vat_rate_id: i.vat_rate_id ? Number(i.vat_rate_id) : undefined,
-        line_total: Number(i.amount) || 0,
-      })),
+      save_note_for_future: this.saveNoteForFuture,
+      save_terms_for_future: this.saveTermsForFuture,
+      details: validItems.map(item => ({
+        item_id: item.item_id as number,
+        description: item.description,
+        quantity: item.qty,
+        rate: item.rate,
+        discount_amount: item.discountType === '%' ? (item.rate * item.qty * item.discount / 100) : item.discount,
+        vat_rate_id: item.vat_rate_id || undefined,
+        line_total: item.amount
+      }))
     };
 
     const apiCall = this.isEditMode

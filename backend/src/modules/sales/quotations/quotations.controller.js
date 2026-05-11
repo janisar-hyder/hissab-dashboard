@@ -81,7 +81,7 @@ exports.getQuotationById = async (req, res, next) => {
 exports.createQuotation = async (req, res, next) => {
   try {
     const { clientId, userId } = req.user;
-    const { details, ...quotationData } = req.body;
+    const { details, save_note_for_future, save_terms_for_future, ...quotationData } = req.body;
 
     if (!quotationData.customer_id || !details || !Array.isArray(details) || details.length === 0) {
       const error = new Error('Customer and at least one item are required');
@@ -147,6 +147,26 @@ exports.createQuotation = async (req, res, next) => {
       return quotation;
     });
 
+    if (save_note_for_future || save_terms_for_future) {
+      const updateData = {};
+      const createData = { client_id: clientId, module: 'quotation' };
+
+      if (save_note_for_future) {
+        updateData.default_note = quotationData.customer_notes || '';
+        createData.default_note = quotationData.customer_notes || '';
+      }
+      if (save_terms_for_future) {
+        updateData.default_terms = quotationData.terms_and_conditions || '';
+        createData.default_terms = quotationData.terms_and_conditions || '';
+      }
+
+      await prisma.salesModuleSettings.upsert({
+        where: { client_id_module: { client_id: clientId, module: 'quotation' } },
+        update: updateData,
+        create: createData
+      });
+    }
+
     res.status(201).json({
       success: true,
       data: result
@@ -164,7 +184,7 @@ exports.updateQuotation = async (req, res, next) => {
   try {
     const { clientId, userId } = req.user;
     const { id } = req.params;
-    const { details, ...quotationData } = req.body;
+    const { details, save_note_for_future, save_terms_for_future, ...quotationData } = req.body;
 
     const existing = await prisma.quotation.findFirst({
       where: { id: parseInt(id), client_id: clientId }
@@ -224,6 +244,26 @@ exports.updateQuotation = async (req, res, next) => {
 
       return updatedQuotation;
     });
+
+    if (save_note_for_future || save_terms_for_future) {
+      const updateData = {};
+      const createData = { client_id: clientId, module: 'quotation' };
+
+      if (save_note_for_future) {
+        updateData.default_note = quotationData.customer_notes || '';
+        createData.default_note = quotationData.customer_notes || '';
+      }
+      if (save_terms_for_future) {
+        updateData.default_terms = quotationData.terms_and_conditions || '';
+        createData.default_terms = quotationData.terms_and_conditions || '';
+      }
+
+      await prisma.salesModuleSettings.upsert({
+        where: { client_id_module: { client_id: clientId, module: 'quotation' } },
+        update: updateData,
+        create: createData
+      });
+    }
 
     res.status(200).json({
       success: true,

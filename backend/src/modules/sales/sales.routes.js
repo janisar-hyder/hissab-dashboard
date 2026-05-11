@@ -8,6 +8,7 @@ const recurringInvoicesRoutes = require('./recurring-invoices/recurring-invoices
 const deliveryNotesRoutes = require('./delivery-notes/delivery-notes.routes');
 const receiptsRoutes = require('./receipts/receipts.routes');
 const creditNotesRoutes = require('./credit-notes/credit-notes.routes');
+const settingsRoutes = require('./settings/sales-settings.routes');
 
 router.use('/customers', customersRoutes);
 router.use('/quotations', quotationsRoutes);
@@ -16,5 +17,6 @@ router.use('/recurring-invoices', recurringInvoicesRoutes);
 router.use('/delivery-notes', deliveryNotesRoutes);
 router.use('/receipts', receiptsRoutes);
 router.use('/credit-notes', creditNotesRoutes);
+router.use('/settings', settingsRoutes);
 
 module.exports = router;

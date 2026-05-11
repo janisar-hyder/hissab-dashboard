@@ -8,6 +8,7 @@ import { CustomSelectComponent, SelectOption } from '../../../../shared/componen
 import { AttachmentsModal } from '../../../../shared/components/attachments-modal/attachments-modal';
 import { QuotationsService, Quotation, QuotationDetail } from '../services/quotations.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { SalesSettingsService } from '../../../settings/services/sales-settings.service';
 
 interface QuotationItem {
   id: number; // Local ID for tracking rows
@@ -35,6 +36,7 @@ export class QuotationsNew implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private cdr = inject(ChangeDetectorRef);
+  private salesSettingsService = inject(SalesSettingsService);
 
   isAttachmentsModalOpen = false;
   isEditMode = false;
@@ -121,7 +123,21 @@ export class QuotationsNew implements OnInit {
       this.isEditMode = true;
       this.editId = Number(id);
       this.loadQuotationDetails(this.editId);
+    } else {
+      this.loadDefaultSettings();
     }
+  }
+
+  loadDefaultSettings() {
+    this.salesSettingsService.getSettings('quotation').subscribe({
+      next: (res) => {
+        if (res.data) {
+          this.note = res.data.default_note || '';
+          this.termsAndConditions = res.data.default_terms || '';
+          this.cdr.detectChanges();
+        }
+      }
+    });
   }
 
   loadDropdownData() {
@@ -441,15 +457,17 @@ export class QuotationsNew implements OnInit {
       grand_total: this.grandTotal,
       customer_notes: this.note,
       terms_and_conditions: this.termsAndConditions,
+      save_note_for_future: this.saveNoteForFuture,
+      save_terms_for_future: this.saveTermsForFuture,
       details: validItems.map(i => ({
-        item_id: i.item_id as number,
-        description: i.description,
-        quantity: i.qty,
-        rate: i.rate,
-        discount_amount: i.discountType === '%' ? (i.rate * i.qty * i.discount / 100) : i.discount,
-        vat_rate_id: i.vat_rate_id ? Number(i.vat_rate_id) : undefined,
-        line_total: i.amount
-      }))
+          item_id: i.item_id as number,
+          description: i.description,
+          quantity: i.qty,
+          rate: i.rate,
+          discount_amount: i.discountType === '%' ? (i.rate * i.qty * i.discount / 100) : i.discount,
+          vat_rate_id: i.vat_rate_id || undefined,
+          line_total: i.amount
+        }))
     };
 
     const action = this.isEditMode && this.editId 
