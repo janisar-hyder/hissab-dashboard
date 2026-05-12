@@ -59,6 +59,7 @@ export class RecurringInvoicesListComponent implements OnInit {
     isManageColumnsOpen = false;
     openMenuId: string | null = null;
     profileToDelete: RecurringInvoice | null = null;
+    isBulkDeleteModalOpen = false;
     currentFilter: 'All' | 'Active' | 'Expired' | string = 'All';
 
     // Sorting and Filter properties
@@ -175,32 +176,35 @@ export class RecurringInvoicesListComponent implements OnInit {
         }
     }
 
-    toggleSelection(id: string): void {
-        if (this.selectedIds.has(id)) {
-            this.selectedIds.delete(id);
+    toggleSelection(id: any): void {
+        const idStr = id.toString();
+        if (this.selectedIds.has(idStr)) {
+            this.selectedIds.delete(idStr);
         } else {
-            this.selectedIds.add(id);
+            this.selectedIds.add(idStr);
         }
+        this.cdr.detectChanges();
     }
 
     isAllSelected(): boolean {
         const currentList = this.paginatedInvoices;
-        return currentList.length > 0 && currentList.every(i => this.selectedIds.has(i.id));
+        return currentList.length > 0 && currentList.every(i => this.selectedIds.has(i.id.toString()));
     }
 
     isPartiallySelected(): boolean {
         const currentList = this.paginatedInvoices;
-        const selectedInCurrent = currentList.filter(i => this.selectedIds.has(i.id)).length;
+        const selectedInCurrent = currentList.filter(i => this.selectedIds.has(i.id.toString())).length;
         return selectedInCurrent > 0 && selectedInCurrent < currentList.length;
     }
 
     toggleAll(event?: any): void {
         const currentList = this.paginatedInvoices;
         if (this.isAllSelected()) {
-            currentList.forEach(i => this.selectedIds.delete(i.id));
+            currentList.forEach(i => this.selectedIds.delete(i.id.toString()));
         } else {
-            currentList.forEach(i => this.selectedIds.add(i.id));
+            currentList.forEach(i => this.selectedIds.add(i.id.toString()));
         }
+        this.cdr.detectChanges();
     }
 
     clearSearch() {
@@ -262,6 +266,7 @@ export class RecurringInvoicesListComponent implements OnInit {
                     this.recurringInvoices = this.recurringInvoices.filter(i => i.id !== this.profileToDelete!.id);
                     this.selectedIds.delete(this.profileToDelete!.id.toString());
                     this.profileToDelete = null;
+                    this.cdr.detectChanges();
                     
                     if (this.itemsPerPage !== 'All') {
                         const maxPage = Math.ceil(this.recurringInvoices.length / Number(this.itemsPerPage)) || 1;
@@ -277,26 +282,68 @@ export class RecurringInvoicesListComponent implements OnInit {
         }
     }
 
+    get availableBulkActions(): BulkAction[] {
+        const selectedProfiles = this.recurringInvoices.filter(i => this.selectedIds.has(i.id.toString()));
+        if (selectedProfiles.length === 0) return [];
+
+        const hasActive = selectedProfiles.some(p => p.status === 'Active');
+        const hasExpired = selectedProfiles.some(p => p.status === 'Expired' || p.status === 'Inactive');
+
+        const actions: BulkAction[] = [
+            { id: 'delete', label: 'Delete Profiles', colorClass: 'text-danger' }
+        ];
+
+        if (hasActive) {
+            actions.push({ id: 'inactive', label: 'Mark as Inactive' });
+        }
+        if (hasExpired) {
+            actions.push({ id: 'active', label: 'Mark as Active' });
+        }
+
+        return actions;
+    }
+
     handleBulkAction(actionId: string): void {
         if (actionId === 'delete') {
-            const idsToDelete = Array.from(this.selectedIds);
-            this.recurringInvoicesService.deleteBulkRecurringInvoices(idsToDelete).subscribe({
+            this.isBulkDeleteModalOpen = true;
+        } else if (actionId === 'active' || actionId === 'inactive') {
+            const status = actionId === 'active' ? 'Active' : 'Expired';
+            const ids = Array.from(this.selectedIds);
+            this.recurringInvoicesService.updateBulkStatus(ids, status).subscribe({
                 next: () => {
-                    this.recurringInvoices = this.recurringInvoices.filter(i => !this.selectedIds.has(i.id.toString()));
+                    this.loadRecurringInvoices();
                     this.selectedIds.clear();
-                    
-                    if (this.itemsPerPage !== 'All') {
-                        const maxPage = Math.ceil(this.recurringInvoices.length / Number(this.itemsPerPage)) || 1;
-                        if (this.currentPage > maxPage) {
-                            this.currentPage = maxPage;
-                        }
-                    }
                 },
-                error: (err) => {
-                    console.error('Error bulk deleting recurring invoices:', err);
-                }
+                error: (err) => console.error('Error updating bulk status:', err)
             });
         }
+    }
+
+    confirmBulkDelete(): void {
+        const idsToDelete = Array.from(this.selectedIds);
+        this.recurringInvoicesService.deleteBulkRecurringInvoices(idsToDelete).subscribe({
+            next: () => {
+                this.recurringInvoices = this.recurringInvoices.filter(i => !this.selectedIds.has(i.id.toString()));
+                this.selectedIds.clear();
+                this.isBulkDeleteModalOpen = false;
+                
+                if (this.itemsPerPage !== 'All') {
+                    const maxPage = Math.ceil(this.recurringInvoices.length / Number(this.itemsPerPage)) || 1;
+                    if (this.currentPage > maxPage) {
+                        this.currentPage = maxPage;
+                    }
+                }
+                this.cdr.detectChanges();
+            },
+            error: (err) => {
+                console.error('Error bulk deleting recurring invoices:', err);
+                this.isBulkDeleteModalOpen = false;
+            }
+        });
+    }
+
+    closeBulkDeleteModal(): void {
+        this.isBulkDeleteModalOpen = false;
     }
 
     onPageChange(page: number) {

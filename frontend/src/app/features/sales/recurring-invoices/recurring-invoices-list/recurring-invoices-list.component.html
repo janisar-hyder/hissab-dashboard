@@ -5,7 +5,7 @@
             <h1 class="page-title">Recurring Invoices</h1>
         </div>
         <div class="header-actions" *ngIf="recurringInvoices.length > 0">
-            <app-bulk-actions [selectedCount]="selectedIds.size" [actions]="bulkActions"
+            <app-bulk-actions [selectedCount]="selectedIds.size" [actions]="availableBulkActions"
                 (actionSelected)="handleBulkAction($event)">
             </app-bulk-actions>
             <app-button variant="primary" iconPrefix="las la-plus" (clicked)="navigateToNew()">Add New Recurring Invoice</app-button>
@@ -75,7 +75,7 @@
                     <tr *ngFor="let cn of paginatedInvoices" class="clickable-row" (click)="navigateToInfo(cn.id)">
                         <td class="col-checkbox" (click)="$event.stopPropagation()">
                             <label class="custom-checkbox">
-                                <input type="checkbox" [checked]="selectedIds.has(cn.id)"
+                                <input type="checkbox" [checked]="selectedIds.has(cn.id.toString())"
                                     (change)="toggleSelection(cn.id)">
                                 <span class="checkmark"></span>
                             </label>
@@ -174,4 +174,10 @@
 <app-delete-modal [isOpen]="!!profileToDelete" title="Delete Recurring Profile"
     message="Are you sure you want to delete this recurring profile? This action cannot be undone."
     (cancel)="closeDeleteModal()" (confirm)="confirmDelete()">
+</app-delete-modal>
+
+<!-- Bulk Delete Confirmation Modal -->
+<app-delete-modal [isOpen]="isBulkDeleteModalOpen" title="Delete Multiple Profiles"
+    [message]="'Are you sure you want to delete ' + selectedIds.size + ' selected profiles? This action cannot be undone.'"
+    (cancel)="closeBulkDeleteModal()" (confirm)="confirmBulkDelete()">
 </app-delete-modal>
