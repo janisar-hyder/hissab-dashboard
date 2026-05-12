@@ -87,6 +87,16 @@ exports.createRecurringInvoice = async (req, res, next) => {
       throw error;
     }
 
+    // Convert date strings to Date objects
+    if (recurringInvoiceData.starts_on) recurringInvoiceData.starts_on = new Date(recurringInvoiceData.starts_on);
+    if (recurringInvoiceData.ends_on) recurringInvoiceData.ends_on = new Date(recurringInvoiceData.ends_on);
+    if (recurringInvoiceData.last_invoice_date) recurringInvoiceData.last_invoice_date = new Date(recurringInvoiceData.last_invoice_date);
+    if (recurringInvoiceData.next_invoice_date) {
+      recurringInvoiceData.next_invoice_date = new Date(recurringInvoiceData.next_invoice_date);
+    } else {
+      recurringInvoiceData.next_invoice_date = recurringInvoiceData.starts_on ? new Date(recurringInvoiceData.starts_on) : new Date();
+    }
+
     // Start a transaction
     const result = await prisma.$transaction(async (tx) => {
       const recurringInvoice = await tx.recurringInvoice.create({
@@ -94,7 +104,6 @@ exports.createRecurringInvoice = async (req, res, next) => {
           ...recurringInvoiceData,
           client_id: clientId,
           created_by: userId,
-          next_invoice_date: recurringInvoiceData.starts_on ? new Date(recurringInvoiceData.starts_on) : new Date(),
           details: {
             create: details.map(item => ({
               item_id: item.item_id,
@@ -143,6 +152,12 @@ exports.updateRecurringInvoice = async (req, res, next) => {
 
     // Filter out restricted fields
     const { id: _, client_id: __, created_by: ___, created_date: ____, ...updateData } = recurringInvoiceData;
+
+    // Convert date strings to Date objects
+    if (updateData.starts_on) updateData.starts_on = new Date(updateData.starts_on);
+    if (updateData.ends_on) updateData.ends_on = new Date(updateData.ends_on);
+    if (updateData.last_invoice_date) updateData.last_invoice_date = new Date(updateData.last_invoice_date);
+    if (updateData.next_invoice_date) updateData.next_invoice_date = new Date(updateData.next_invoice_date);
 
     const result = await prisma.$transaction(async (tx) => {
       // 1. Update the header
