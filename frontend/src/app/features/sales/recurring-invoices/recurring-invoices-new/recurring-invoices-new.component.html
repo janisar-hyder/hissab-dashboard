@@ -91,7 +91,7 @@
                 <div class="form-group">
                     <label>Accounts Receivable</label>
                     <app-custom-select 
-                        [(ngModel)]="formData.accountsReceivable" 
+                        [(ngModel)]="formData.accounts_receivable_id" 
                         [options]="accountsReceivableOptions" 
                         placeholder="Select Account">
                     </app-custom-select>
@@ -132,7 +132,7 @@
                         <div class="td-item-desc">
                             <div class="item-select-wrapper">
                                 <app-custom-select 
-                                    [(ngModel)]="item.name" 
+                                    [(ngModel)]="item.item_id" 
                                     [options]="itemSelectOptions" 
                                     placeholder="Select Item"
                                     (ngModelChange)="onItemSelect(item)">
@@ -171,7 +171,7 @@
                         <div class="td-cell td-vat">
                             <div class="vat-select-wrapper">
                                 <app-custom-select 
-                                    [(ngModel)]="item.vat" 
+                                    [(ngModel)]="item.vat_rate_id" 
                                     [options]="vatSelectOptions" 
                                     placeholder="Select"
                                     (ngModelChange)="updateAmount(item)">
@@ -181,7 +181,7 @@
 
                         <!-- Amount -->
                         <div class="td-cell td-amount">
-                            <input type="text" class="cell-input amount-readonly" [value]="item.amount.toFixed(3)" readonly tabindex="-1">
+                            <input type="text" class="cell-input amount-readonly" [value]="item.line_total.toFixed(3)" readonly tabindex="-1">
                         </div>
 
                         <!-- Delete -->
@@ -311,7 +311,7 @@
             </label>
             <label class="bulk-item-row" *ngFor="let item of filteredBulkItems">
                 <div class="checkbox-wrapper">
-                    <input type="checkbox" [checked]="selectedBulkItems.has(item.name)" (change)="toggleBulkItem(item.name)">
+                    <input type="checkbox" [checked]="selectedBulkItems.has(item.id)" (change)="toggleBulkItem(item.id)">
                     <span class="checkmark"></span>
                 </div>
                 <span class="item-name-label">{{ item.name }}</span>

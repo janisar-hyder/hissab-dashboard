@@ -203,6 +203,32 @@
                     border-bottom-right-radius: 12px;
                 }
             }
+
+            /* Loading Skeletons */
+            .sidebar-loading {
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .skeleton {
+                background: linear-gradient(90deg, #f1f5f9 25%, #f8fafc 50%, #f1f5f9 75%);
+                background-size: 200% 100%;
+                animation: skeleton-loading 1.5s infinite linear;
+                border-radius: 4px;
+            }
+
+            .sidebar-row-skeleton {
+                height: 60px;
+                width: 100%;
+                border-radius: 8px;
+            }
+
+            @keyframes skeleton-loading {
+                0% { background-position: 200% 0; }
+                100% { background-position: -200% 0; }
+            }
         }
     }
 

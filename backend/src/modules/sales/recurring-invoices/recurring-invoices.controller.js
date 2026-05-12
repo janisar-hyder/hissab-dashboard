@@ -79,7 +79,7 @@ exports.getRecurringInvoiceById = async (req, res, next) => {
 exports.createRecurringInvoice = async (req, res, next) => {
   try {
     const { clientId, userId } = req.user;
-    const { details, ...recurringInvoiceData } = req.body;
+    const { details, save_note_for_future, save_terms_for_future, ...recurringInvoiceData } = req.body;
 
     if (!recurringInvoiceData.customer_id || !recurringInvoiceData.profile_name || !details || !Array.isArray(details) || details.length === 0) {
       const error = new Error('Profile name, Customer and at least one item are required');
@@ -88,10 +88,23 @@ exports.createRecurringInvoice = async (req, res, next) => {
     }
 
     // Convert date strings to Date objects
-    if (recurringInvoiceData.starts_on) recurringInvoiceData.starts_on = new Date(recurringInvoiceData.starts_on);
-    if (recurringInvoiceData.ends_on) recurringInvoiceData.ends_on = new Date(recurringInvoiceData.ends_on);
-    if (recurringInvoiceData.last_invoice_date) recurringInvoiceData.last_invoice_date = new Date(recurringInvoiceData.last_invoice_date);
-    if (recurringInvoiceData.next_invoice_date) {
+    if (recurringInvoiceData.starts_on && recurringInvoiceData.starts_on !== "") {
+      recurringInvoiceData.starts_on = new Date(recurringInvoiceData.starts_on);
+    } else {
+      recurringInvoiceData.starts_on = new Date();
+    }
+
+    if (recurringInvoiceData.ends_on && recurringInvoiceData.ends_on !== "") {
+      recurringInvoiceData.ends_on = new Date(recurringInvoiceData.ends_on);
+    } else {
+      recurringInvoiceData.ends_on = null;
+    }
+
+    if (recurringInvoiceData.last_invoice_date && recurringInvoiceData.last_invoice_date !== "") {
+      recurringInvoiceData.last_invoice_date = new Date(recurringInvoiceData.last_invoice_date);
+    }
+
+    if (recurringInvoiceData.next_invoice_date && recurringInvoiceData.next_invoice_date !== "") {
       recurringInvoiceData.next_invoice_date = new Date(recurringInvoiceData.next_invoice_date);
     } else {
       recurringInvoiceData.next_invoice_date = recurringInvoiceData.starts_on ? new Date(recurringInvoiceData.starts_on) : new Date();
@@ -102,17 +115,20 @@ exports.createRecurringInvoice = async (req, res, next) => {
       const recurringInvoice = await tx.recurringInvoice.create({
         data: {
           ...recurringInvoiceData,
-          client_id: clientId,
-          created_by: userId,
+          client_id: Number(clientId),
+          created_by: Number(userId),
+          customer_id: Number(recurringInvoiceData.customer_id),
+          accounts_receivable_id: recurringInvoiceData.accounts_receivable_id ? Number(recurringInvoiceData.accounts_receivable_id) : null,
           details: {
             create: details.map(item => ({
-              item_id: item.item_id,
+              item_id: Number(item.item_id),
               quantity: item.quantity,
               rate: item.rate,
               discount_amount: item.discount_amount || 0,
-              vat_rate_id: item.vat_rate_id,
+              vat_rate_id: item.vat_rate_id ? Number(item.vat_rate_id) : null,
               line_total: item.line_total,
-              description: item.description
+              description: item.description,
+              created_by: Number(userId)
             }))
           }
         }
@@ -120,6 +136,26 @@ exports.createRecurringInvoice = async (req, res, next) => {
 
       return recurringInvoice;
     });
+
+    if (save_note_for_future || save_terms_for_future) {
+      const updateData = {};
+      const createData = { client_id: clientId, module: 'recurring-invoice' };
+
+      if (save_note_for_future) {
+        updateData.default_note = recurringInvoiceData.customer_notes || '';
+        createData.default_note = recurringInvoiceData.customer_notes || '';
+      }
+      if (save_terms_for_future) {
+        updateData.default_terms = recurringInvoiceData.terms_and_conditions || '';
+        createData.default_terms = recurringInvoiceData.terms_and_conditions || '';
+      }
+
+      await prisma.salesModuleSettings.upsert({
+        where: { client_id_module: { client_id: clientId, module: 'recurring-invoice' } },
+        update: updateData,
+        create: createData
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -138,7 +174,7 @@ exports.updateRecurringInvoice = async (req, res, next) => {
   try {
     const { clientId, userId } = req.user;
     const { id } = req.params;
-    const { details, ...recurringInvoiceData } = req.body;
+    const { details, save_note_for_future, save_terms_for_future, ...recurringInvoiceData } = req.body;
 
     const existing = await prisma.recurringInvoice.findFirst({
       where: { id: parseInt(id), client_id: clientId }
@@ -154,10 +190,20 @@ exports.updateRecurringInvoice = async (req, res, next) => {
     const { id: _, client_id: __, created_by: ___, created_date: ____, ...updateData } = recurringInvoiceData;
 
     // Convert date strings to Date objects
-    if (updateData.starts_on) updateData.starts_on = new Date(updateData.starts_on);
-    if (updateData.ends_on) updateData.ends_on = new Date(updateData.ends_on);
-    if (updateData.last_invoice_date) updateData.last_invoice_date = new Date(updateData.last_invoice_date);
-    if (updateData.next_invoice_date) updateData.next_invoice_date = new Date(updateData.next_invoice_date);
+    if (updateData.starts_on && updateData.starts_on !== "") {
+      updateData.starts_on = new Date(updateData.starts_on);
+    }
+    if (updateData.ends_on && updateData.ends_on !== "") {
+      updateData.ends_on = new Date(updateData.ends_on);
+    } else if (updateData.ends_on === "") {
+      updateData.ends_on = null;
+    }
+    if (updateData.last_invoice_date && updateData.last_invoice_date !== "") {
+      updateData.last_invoice_date = new Date(updateData.last_invoice_date);
+    }
+    if (updateData.next_invoice_date && updateData.next_invoice_date !== "") {
+      updateData.next_invoice_date = new Date(updateData.next_invoice_date);
+    }
 
     const result = await prisma.$transaction(async (tx) => {
       // 1. Update the header
@@ -165,7 +211,9 @@ exports.updateRecurringInvoice = async (req, res, next) => {
         where: { id: parseInt(id) },
         data: {
           ...updateData,
-          updated_by: userId,
+          customer_id: updateData.customer_id ? Number(updateData.customer_id) : undefined,
+          accounts_receivable_id: updateData.accounts_receivable_id ? Number(updateData.accounts_receivable_id) : undefined,
+          updated_by: Number(userId),
           updated_date: new Date()
         }
       });
@@ -179,20 +227,41 @@ exports.updateRecurringInvoice = async (req, res, next) => {
         await tx.recurringInvoiceDetail.createMany({
           data: details.map(item => ({
             recurring_invoice_id: parseInt(id),
-            item_id: item.item_id,
+            item_id: Number(item.item_id),
             quantity: item.quantity,
             rate: item.rate,
             discount_amount: item.discount_amount || 0,
-            vat_rate_id: item.vat_rate_id,
+            vat_rate_id: item.vat_rate_id ? Number(item.vat_rate_id) : null,
             line_total: item.line_total,
             description: item.description,
-            created_by: userId
+            created_by: Number(userId),
+            updated_by: Number(userId)
           }))
         });
       }
 
       return updatedRecurringInvoice;
     });
+
+    if (save_note_for_future || save_terms_for_future) {
+      const updateData = {};
+      const createData = { client_id: clientId, module: 'recurring-invoice' };
+
+      if (save_note_for_future) {
+        updateData.default_note = recurringInvoiceData.customer_notes || '';
+        createData.default_note = recurringInvoiceData.customer_notes || '';
+      }
+      if (save_terms_for_future) {
+        updateData.default_terms = recurringInvoiceData.terms_and_conditions || '';
+        createData.default_terms = recurringInvoiceData.terms_and_conditions || '';
+      }
+
+      await prisma.salesModuleSettings.upsert({
+        where: { client_id_module: { client_id: clientId, module: 'recurring-invoice' } },
+        update: updateData,
+        create: createData
+      });
+    }
 
     res.status(200).json({
       success: true,

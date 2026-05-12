@@ -85,7 +85,7 @@ exports.getCreditNoteById = async (req, res, next) => {
 exports.createCreditNote = async (req, res, next) => {
   try {
     const { clientId, userId } = req.user;
-    const { details, applications, ...creditNoteData } = req.body;
+    const { details, applications, save_note_for_future, save_terms_for_future, ...creditNoteData } = req.body;
 
     if (!creditNoteData.customer_id || !creditNoteData.credit_note_number || !details || !Array.isArray(details) || details.length === 0) {
       const error = new Error('Credit note number, Customer and at least one item are required');
@@ -163,6 +163,26 @@ exports.createCreditNote = async (req, res, next) => {
       return creditNote;
     });
 
+    if (save_note_for_future || save_terms_for_future) {
+      const updateData = {};
+      const createData = { client_id: clientId, module: 'credit-note' };
+
+      if (save_note_for_future) {
+        updateData.default_note = creditNoteData.customer_notes || '';
+        createData.default_note = creditNoteData.customer_notes || '';
+      }
+      if (save_terms_for_future) {
+        updateData.default_terms = creditNoteData.terms_and_conditions || '';
+        createData.default_terms = creditNoteData.terms_and_conditions || '';
+      }
+
+      await prisma.salesModuleSettings.upsert({
+        where: { client_id_module: { client_id: clientId, module: 'credit-note' } },
+        update: updateData,
+        create: createData
+      });
+    }
+
     res.status(201).json({
       success: true,
       data: result
@@ -233,7 +253,7 @@ exports.updateCreditNote = async (req, res, next) => {
   try {
     const { clientId, userId } = req.user;
     const { id } = req.params;
-    const { reference_number, customer_notes, terms_and_conditions, sales_person_id } = req.body;
+    const { reference_number, customer_notes, terms_and_conditions, sales_person_id, save_note_for_future, save_terms_for_future } = req.body;
 
     const existing = await prisma.creditNote.findFirst({
       where: { id: parseInt(id), client_id: clientId }
@@ -256,6 +276,26 @@ exports.updateCreditNote = async (req, res, next) => {
         updated_date: new Date()
       }
     });
+
+    if (save_note_for_future || save_terms_for_future) {
+      const updateSetData = {};
+      const createSetData = { client_id: clientId, module: 'credit-note' };
+
+      if (save_note_for_future) {
+        updateSetData.default_note = customer_notes || '';
+        createSetData.default_note = customer_notes || '';
+      }
+      if (save_terms_for_future) {
+        updateSetData.default_terms = terms_and_conditions || '';
+        createSetData.default_terms = terms_and_conditions || '';
+      }
+
+      await prisma.salesModuleSettings.upsert({
+        where: { client_id_module: { client_id: clientId, module: 'credit-note' } },
+        update: updateSetData,
+        create: createSetData
+      });
+    }
 
     res.status(200).json({
       success: true,

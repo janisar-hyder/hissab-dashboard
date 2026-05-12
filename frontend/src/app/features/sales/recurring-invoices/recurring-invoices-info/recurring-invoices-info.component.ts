@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, signal, computed, inject } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
+import { RecurringInvoicesService } from '../services/recurring-invoices.service';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
@@ -51,154 +52,134 @@ export interface RecurringProfile {
     styleUrls: ['./recurring-invoices-info.component.scss']
 })
 export class RecurringInvoicesInfoComponent implements OnInit {
-    profiles: RecurringProfile[] = [
-        {
-            id: '1',
-            profileName: '2 Weeks',
-            customerName: 'Transpak Equipment',
-            customerContact: 'Liam Carter',
-            customerAddress: ['Shop 45, Plaza 7890, Avenue 1234,', 'District 567, Manama, Bahrain'],
-            frequency: '2 Weeks',
-            status: 'Active',
-            amount: 434.000,
-            subTotal: 450.000,
-            vatAmount: 0.000,
-            discountTotal: 16.000,
-            total: 434.000,
-            invoiceDate: '11 Feb, 2026',
-            dueDate: '01 Mar, 2026',
-            notes: 'We look forward to a successful partnership.',
-            terms: 'To kick things off, we need a 60% deposit upfront. The remaining 40% is due once we wrap up and deliver the final product.',
-            items: [
-                { name: 'Customer Relationship Management', description: 'The project involves creating an ERP system that is user-friendly and adaptable, featuring essential module Customer Relationship Management.', qty: 1.00, rate: 450.000, discount: 16.000, vat: 0 }
-            ],
-            pastInvoices: [
-                { date: '11 Feb, 2026', invoiceNo: 'INV-004', amount: 434.000 }
-            ]
-        },
-        {
-            id: '2',
-            profileName: '1 Month',
-            customerName: 'The Habegger Corp',
-            customerContact: 'Sara Al-Mansoori',
-            customerAddress: ['Store 12, Complex 3045, Street 4567,', 'Zone 910, Riffa, Bahrain'],
-            frequency: '1 Month',
-            status: 'Active',
-            amount: 2800.000,
-            subTotal: 3120.000,
-            vatAmount: 0.000,
-            discountTotal: 320.000,
-            total: 2800.000,
-            invoiceDate: '05 Feb, 2026',
-            dueDate: '10 Mar, 2026',
-            notes: 'We look forward to a successful partnership.',
-            terms: 'A deposit of 60% is required upfront to initiate the project. 40% due upon successful completion and delivery of the final product.',
-            items: [
-                { name: 'Website Development', description: 'The project includes the design and development of a basic, responsive website consisting of up to four pages such as Home, About, Services, and Contact.', qty: 1.00, rate: 120.000, discount: 20.000, vat: 0 },
-                { name: 'Mobile App Development', description: 'This project aims to develop a user-friendly mobile application alongside an e-commerce platform, including key sections such as Home, Products, Cart, and Checkout.', qty: 1.00, rate: 2200.000, discount: 200.000, vat: 0 },
-                { name: 'E-commerce Website Development', description: 'This project focuses on creating an intuitive e-commerce website featuring essential sections like Home, Products, Cart, and Checkout.', qty: 1.00, rate: 800.000, discount: 100.000, vat: 0 }
-            ],
-            pastInvoices: [
-                { date: '14 Mar, 2026', invoiceNo: 'INV-017', amount: 2800.000 },
-                { date: '14 Jan, 2026', invoiceNo: 'INV-003', amount: 2800.000 }
-            ]
-        },
-        {
-            id: '3',
-            profileName: '2 Month',
-            customerName: 'Sigler Wholesale',
-            customerContact: 'Ismael',
-            customerAddress: ['Shop No. 236, Building 432, Road 34,', 'Block 902, East Riffa, Bahrain'],
-            frequency: '2 Month',
-            status: 'Expired',
-            amount: 550.000,
-            subTotal: 500.000,
-            vatAmount: 50.000,
-            discountTotal: 0.000,
-            total: 550.000,
-            invoiceDate: '06 Feb, 2026',
-            dueDate: '06 Mar, 2026',
-            notes: '',
-            terms: '60% Advance & 40% upon completion',
-            items: [
-                { name: 'Premium Website Development', description: 'The project includes the design and development of a basic, responsive website consisting of up to four pages such as Home, About, Services, and Contact.', qty: 1.00, rate: 500.000, discount: 0.000, vat: 10 }
-            ],
-            pastInvoices: [
-                { date: '06 Feb, 2026', invoiceNo: 'INV-003', amount: 550.000 }
-            ]
-        }
-    ];
+    private recurringInvoicesService = inject(RecurringInvoicesService);
+    private route = inject(ActivatedRoute);
+    private router = inject(Router);
+    private cdr = inject(ChangeDetectorRef);
 
-    selectedProfile: RecurringProfile | null = null;
-    activeTab: 'Overview' | 'Next Invoice' | 'Past Invoices' = 'Overview';
-    searchTerm: string = '';
-    selectedStatus: string = 'All';
+    profiles = signal<any[]>([]);
+    selectedProfile = signal<any>(null);
+    isLoadingSidebar = signal(false);
+    isLoadingDetail = signal(false);
+    activeTab = signal<'Overview' | 'Next Invoice' | 'Past Invoices'>('Overview');
+    searchTerm = signal('');
+    selectedStatus = signal('All');
+    currentPage = signal(1);
+    itemsPerPage = signal(10);
+    calculatedDiscountTotal = signal(0);
 
-    // Pagination for sidebar
-    currentPage = 1;
-    itemsPerPage = 10;
+    filteredProfiles = computed(() => {
+        const profiles = this.profiles();
+        const term = this.searchTerm().toLowerCase();
+        const status = this.selectedStatus();
+
+        return profiles.filter(p => {
+            const matchesSearch = (p.customer?.name || '').toLowerCase().includes(term) || 
+                                 (p.profile_name || '').toLowerCase().includes(term);
+            const matchesStatus = status === 'All' || p.status === status;
+            return matchesSearch && matchesStatus;
+        });
+    });
+
+    paginatedProfiles = computed(() => {
+        const filtered = this.filteredProfiles();
+        const start = (this.currentPage() - 1) * this.itemsPerPage();
+        return filtered.slice(start, start + this.itemsPerPage());
+    });
 
     filterOptions: FilterOption[] = [
         { label: 'Active', value: 'Active', colorHex: '#10b981' },
         { label: 'Expired', value: 'Expired', colorHex: '#64748b' }
     ];
 
-    constructor(
-        private route: ActivatedRoute,
-        private router: Router
-    ) {}
-
     ngOnInit(): void {
+        this.loadSidebarProfiles();
         this.route.params.subscribe(params => {
             const id = params['id'];
             if (id) {
-                this.selectedProfile = this.profiles.find(p => p.id === id) || this.profiles[0];
-            } else {
-                this.selectedProfile = this.profiles[0];
-            }
-            if (this.selectedProfile?.status === 'Expired' && this.activeTab === 'Next Invoice') {
-                this.activeTab = 'Overview';
+                this.loadProfileDetail(id);
             }
         });
     }
 
-    get filteredProfiles(): RecurringProfile[] {
-        return this.profiles.filter(p => {
-            const matchesSearch = p.customerName.toLowerCase().includes(this.searchTerm.toLowerCase()) || 
-                                p.profileName.toLowerCase().includes(this.searchTerm.toLowerCase());
-            const matchesStatus = this.selectedStatus === 'All' || p.status === this.selectedStatus;
-            return matchesSearch && matchesStatus;
+    loadSidebarProfiles(): void {
+        this.isLoadingSidebar.set(true);
+        this.recurringInvoicesService.getRecurringInvoices().subscribe({
+            next: (res) => {
+                this.profiles.set(res.data || []);
+                this.isLoadingSidebar.set(false);
+                
+                if (!this.selectedProfile() && (res.data || []).length > 0 && !this.route.snapshot.params['id']) {
+                    this.onProfileClick(res.data[0].id);
+                }
+                this.cdr.detectChanges();
+            },
+            error: (err) => {
+                console.error('Error fetching sidebar profiles:', err);
+                this.isLoadingSidebar.set(false);
+                this.cdr.detectChanges();
+            }
         });
     }
 
-    get paginatedProfiles(): RecurringProfile[] {
-        const start = (this.currentPage - 1) * this.itemsPerPage;
-        return this.filteredProfiles.slice(start, start + this.itemsPerPage);
+    loadProfileDetail(id: string): void {
+        this.isLoadingDetail.set(true);
+        this.recurringInvoicesService.getRecurringInvoiceById(id).subscribe({
+            next: (res) => {
+                this.selectedProfile.set(res.data);
+                this.isLoadingDetail.set(false);
+                this.updateDiscountTotal();
+                if (this.selectedProfile()?.status === 'Expired' && this.activeTab() === 'Next Invoice') {
+                    this.activeTab.set('Overview');
+                }
+                this.cdr.detectChanges();
+            },
+            error: (err) => {
+                console.error('Error fetching profile detail:', err);
+                this.isLoadingDetail.set(false);
+                this.cdr.detectChanges();
+            }
+        });
+    }
+
+    updateDiscountTotal(): void {
+        const profile = this.selectedProfile();
+        if (!profile || !profile.details) {
+            this.calculatedDiscountTotal.set(0);
+            return;
+        }
+        const total = profile.details.reduce((sum: number, item: any) => sum + (Number(item.discount_amount) || 0), 0);
+        this.calculatedDiscountTotal.set(total);
+    }
+
+    onSearchChange(term: string): void {
+        this.searchTerm.set(term);
+        this.currentPage.set(1);
+    }
+
+    onFilterChange(status: string): void {
+        this.selectedStatus.set(status);
+        this.currentPage.set(1);
+    }
+
+    onPageChange(page: number): void {
+        this.currentPage.set(page);
+    }
+
+    setActiveTab(tab: 'Overview' | 'Next Invoice' | 'Past Invoices'): void {
+        this.activeTab.set(tab);
     }
 
     onProfileClick(id: string): void {
         this.router.navigate(['/sales/recurring-invoices/info', id]);
     }
 
-    setActiveTab(tab: 'Overview' | 'Next Invoice' | 'Past Invoices'): void {
-        this.activeTab = tab;
-    }
-
-    onFilterChange(status: string): void {
-        this.selectedStatus = status;
-        this.currentPage = 1;
-    }
-
     closeInfo(): void {
         this.router.navigate(['/sales/recurring-invoices']);
     }
 
-    onPageChange(page: number): void {
-        this.currentPage = page;
-    }
-
     async downloadPdf() {
-        if (!this.selectedProfile) return;
+        if (!this.selectedProfile()) return;
         
         const element = document.getElementById('recurring-invoice-document');
         if (!element) return;
@@ -215,6 +196,6 @@ export class RecurringInvoicesInfoComponent implements OnInit {
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
         pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-        pdf.save(`RecurringProfile-${this.selectedProfile.profileName}.pdf`);
+        pdf.save(`RecurringProfile-${this.selectedProfile().profileName}.pdf`);
     }
 }

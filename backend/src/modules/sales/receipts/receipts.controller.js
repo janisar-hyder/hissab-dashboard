@@ -78,7 +78,7 @@ exports.getReceiptById = async (req, res, next) => {
 exports.createReceipt = async (req, res, next) => {
   try {
     const { clientId, userId } = req.user;
-    const { applications, ...receiptData } = req.body;
+    const { applications, save_note_for_future, ...receiptData } = req.body;
 
     if (!receiptData.customer_id || !receiptData.receipt_number || !receiptData.amount_received) {
       const error = new Error('Receipt number, Customer and Amount are required');
@@ -135,6 +135,18 @@ exports.createReceipt = async (req, res, next) => {
 
       return receipt;
     });
+
+    if (save_note_for_future) {
+      await prisma.salesModuleSettings.upsert({
+        where: { client_id_module: { client_id: clientId, module: 'receipt' } },
+        update: { default_note: receiptData.notes || '' },
+        create: { 
+          client_id: clientId, 
+          module: 'receipt', 
+          default_note: receiptData.notes || '' 
+        }
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -205,7 +217,7 @@ exports.updateReceipt = async (req, res, next) => {
   try {
     const { clientId, userId } = req.user;
     const { id } = req.params;
-    const { notes, reference_number, receipt_date, payment_mode } = req.body;
+    const { notes, reference_number, receipt_date, payment_mode, save_note_for_future } = req.body;
 
     const receipt = await prisma.receipt.findFirst({
       where: { id: parseInt(id), client_id: clientId }
@@ -228,6 +240,18 @@ exports.updateReceipt = async (req, res, next) => {
         updated_date: new Date()
       }
     });
+
+    if (save_note_for_future) {
+      await prisma.salesModuleSettings.upsert({
+        where: { client_id_module: { client_id: clientId, module: 'receipt' } },
+        update: { default_note: notes || '' },
+        create: { 
+          client_id: clientId, 
+          module: 'receipt', 
+          default_note: notes || '' 
+        }
+      });
+    }
 
     res.status(200).json({
       success: true,

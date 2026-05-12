@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, ElementRef } from '@angular/core';
+import { Component, OnInit, HostListener, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -9,6 +9,7 @@ import { BulkActionsComponent, BulkAction } from '../../../../shared/components/
 import { ManageColumnsComponent, ColumnDef } from '../../../../shared/components/manage-columns/manage-columns.component';
 import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
 import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
+import { RecurringInvoicesService } from '../services/recurring-invoices.service';
 
 export interface RecurringInvoice {
     id: string;
@@ -41,11 +42,8 @@ export interface RecurringInvoice {
     styleUrls: ['./recurring-invoices-list.component.scss']
 })
 export class RecurringInvoicesListComponent implements OnInit {
-    recurringInvoices: RecurringInvoice[] = [
-        { id: '1', profileName: 'Biweekly Audit', customerName: 'Transpak Equipment', frequency: '2 Weeks', lastInvoiceDate: '26 Feb, 2026', nextInvoiceDate: '12 March, 2026', amount: 434.000, status: 'Active' },
-        { id: '2', profileName: 'Web Maintenance', customerName: 'The Habegger Corp', frequency: '1 Month', lastInvoiceDate: '12 Feb, 2026', nextInvoiceDate: '14 March, 2026', amount: 2800.000, status: 'Active' },
-        { id: '3', profileName: 'Profile 3', customerName: 'Sigler Wholesale', frequency: '2 Months', lastInvoiceDate: '1 March, 2026', nextInvoiceDate: '', amount: 550.000, status: 'Expired' }
-    ];
+    recurringInvoices: any[] = [];
+    isLoading = true;
 
     selectedIds = new Set<string>();
 
@@ -74,16 +72,17 @@ export class RecurringInvoicesListComponent implements OnInit {
     ];
 
     availableColumns: ColumnDef[] = [
-        { id: 'profileName', label: 'Profile Name', visible: true},
-        { id: 'customerName', label: 'Customer', visible: true },
-        { id: 'frequency', label: 'Frequency', visible: true },
-        { id: 'lastInvoiceDate', label: 'Last Invoice Date', visible: true },
-        { id: 'nextInvoiceDate', label: 'Next Invoice Date', visible: true },
-        { id: 'amount', label: 'Amount', visible: true },
+        { id: 'profile_name', label: 'Profile Name', visible: true},
+        { id: 'customer_name', label: 'Customer', visible: true },
+        { id: 'repeat_every', label: 'Frequency', visible: true },
+        { id: 'last_invoice_date', label: 'Last Invoice Date', visible: true },
+        { id: 'next_invoice_date', label: 'Next Invoice Date', visible: true },
+        { id: 'grand_total', label: 'Amount', visible: true },
+        { id: 'receivable_account', label: 'Account', visible: true },
         { id: 'status', label: 'Status', visible: true },
     ];
 
-    get filteredInvoices(): RecurringInvoice[] {
+    get filteredInvoices(): any[] {
         let filtered = this.recurringInvoices;
 
         if (this.currentFilter !== 'All') {
@@ -93,24 +92,47 @@ export class RecurringInvoicesListComponent implements OnInit {
         if (this.searchQuery) {
             const query = this.searchQuery.toLowerCase();
             filtered = filtered.filter(i => 
-                i.profileName.toLowerCase().includes(query) ||
-                i.customerName.toLowerCase().includes(query)
+                (i.profile_name || '').toLowerCase().includes(query) ||
+                (i.customer?.name || '').toLowerCase().includes(query)
             );
         }
 
         return filtered;
     }
 
-    get paginatedInvoices(): RecurringInvoice[] {
+    get paginatedInvoices(): any[] {
         const filtered = this.filteredInvoices;
         if (this.itemsPerPage === 'All') return filtered;
         const startIndex = (this.currentPage - 1) * this.itemsPerPage;
         return filtered.slice(startIndex, startIndex + Number(this.itemsPerPage));
     }
 
-    constructor(private eRef: ElementRef, private router: Router) { }
+    constructor(
+        private eRef: ElementRef, 
+        private router: Router,
+        private recurringInvoicesService: RecurringInvoicesService,
+        private cdr: ChangeDetectorRef
+    ) { }
 
-    ngOnInit(): void { }
+    ngOnInit(): void {
+        this.loadRecurringInvoices();
+    }
+
+    loadRecurringInvoices(): void {
+        this.isLoading = true;
+        this.recurringInvoicesService.getRecurringInvoices().subscribe({
+            next: (res) => {
+                this.recurringInvoices = res.data || [];
+                this.isLoading = false;
+                this.cdr.detectChanges();
+            },
+            error: (err) => {
+                console.error('Error fetching recurring invoices:', err);
+                this.isLoading = false;
+                this.cdr.detectChanges();
+            }
+        });
+    }
 
     navigateToNew(): void {
         this.router.navigate(['/sales/recurring-invoices/new']);
@@ -126,8 +148,13 @@ export class RecurringInvoicesListComponent implements OnInit {
         }
 
         this.recurringInvoices.sort((a, b) => {
-            const valA = (a as any)[columnId];
-            const valB = (b as any)[columnId];
+            let valA = (a as any)[columnId];
+            let valB = (b as any)[columnId];
+
+            if (columnId === 'customer_name') {
+                valA = a.customer?.name || '';
+                valB = b.customer?.name || '';
+            }
 
             if (typeof valA === 'string' && typeof valB === 'string') {
                 return this.sortDirection === 'asc'
@@ -208,7 +235,7 @@ export class RecurringInvoicesListComponent implements OnInit {
         }
     }
 
-    openDeleteModal(profile: RecurringInvoice, event: Event): void {
+    openDeleteModal(profile: any, event: Event): void {
         event.stopPropagation();
         this.profileToDelete = profile;
         this.openMenuId = null;
@@ -230,32 +257,45 @@ export class RecurringInvoicesListComponent implements OnInit {
 
     confirmDelete(): void {
         if (this.profileToDelete) {
-            this.recurringInvoices = this.recurringInvoices.filter(i => i.id !== this.profileToDelete!.id);
-            this.selectedIds.delete(this.profileToDelete.id);
-            this.profileToDelete = null;
-            
-            const Math = window.Math;
-            if (this.itemsPerPage !== 'All') {
-                const maxPage = Math.ceil(this.recurringInvoices.length / Number(this.itemsPerPage)) || 1;
-                if (this.currentPage > maxPage) {
-                    this.currentPage = maxPage;
+            this.recurringInvoicesService.deleteRecurringInvoice(this.profileToDelete.id).subscribe({
+                next: () => {
+                    this.recurringInvoices = this.recurringInvoices.filter(i => i.id !== this.profileToDelete!.id);
+                    this.selectedIds.delete(this.profileToDelete!.id.toString());
+                    this.profileToDelete = null;
+                    
+                    if (this.itemsPerPage !== 'All') {
+                        const maxPage = Math.ceil(this.recurringInvoices.length / Number(this.itemsPerPage)) || 1;
+                        if (this.currentPage > maxPage) {
+                            this.currentPage = maxPage;
+                        }
+                    }
+                },
+                error: (err) => {
+                    console.error('Error deleting recurring invoice:', err);
                 }
-            }
+            });
         }
     }
 
     handleBulkAction(actionId: string): void {
         if (actionId === 'delete') {
-            this.recurringInvoices = this.recurringInvoices.filter(i => !this.selectedIds.has(i.id));
-            this.selectedIds.clear();
-            
-            const Math = window.Math;
-            if (this.itemsPerPage !== 'All') {
-                const maxPage = Math.ceil(this.recurringInvoices.length / Number(this.itemsPerPage)) || 1;
-                if (this.currentPage > maxPage) {
-                    this.currentPage = maxPage;
+            const idsToDelete = Array.from(this.selectedIds);
+            this.recurringInvoicesService.deleteBulkRecurringInvoices(idsToDelete).subscribe({
+                next: () => {
+                    this.recurringInvoices = this.recurringInvoices.filter(i => !this.selectedIds.has(i.id.toString()));
+                    this.selectedIds.clear();
+                    
+                    if (this.itemsPerPage !== 'All') {
+                        const maxPage = Math.ceil(this.recurringInvoices.length / Number(this.itemsPerPage)) || 1;
+                        if (this.currentPage > maxPage) {
+                            this.currentPage = maxPage;
+                        }
+                    }
+                },
+                error: (err) => {
+                    console.error('Error bulk deleting recurring invoices:', err);
                 }
-            }
+            });
         }
     }
 

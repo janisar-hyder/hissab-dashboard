@@ -81,7 +81,7 @@ exports.getDeliveryNoteById = async (req, res, next) => {
 exports.createDeliveryNote = async (req, res, next) => {
   try {
     const { clientId, userId } = req.user;
-    const { details, ...deliveryNoteData } = req.body;
+    const { details, save_note_for_future, save_terms_for_future, ...deliveryNoteData } = req.body;
 
     if (!deliveryNoteData.customer_id || !deliveryNoteData.delivery_note_number || !details || !Array.isArray(details) || details.length === 0) {
       const error = new Error('Delivery note number, Customer and at least one item are required');
@@ -113,6 +113,26 @@ exports.createDeliveryNote = async (req, res, next) => {
       return deliveryNote;
     });
 
+    if (save_note_for_future || save_terms_for_future) {
+      const updateData = {};
+      const createData = { client_id: clientId, module: 'delivery-note' };
+
+      if (save_note_for_future) {
+        updateData.default_note = deliveryNoteData.notes || '';
+        createData.default_note = deliveryNoteData.notes || '';
+      }
+      if (save_terms_for_future) {
+        updateData.default_terms = deliveryNoteData.terms_and_conditions || '';
+        createData.default_terms = deliveryNoteData.terms_and_conditions || '';
+      }
+
+      await prisma.salesModuleSettings.upsert({
+        where: { client_id_module: { client_id: clientId, module: 'delivery-note' } },
+        update: updateData,
+        create: createData
+      });
+    }
+
     res.status(201).json({
       success: true,
       data: result
@@ -130,7 +150,7 @@ exports.updateDeliveryNote = async (req, res, next) => {
   try {
     const { clientId, userId } = req.user;
     const { id } = req.params;
-    const { details, ...deliveryNoteData } = req.body;
+    const { details, save_note_for_future, save_terms_for_future, ...deliveryNoteData } = req.body;
 
     const existing = await prisma.deliveryNote.findFirst({
       where: { id: parseInt(id), client_id: clientId }
@@ -178,6 +198,26 @@ exports.updateDeliveryNote = async (req, res, next) => {
 
       return updatedDeliveryNote;
     });
+
+    if (save_note_for_future || save_terms_for_future) {
+      const updateData = {};
+      const createData = { client_id: clientId, module: 'delivery-note' };
+
+      if (save_note_for_future) {
+        updateData.default_note = deliveryNoteData.notes || '';
+        createData.default_note = deliveryNoteData.notes || '';
+      }
+      if (save_terms_for_future) {
+        updateData.default_terms = deliveryNoteData.terms_and_conditions || '';
+        createData.default_terms = deliveryNoteData.terms_and_conditions || '';
+      }
+
+      await prisma.salesModuleSettings.upsert({
+        where: { client_id_module: { client_id: clientId, module: 'delivery-note' } },
+        update: updateData,
+        create: createData
+      });
+    }
 
     res.status(200).json({
       success: true,
