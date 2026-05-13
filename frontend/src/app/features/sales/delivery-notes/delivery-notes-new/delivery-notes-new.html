@@ -90,12 +90,12 @@
 
                 <!-- Table Rows -->
                 <div class="items-tbody">
-                    <div class="items-row" *ngFor="let item of items">
+                    <div class="items-row" *ngFor="let item of items; let i = index">
                         <!-- Item & Description -->
                         <div class="td-item-desc">
                             <div class="item-select-wrapper">
                                 <app-custom-select 
-                                    [(ngModel)]="item.name" 
+                                    [(ngModel)]="item.item_id" 
                                     [options]="itemSelectOptions" 
                                     placeholder="Select Item"
                                     (ngModelChange)="onItemSelect(item)">
@@ -134,7 +134,7 @@
                         <div class="td-cell td-vat">
                             <div class="vat-select-wrapper">
                                 <app-custom-select 
-                                    [(ngModel)]="item.vat" 
+                                    [(ngModel)]="item.vat_rate_id" 
                                     [options]="vatSelectOptions" 
                                     placeholder="Select"
                                     (ngModelChange)="updateAmount(item)">
@@ -149,7 +149,7 @@
 
                         <!-- Delete -->
                         <div class="td-del">
-                            <button class="del-btn" (click)="removeRow(item.id)" [disabled]="items.length === 1" title="Remove row">
+                            <button class="del-btn" (click)="removeRow(i)" [disabled]="items.length === 1" title="Remove row">
                                 <img src="icons/delete.svg" alt="Delete" style="width: 20px; height: 20px; opacity: 0.4;">
                             </button>
                         </div>
@@ -191,11 +191,17 @@
                         </div>
                     </div>
 
+                    <div class="total-row">
+                        <span class="total-label">VAT</span>
+                        <span class="total-value">{{ totalVat.toFixed(3) }}</span>
+                    </div>
+
                     <div class="total-row total-grand">
                         <span class="total-label">Total ( BHD )</span>
                         <span class="total-value">{{ grandTotal.toFixed(3) }}</span>
                     </div>
                 </div>
+
 
                 <!-- Note & Terms -->
                 <div class="note-divider-line"></div>

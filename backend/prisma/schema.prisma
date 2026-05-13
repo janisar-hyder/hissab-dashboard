@@ -946,20 +946,33 @@ model RecurringInvoiceDetail {
 model DeliveryNote {
   id                    Int      @id @default(autoincrement())
   client_id             Int
-  delivery_note_number  String   @db.VarChar(50)
+  delivery_note_number  String   @db.VarChar(100)
   customer_id           Int
   quotation_id          Int?
   invoice_id            Int?
-  delivery_date         DateTime @db.Date
+  delivery_date         DateTime @db.Date @map("delivery_note_date")
+  reference_number      String?  @db.VarChar(255)
   status                String?  @default("Draft") @db.VarChar(50)
+  invoice_status        String?  @default("Not Invoiced") @db.VarChar(50)
+  
+  // Discount Settings
+  discount_level        String?  @default("Line Item Level") @db.VarChar(50)
+  discount_amount       Decimal? @default(0.000) @db.Decimal(18, 3)
+  discount_type         String?  @default("Fixed") @db.VarChar(20)
+  
+  // Computed Totals
+  sub_total             Decimal? @default(0.000) @db.Decimal(18, 3)
+  total_discount        Decimal? @default(0.000) @db.Decimal(18, 3)
+  total_vat             Decimal? @default(0.000) @db.Decimal(18, 3)
+  grand_total           Decimal? @default(0.000) @db.Decimal(18, 3)
+
   delivery_address      String?  @db.Text
   shipping_method       String?  @db.VarChar(100)
   tracking_number       String?  @db.VarChar(100)
-  notes                 String?  @db.Text
+  notes                 String?  @db.Text @map("customer_notes")
   terms_and_conditions  String?  @db.Text
-  sub_total             Decimal? @default(0.000) @db.Decimal(18, 3)
-  total_vat             Decimal? @default(0.000) @db.Decimal(18, 3)
-  grand_total           Decimal? @default(0.000) @db.Decimal(18, 3)
+  attachments           Json?
+  
   created_date          DateTime @default(now())
   created_by            Int?
   updated_date          DateTime @default(now()) @updatedAt
@@ -987,9 +1000,11 @@ model DeliveryNoteDetail {
   item_id           Int
   description       String?  @db.Text
   quantity          Decimal  @db.Decimal(18, 3)
-  rate              Decimal? @db.Decimal(18, 3)
-  line_total        Decimal? @db.Decimal(18, 3)
+  rate              Decimal  @db.Decimal(18, 3)
+  discount_amount   Decimal? @default(0.000) @db.Decimal(18, 3)
   vat_rate_id       Int?
+  line_total        Decimal  @db.Decimal(18, 3)
+  
   created_date      DateTime @default(now())
   created_by        Int?
   updated_date      DateTime @default(now()) @updatedAt

@@ -64,6 +64,7 @@ export const routes: Routes = [
             { path: 'sales/delivery-notes', loadComponent: () => import('./features/sales/delivery-notes/delivery-notes-list/delivery-notes-list.component').then(m => m.DeliveryNotesListComponent) },
             { path: 'sales/delivery-notes/info/:id', loadComponent: () => import('./features/sales/delivery-notes/delivery-notes-info/delivery-notes-info.component').then(m => m.DeliveryNotesInfoComponent) },
             { path: 'sales/delivery-notes/new', loadComponent: () => import('./features/sales/delivery-notes/delivery-notes-new/delivery-notes-new').then(m => m.DeliveryNotesNewComponent) },
+            { path: 'sales/delivery-notes/edit/:id', loadComponent: () => import('./features/sales/delivery-notes/delivery-notes-new/delivery-notes-new').then(m => m.DeliveryNotesNewComponent) },
             { path: 'purchases/vendors', loadComponent: () => import('./features/purchases/vendors/vendors-list/vendors-list.component').then(m => m.VendorsListComponent) },
             { path: 'purchases/vendors/new', loadComponent: () => import('./features/purchases/vendors/vendor-edit/vendor-edit.component').then(m => m.VendorEditComponent) },
             { path: 'purchases/vendors/edit/:id', loadComponent: () => import('./features/purchases/vendors/vendor-edit/vendor-edit.component').then(m => m.VendorEditComponent) },

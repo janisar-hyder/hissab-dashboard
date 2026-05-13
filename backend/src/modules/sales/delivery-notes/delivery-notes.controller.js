@@ -15,9 +15,22 @@ exports.getDeliveryNotes = async (req, res, next) => {
       },
       orderBy: { created_date: 'desc' },
       include: {
-        customer: { select: { name: true } },
+        customer: { 
+          select: { 
+            name: true,
+            email: true,
+            phone: true,
+            mobile: true
+          } 
+        },
         quotation: { select: { quotation_number: true } },
-        invoice: { select: { invoice_number: true } }
+        invoice: { select: { invoice_number: true } },
+        details: {
+          include: {
+            item: true,
+            vatRate: true
+          }
+        }
       }
     });
 
@@ -81,12 +94,17 @@ exports.getDeliveryNoteById = async (req, res, next) => {
 exports.createDeliveryNote = async (req, res, next) => {
   try {
     const { clientId, userId } = req.user;
-    const { details, save_note_for_future, save_terms_for_future, ...deliveryNoteData } = req.body;
+    const { details, save_note, save_terms, ...deliveryNoteData } = req.body;
 
     if (!deliveryNoteData.customer_id || !deliveryNoteData.delivery_note_number || !details || !Array.isArray(details) || details.length === 0) {
       const error = new Error('Delivery note number, Customer and at least one item are required');
       error.statusCode = 400;
       throw error;
+    }
+
+    // Convert delivery_date to Date object if provided as string
+    if (deliveryNoteData.delivery_date && typeof deliveryNoteData.delivery_date === 'string') {
+      deliveryNoteData.delivery_date = new Date(deliveryNoteData.delivery_date);
     }
 
     // Start a transaction
@@ -113,15 +131,15 @@ exports.createDeliveryNote = async (req, res, next) => {
       return deliveryNote;
     });
 
-    if (save_note_for_future || save_terms_for_future) {
+    if (save_note || save_terms) {
       const updateData = {};
       const createData = { client_id: clientId, module: 'delivery-note' };
 
-      if (save_note_for_future) {
+      if (save_note) {
         updateData.default_note = deliveryNoteData.notes || '';
         createData.default_note = deliveryNoteData.notes || '';
       }
-      if (save_terms_for_future) {
+      if (save_terms) {
         updateData.default_terms = deliveryNoteData.terms_and_conditions || '';
         createData.default_terms = deliveryNoteData.terms_and_conditions || '';
       }
@@ -150,7 +168,7 @@ exports.updateDeliveryNote = async (req, res, next) => {
   try {
     const { clientId, userId } = req.user;
     const { id } = req.params;
-    const { details, save_note_for_future, save_terms_for_future, ...deliveryNoteData } = req.body;
+    const { details, save_note, save_terms, ...deliveryNoteData } = req.body;
 
     const existing = await prisma.deliveryNote.findFirst({
       where: { id: parseInt(id), client_id: clientId }
@@ -164,6 +182,11 @@ exports.updateDeliveryNote = async (req, res, next) => {
 
     // Filter out restricted fields
     const { id: _, client_id: __, created_by: ___, created_date: ____, ...updateData } = deliveryNoteData;
+
+    // Convert delivery_date to Date object if provided as string
+    if (updateData.delivery_date && typeof updateData.delivery_date === 'string') {
+      updateData.delivery_date = new Date(updateData.delivery_date);
+    }
 
     const result = await prisma.$transaction(async (tx) => {
       // 1. Update the header
@@ -199,15 +222,15 @@ exports.updateDeliveryNote = async (req, res, next) => {
       return updatedDeliveryNote;
     });
 
-    if (save_note_for_future || save_terms_for_future) {
+    if (save_note || save_terms) {
       const updateData = {};
       const createData = { client_id: clientId, module: 'delivery-note' };
 
-      if (save_note_for_future) {
+      if (save_note) {
         updateData.default_note = deliveryNoteData.notes || '';
         createData.default_note = deliveryNoteData.notes || '';
       }
-      if (save_terms_for_future) {
+      if (save_terms) {
         updateData.default_terms = deliveryNoteData.terms_and_conditions || '';
         createData.default_terms = deliveryNoteData.terms_and_conditions || '';
       }

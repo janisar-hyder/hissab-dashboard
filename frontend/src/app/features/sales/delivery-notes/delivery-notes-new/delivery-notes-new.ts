@@ -6,16 +6,18 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { BreadcrumbsComponent } from '../../../../shared/components/breadcrumbs/breadcrumbs.component';
 import { AttachmentsModal } from '../../../../shared/components/attachments-modal/attachments-modal';
 import { CustomSelectComponent, SelectOption } from '../../../../shared/components/custom-select/custom-select.component';
+import { DeliveryNotesService } from '../services/delivery-notes.service';
 
 interface DeliveryNoteItem {
-  id: number;
+  id?: number;
+  item_id: number | null;
   name: string;
   description: string;
   rate: number;
   qty: number;
   discount: number;
   discountType: '%' | 'flat';
-  vat: number | null;
+  vat_rate_id: number | null;
   amount: number;
 }
 
@@ -28,10 +30,13 @@ interface DeliveryNoteItem {
 })
 export class DeliveryNotesNewComponent implements OnInit {
   isAttachmentsModalOpen = false;
+  isEditMode = false;
+  deliveryNoteId: string | null = null;
+  isLoading = false;
 
   deliveryNoteData = {
-    customer: '',
-    deliveryNoteNumber: 'DN-001',
+    customer: null as any,
+    deliveryNoteNumber: '',
     deliveryNoteDate: '',
     referenceNumber: '',
     discountAt: 'Line Item Level',
@@ -46,38 +51,22 @@ export class DeliveryNotesNewComponent implements OnInit {
 
   items: DeliveryNoteItem[] = [
     {
-      id: 1,
+      item_id: null,
       name: '',
       description: '',
       rate: null as any,
       qty: 1,
       discount: null as any,
       discountType: '%',
-      vat: null,
+      vat_rate_id: null,
       amount: 0,
     }
   ];
 
-  dummyItems = [
-    { name: 'Wordpress Website Development', description: 'The project includes the design and development of a basic, responsive website.', rate: 100 },
-    { name: 'Mobile App Support', description: 'Annual maintenance and support for the mobile application.', rate: 250 },
-    { name: 'SEO Optimization', description: 'On-page and off-page SEO optimization.', rate: 150 },
-    { name: 'Dell Latitude 5440', description: 'Business Laptop (Intel Core i5, 16GB RAM, 512GB SSD)', rate: 450 },
-    { name: 'Samsung 32" 4K Monitor', description: 'Ultra HD LED Display with HDR support', rate: 120 },
-    { name: 'On Site Support', description: 'Professional on-site technical assistance', rate: 50 }
-  ];
-
-  itemSelectOptions: SelectOption[] = this.dummyItems.map(item => ({
-    label: item.name,
-    value: item.name
-  }));
-
-  customerOptions: SelectOption[] = [
-    { label: 'ABCO HVACR Supply', value: 'ABCO HVACR Supply' },
-    { label: 'Transpak Equipment', value: 'Transpak Equipment' },
-    { label: 'Sigler Wholesale', value: 'Sigler Wholesale' },
-    { label: 'The Habegger Corp', value: 'The Habegger Corp' }
-  ];
+  inventoryItems: any[] = [];
+  itemSelectOptions: SelectOption[] = [];
+  customerOptions: SelectOption[] = [];
+  vatSelectOptions: SelectOption[] = [];
 
   discountAtOptions: SelectOption[] = [
     { label: 'Line Item Level', value: 'Line Item Level' },
@@ -89,37 +78,118 @@ export class DeliveryNotesNewComponent implements OnInit {
     { label: 'BHD', value: 'flat' }
   ];
 
-  vatSelectOptions: SelectOption[] = [
-    { label: 'Select', value: null },
-    { label: '5%', value: 5 },
-    { label: '10%', value: 10 },
-    { label: '15%', value: 15 },
-    { label: '0%', value: 0 }
-  ];
-
   isBulkModalOpen = false;
   bulkSearchTerm = '';
-  selectedBulkItems = new Set<string>();
+  selectedBulkItems = new Set<number>();
 
-  nextId = 2;
-
-  constructor(private router: Router, private route: ActivatedRoute) {}
+  constructor(
+    private router: Router, 
+    private route: ActivatedRoute,
+    private deliveryNotesService: DeliveryNotesService
+  ) {}
 
   ngOnInit(): void {
-    // Set default date to today
-    const today = new Date().toISOString().split('T')[0];
-    this.deliveryNoteData.deliveryNoteDate = today;
+    this.loadInitialData();
+    
+    this.route.params.subscribe(params => {
+      if (params['id']) {
+        this.isEditMode = true;
+        this.deliveryNoteId = params['id'];
+        this.loadDeliveryNote(params['id']);
+      } else {
+        const today = new Date().toISOString().split('T')[0];
+        this.deliveryNoteData.deliveryNoteDate = today;
+        this.loadNextNumber();
+      }
+    });
+  }
+
+  loadInitialData(): void {
+    this.deliveryNotesService.getCustomers().subscribe(res => {
+      this.customerOptions = (res.data || []).map((c: any) => ({ label: c.name, value: c.id }));
+    });
+
+    this.deliveryNotesService.getItems().subscribe(res => {
+      this.inventoryItems = res.data || [];
+      this.itemSelectOptions = this.inventoryItems.map((item: any) => ({
+        label: item.name,
+        value: item.id
+      }));
+    });
+
+    this.deliveryNotesService.getVatRates().subscribe(res => {
+      this.vatSelectOptions = (res.data || []).map((v: any) => ({ 
+        label: `${v.name} (${v.rate}%)`, 
+        value: v.id,
+        rate: v.rate 
+      }));
+    });
+
+    this.deliveryNotesService.getSettings('delivery-notes').subscribe(res => {
+      if (res.data) {
+        if (!this.isEditMode) {
+          this.note = res.data.default_note || '';
+          this.termsAndConditions = res.data.default_terms || '';
+        }
+      }
+    });
+  }
+
+  loadNextNumber(): void {
+    this.deliveryNotesService.getDeliveryNotes().subscribe(res => {
+      const notes = res.data || [];
+      const nextNum = notes.length + 1;
+      this.deliveryNoteData.deliveryNoteNumber = `DN-${nextNum.toString().padStart(3, '0')}`;
+    });
+  }
+
+  loadDeliveryNote(id: string): void {
+    this.isLoading = true;
+    this.deliveryNotesService.getDeliveryNoteById(id).subscribe({
+      next: (res) => {
+        const data = res.data;
+        this.deliveryNoteData = {
+          customer: data.customer_id ? Number(data.customer_id) : null,
+          deliveryNoteNumber: data.delivery_note_number,
+          deliveryNoteDate: data.delivery_date ? data.delivery_date.split('T')[0] : new Date().toISOString().split('T')[0],
+          referenceNumber: data.reference_number || '',
+          discountAt: data.discount_level || 'Line Item Level',
+          transactionDiscount: Number(data.discount_amount) || 0,
+          transactionDiscountType: data.discount_type as any || '%',
+        };
+        this.note = data.notes || '';
+        this.termsAndConditions = data.terms_and_conditions || '';
+        
+        this.items = (data.details || []).map((d: any) => ({
+          id: d.id ? Number(d.id) : undefined,
+          item_id: d.item_id ? Number(d.item_id) : null,
+          name: d.item?.name || '',
+          description: d.description || '',
+          rate: Number(d.rate) || 0,
+          qty: Number(d.quantity) || 0,
+          discount: Number(d.discount_amount) || 0,
+          discountType: d.discount_type || '%',
+          vat_rate_id: d.vat_rate_id ? Number(d.vat_rate_id) : null,
+          amount: Number(d.line_total) || 0
+        }));
+        
+        if (this.items.length === 0) this.addRow();
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading delivery note:', err);
+        this.isLoading = false;
+      }
+    });
   }
 
   onItemSelect(item: DeliveryNoteItem): void {
-    const selected = this.dummyItems.find(i => i.name === item.name);
+    const selected = this.inventoryItems.find(i => i.id === item.item_id);
     if (selected) {
-      item.description = selected.description;
-      item.rate = Number(selected.rate) || 0;
+      item.name = selected.name;
+      item.description = selected.description || '';
+      item.rate = Number(selected.sales_rate) || 0;
       if (item.qty === 0) item.qty = 1;
-    } else {
-      item.description = '';
-      item.rate = 0;
     }
     this.updateAmount(item);
   }
@@ -150,32 +220,27 @@ export class DeliveryNotesNewComponent implements OnInit {
   }
 
   get totalVat(): number {
-    if (this.deliveryNoteData.discountAt === 'Transaction Level') {
-      const totalDisc = this.totalDiscount;
-      const sub = this.subtotal;
-      
-      return this.items.reduce((sum, item) => {
-        const rate = Number(item.rate) || 0;
-        const qty = Number(item.qty) || 0;
-        const vat = Number(item.vat) || 0;
-        const base = rate * qty;
-        
-        const proportionalDisc = sub > 0 ? (base / sub * totalDisc) : 0;
-        const discounted = base - proportionalDisc;
-        
-        return sum + (discounted * vat / 100);
-      }, 0);
-    }
-
     return this.items.reduce((sum, item) => {
+      const vatRateObj = this.vatSelectOptions.find(v => v.value === item.vat_rate_id);
+      const vatPercent = vatRateObj ? (vatRateObj as any).rate : 0;
+      
       const rate = Number(item.rate) || 0;
       const qty = Number(item.qty) || 0;
-      const discount = Number(item.discount) || 0;
-      const vat = Number(item.vat) || 0;
       const base = rate * qty;
-      const discAmt = item.discountType === '%' ? (base * discount / 100) : discount;
-      const discounted = base - discAmt;
-      return sum + (discounted * vat / 100);
+      
+      let discounted = base;
+      if (this.deliveryNoteData.discountAt === 'Transaction Level') {
+        const totalDisc = this.totalDiscount;
+        const sub = this.subtotal;
+        const proportionalDisc = sub > 0 ? (base / sub * totalDisc) : 0;
+        discounted = base - proportionalDisc;
+      } else {
+        const discount = Number(item.discount) || 0;
+        const discAmt = item.discountType === '%' ? (base * discount / 100) : discount;
+        discounted = base - discAmt;
+      }
+      
+      return sum + (discounted * vatPercent / 100);
     }, 0);
   }
 
@@ -186,32 +251,38 @@ export class DeliveryNotesNewComponent implements OnInit {
   updateAmount(item: DeliveryNoteItem): void {
     const rate = Number(item.rate) || 0;
     const qty = Number(item.qty) || 0;
-    const discount = this.deliveryNoteData.discountAt === 'Line Item Level' ? (Number(item.discount) || 0) : 0;
-    const vat = Number(item.vat) || 0;
-
     const base = rate * qty;
-    const discAmt = item.discountType === '%' ? base * discount / 100 : discount;
-    const discounted = base - discAmt;
-    item.amount = discounted + (discounted * vat / 100);
+    
+    let discounted = base;
+    if (this.deliveryNoteData.discountAt === 'Line Item Level') {
+      const discount = Number(item.discount) || 0;
+      const discAmt = item.discountType === '%' ? base * discount / 100 : discount;
+      discounted = base - discAmt;
+    }
+
+    const vatRateObj = this.vatSelectOptions.find(v => v.value === item.vat_rate_id);
+    const vatPercent = vatRateObj ? (vatRateObj as any).rate : 0;
+    
+    item.amount = discounted + (discounted * vatPercent / 100);
   }
 
   addRow(): void {
     this.items.push({
-      id: this.nextId++,
+      item_id: null,
       name: '',
       description: '',
       rate: 0,
       qty: 1,
       discount: 0,
       discountType: '%',
-      vat: null,
+      vat_rate_id: null,
       amount: 0,
     });
   }
 
-  removeRow(id: number): void {
+  removeRow(index: number): void {
     if (this.items.length > 1) {
-      this.items = this.items.filter(i => i.id !== id);
+      this.items.splice(index, 1);
     }
   }
 
@@ -227,45 +298,45 @@ export class DeliveryNotesNewComponent implements OnInit {
   closeBulkModal(): void { this.isBulkModalOpen = false; }
 
   get filteredBulkItems() {
-    if (!this.bulkSearchTerm) return this.dummyItems;
+    if (!this.bulkSearchTerm) return this.inventoryItems;
     const term = this.bulkSearchTerm.toLowerCase();
-    return this.dummyItems.filter(item => item.name.toLowerCase().includes(term));
+    return this.inventoryItems.filter(item => item.name.toLowerCase().includes(term));
   }
 
-  toggleBulkItem(name: string): void {
-    if (this.selectedBulkItems.has(name)) this.selectedBulkItems.delete(name);
-    else this.selectedBulkItems.add(name);
+  toggleBulkItem(id: number): void {
+    if (this.selectedBulkItems.has(id)) this.selectedBulkItems.delete(id);
+    else this.selectedBulkItems.add(id);
   }
 
   toggleSelectAllBulk(event: any): void {
     const isChecked = event.target.checked;
     const filtered = this.filteredBulkItems;
-    if (isChecked) filtered.forEach(item => this.selectedBulkItems.add(item.name));
-    else filtered.forEach(item => this.selectedBulkItems.delete(item.name));
+    if (isChecked) filtered.forEach(item => this.selectedBulkItems.add(item.id));
+    else filtered.forEach(item => this.selectedBulkItems.delete(item.id));
   }
 
   isAllFilteredSelected(): boolean {
     const filtered = this.filteredBulkItems;
     if (filtered.length === 0) return false;
-    return filtered.every(item => this.selectedBulkItems.has(item.name));
+    return filtered.every(item => this.selectedBulkItems.has(item.id));
   }
 
   addBulkItems(): void {
-    this.items = this.items.filter(item => !!item.name);
+    this.items = this.items.filter(item => !!item.item_id);
 
-    this.selectedBulkItems.forEach(name => {
-      const product = this.dummyItems.find(p => p.name === name);
+    this.selectedBulkItems.forEach(id => {
+      const product = this.inventoryItems.find(p => p.id === id);
       if (!product) return;
 
       const newItem: DeliveryNoteItem = {
-        id: this.nextId++,
+        item_id: product.id,
         name: product.name,
-        description: product.description,
-        rate: product.rate,
+        description: product.description || '',
+        rate: Number(product.sales_rate) || 0,
         qty: 1,
-        discount: null as any,
+        discount: 0,
         discountType: '%',
-        vat: null,
+        vat_rate_id: null,
         amount: 0
       };
       this.updateAmount(newItem);
@@ -276,12 +347,63 @@ export class DeliveryNotesNewComponent implements OnInit {
     this.closeBulkModal();
   }
 
+  getPayload(status: string) {
+    return {
+      customer_id: this.deliveryNoteData.customer,
+      delivery_note_number: this.deliveryNoteData.deliveryNoteNumber,
+      delivery_date: this.deliveryNoteData.deliveryNoteDate,
+      reference_number: this.deliveryNoteData.referenceNumber,
+      status: status,
+      discount_level: this.deliveryNoteData.discountAt,
+      discount_amount: this.deliveryNoteData.transactionDiscount,
+      discount_type: this.deliveryNoteData.transactionDiscountType,
+      sub_total: this.subtotal,
+      total_vat: this.totalVat,
+      grand_total: this.grandTotal,
+      notes: this.note,
+      terms_and_conditions: this.termsAndConditions,
+      save_note: this.saveNoteForFuture,
+      save_terms: this.saveTermsForFuture,
+      details: this.items.filter(i => i.item_id).map(i => ({
+        item_id: i.item_id,
+        description: i.description,
+        quantity: i.qty,
+        rate: i.rate,
+        discount_amount: i.discount,
+        discount_type: i.discountType,
+        vat_rate_id: i.vat_rate_id,
+        line_total: i.amount
+      }))
+    };
+  }
+
   saveAsDraft(): void {
-    this.router.navigate(['/sales/delivery-notes']);
+    this.submit('Draft');
   }
 
   save(): void {
-    this.router.navigate(['/sales/delivery-notes']);
+    this.submit('Sent');
+  }
+
+  submit(status: string): void {
+    if (!this.deliveryNoteData.customer || !this.deliveryNoteData.deliveryNoteNumber || !this.deliveryNoteData.deliveryNoteDate) {
+      alert('Please fill in all required fields.');
+      return;
+    }
+
+    const payload = this.getPayload(status);
+    
+    if (this.isEditMode && this.deliveryNoteId) {
+      this.deliveryNotesService.updateDeliveryNote(this.deliveryNoteId, payload).subscribe({
+        next: () => this.router.navigate(['/sales/delivery-notes']),
+        error: (err) => console.error('Error updating delivery note:', err)
+      });
+    } else {
+      this.deliveryNotesService.createDeliveryNote(payload).subscribe({
+        next: () => this.router.navigate(['/sales/delivery-notes']),
+        error: (err) => console.error('Error creating delivery note:', err)
+      });
+    }
   }
 
   cancel(): void {
