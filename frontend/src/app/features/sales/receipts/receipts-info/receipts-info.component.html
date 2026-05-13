@@ -30,6 +30,10 @@
             </div>
 
             <div class="list-container">
+                <div *ngIf="isLoading" class="loading-state" style="padding: 20px; text-align: center; color: #64748b;">
+                    <p>Loading receipts...</p>
+                </div>
+                <div *ngIf="!isLoading">
                 <div class="list-row" 
                      *ngFor="let r of paginatedReceipts" 
                      [class.selected]="selectedReceipt?.id === r.id"
@@ -52,6 +56,10 @@
                             <span class="amount-text">BHD {{ r.amountReceived | number:'1.3-3' }}</span>
                         </div>
                     </div>
+                </div>
+                </div>
+                <div *ngIf="!isLoading && paginatedReceipts.length === 0" style="padding: 20px; text-align: center; color: #64748b;">
+                    <p>No receipts found.</p>
                 </div>
             </div>
 
@@ -111,7 +119,10 @@
         </div>
 
         <div class="document-container">
-            <div class="document-paper" id="receipt-document">
+            <div *ngIf="isLoadingDetail" class="loading-detail" style="padding: 100px; text-align: center; color: #2563eb;">
+                <p>Loading receipt details...</p>
+            </div>
+            <div class="document-paper" id="receipt-document" *ngIf="!isLoadingDetail && selectedReceipt">
                 <div class="doc-status-banner" *ngIf="selectedReceipt" [ngClass]="selectedReceipt.status.toLowerCase()">
                     <svg class="banner-main" xmlns="http://www.w3.org/2000/svg" width="78" height="62" viewBox="0 0 78 62" fill="none">
                         <path d="M3.77763 34.8663L44.9095 2.17177C46.6786 0.765518 48.872 0 51.1319 0H77.8579L0.560613 62L0.00434329 42.987C-0.0878246 39.8367 1.31048 36.8274 3.77763 34.8663Z" fill="currentColor"/>

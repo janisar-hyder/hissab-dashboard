@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { ToastContainerComponent } from '../shared/components/toast/toast-container.component';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ToastContainerComponent],
   template: `
     <div class="app-wrapper">
       <!-- Full width Topbar -->
@@ -266,6 +267,7 @@ import { filter } from 'rxjs/operators';
           </div>
         </main>
       </div>
+      <app-toast-container></app-toast-container>
     </div>
   `,
   styleUrls: ['./layout.component.scss']

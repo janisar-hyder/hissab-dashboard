@@ -51,6 +51,7 @@ export const routes: Routes = [
             { path: 'sales/invoices/edit/:id', component: InvoicesNew },
             { path: 'sales/receipts', component: ReceiptsListComponent },
             { path: 'sales/receipts/new', component: ReceiptsNew },
+            { path: 'sales/receipts/edit/:id', component: ReceiptsNew },
             { path: 'sales/receipts/info/:id', component: ReceiptsInfoComponent },
             { path: 'sales/credit-notes', loadComponent: () => import('./features/sales/credit-notes/credit-notes-list/credit-notes-list.component').then(m => m.CreditNotesListComponent) },
             { path: 'sales/credit-notes/new', loadComponent: () => import('./features/sales/credit-notes/credit-notes-new/credit-notes-new').then(m => m.CreditNotesNew) },

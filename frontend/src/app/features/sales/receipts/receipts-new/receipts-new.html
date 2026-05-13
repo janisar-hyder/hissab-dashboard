@@ -4,9 +4,9 @@
         <div class="header-titles">
             <app-breadcrumbs [items]="[
                 { label: 'Receipts', url: '/sales/receipts' },
-                { label: 'Add New Receipt' }
+                { label: isEditMode ? 'Edit Receipt' : 'Add New Receipt' }
             ]"></app-breadcrumbs>
-            <h1 class="page-title">Add New Receipt</h1>
+            <h1 class="page-title">{{ isEditMode ? 'Edit Receipt' : 'Add New Receipt' }}</h1>
         </div>
         <div class="header-actions">
             <app-button variant="outline" (clicked)="openAttachmentsModal()">
@@ -181,7 +181,7 @@
     <!-- Sticky Footer -->
     <div class="page-footer">
         <button class="footer-btn btn-cancel" (click)="cancel()">Cancel</button>
-        <button class="footer-btn btn-save" (click)="save()">Save</button>
+        <button class="footer-btn btn-save" (click)="save()">{{ isEditMode ? 'Update' : 'Save' }}</button>
     </div>
 </div>
 

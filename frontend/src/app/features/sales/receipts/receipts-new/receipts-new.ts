@@ -1,15 +1,18 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { BreadcrumbsComponent } from '../../../../shared/components/breadcrumbs/breadcrumbs.component';
 import { CustomSelectComponent, SelectOption } from '../../../../shared/components/custom-select/custom-select.component';
 import { AttachmentsModal } from '../../../../shared/components/attachments-modal/attachments-modal';
+import { ReceiptsService } from '../services/receipts.service';
 import { DropdownService } from '../../../../shared/services/dropdown.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
 
 export interface UnpaidInvoice {
+  id: number;
   date: string;
   number: string;
   amount: number;
@@ -27,24 +30,22 @@ export interface UnpaidInvoice {
 })
 export class ReceiptsNew implements OnDestroy {
   isAttachmentsModalOpen = false;
+  isEditMode = false;
+  receiptId: string | null = null;
 
   receiptData = {
-    receiptNumber: 'RC-001',
-    customer: '',
+    receiptNumber: '',
+    customer: null as any,
     referenceNumber: '',
     amountReceived: null as any,
-    paymentDate: '',
-    paymentMode: '',
-    depositTo: '',
+    paymentDate: new Date().toISOString().split('T')[0],
+    paymentMode: 'Cash',
+    depositTo: null as any,
     bankCharges: 0.000,
     notes: ''
   };
 
-  customerOptions: SelectOption[] = [
-    { label: 'ABCO HVACR Supply', value: 'ABCO HVACR Supply' },
-    { label: 'The Habegger Corp', value: 'The Habegger Corp' },
-    { label: 'Sigler Wholesale', value: 'Sigler Wholesale' }
-  ];
+  customerOptions: SelectOption[] = [];
 
   paymentModeOptions: SelectOption[] = [
     { label: 'Cash', value: 'Cash' },
@@ -53,33 +54,130 @@ export class ReceiptsNew implements OnDestroy {
     { label: 'Credit Card', value: 'Credit Card' }
   ];
 
-  depositToOptions: SelectOption[] = [
-    { label: 'Petty Cash', value: 'Petty Cash' },
-    { label: 'Undeposited Funds', value: 'Undeposited Funds' },
-    { label: 'Standard Chartered Bank', value: 'Standard Chartered Bank' }
-  ];
+  depositToOptions: SelectOption[] = [];
 
   unpaidInvoices: UnpaidInvoice[] = [];
   private dropdownSub: Subscription;
 
-  constructor(private router: Router, private dropdownService: DropdownService) {
+  constructor(
+    private router: Router, 
+    private route: ActivatedRoute,
+    private dropdownService: DropdownService,
+    private receiptsService: ReceiptsService,
+    private notificationService: NotificationService,
+    private cdr: ChangeDetectorRef
+  ) {
     this.dropdownSub = this.dropdownService.openDropdown$.subscribe(() => {
-      // Logic for coordinating dropdowns if needed, handled in component
+      // Logic for coordinating dropdowns if needed
+    });
+  }
+
+  ngOnInit(): void {
+    this.route.params.subscribe(params => {
+      if (params['id']) {
+        this.isEditMode = true;
+        this.receiptId = params['id'];
+      }
+      this.loadInitialData();
+    });
+  }
+
+  loadInitialData(): void {
+    // 1. Get Customers
+    this.receiptsService.getCustomers().subscribe(res => {
+      this.customerOptions = (res.data || []).map((c: any) => ({ label: c.name, value: c.id }));
+      this.cdr.detectChanges();
+    });
+
+    // 2. Get Deposit Accounts (Chart of Accounts)
+    this.receiptsService.getAccounts().subscribe(res => {
+      this.depositToOptions = (res.data || [])
+        .filter((acc: any) => 
+          acc.type === 'Bank' || 
+          acc.type === 'Cash' || 
+          acc.type === 'Other Current Asset' || 
+          acc.type === 'Asset' ||
+          acc.type === 'Stock'
+        )
+        .map((acc: any) => ({ label: acc.name, value: acc.id }));
+      this.cdr.detectChanges();
+    });
+
+    // 3. Load Next Receipt Number (only if new)
+    if (!this.isEditMode) {
+      this.loadNextNumber();
+    } else {
+      this.loadReceiptForEdit();
+    }
+  }
+
+  loadReceiptForEdit(): void {
+    if (!this.receiptId) return;
+    
+    this.receiptsService.getReceiptById(this.receiptId).subscribe({
+      next: (res) => {
+        const data = res.data;
+        this.receiptData = {
+          receiptNumber: data.receipt_number,
+          customer: data.customer_id,
+          referenceNumber: data.reference_number || '',
+          amountReceived: data.amount_received,
+          paymentDate: new Date(data.receipt_date).toISOString().split('T')[0],
+          paymentMode: data.payment_mode,
+          depositTo: data.deposit_to_id,
+          bankCharges: Number(data.bank_charges) || 0,
+          notes: data.notes || ''
+        };
+
+        // Load invoices for this customer to show applications
+        this.receiptsService.getInvoices(data.customer_id).subscribe(invRes => {
+          const invoices = invRes.data || [];
+          this.unpaidInvoices = invoices.map((inv: any) => {
+            const application = (data.applications || []).find((a: any) => a.invoice_id === inv.id);
+            return {
+              id: inv.id,
+              date: new Date(inv.invoice_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+              number: inv.invoice_number,
+              amount: Number(inv.grand_total),
+              due: Number(inv.balance_due) + (application ? Number(application.amount_applied) : 0),
+              paid: application ? Number(application.amount_applied) : 0,
+              isFull: application ? (Number(application.amount_applied) >= Number(inv.balance_due)) : false
+            };
+          });
+          this.cdr.detectChanges();
+        });
+        this.cdr.detectChanges();
+      },
+      error: (err: any) => console.error('Error loading receipt for edit:', err)
+    });
+  }
+
+  loadNextNumber(): void {
+    this.receiptsService.getReceipts().subscribe(res => {
+      const receipts = res.data || [];
+      const count = receipts.length + 1;
+      this.receiptData.receiptNumber = `RCP-${new Date().getFullYear()}-${count.toString().padStart(3, '0')}`;
+      this.cdr.detectChanges();
     });
   }
 
   onCustomerChange(): void {
-    if (this.receiptData.customer === 'The Habegger Corp') {
-      this.unpaidInvoices = [
-        { date: '17 Jan 2026', number: 'INV-005', amount: 1000.000, due: 1000.000, paid: 0, isFull: false },
-        { date: '04 Jan 2026', number: 'INV-002', amount: 250.000, due: 250.000, paid: 0, isFull: false }
-      ];
-    } else if (this.receiptData.customer) {
-      this.unpaidInvoices = [
-        { date: '10 Feb 2026', number: 'INV-010', amount: 500.000, due: 500.000, paid: 0, isFull: false }
-      ];
+    if (this.receiptData.customer) {
+      this.receiptsService.getInvoices(this.receiptData.customer).subscribe(res => {
+        this.unpaidInvoices = (res.data || []).map((inv: any) => ({
+          id: inv.id,
+          date: new Date(inv.invoice_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+          number: inv.invoice_number,
+          amount: Number(inv.grand_total),
+          due: Number(inv.balance_due),
+          paid: 0,
+          isFull: false
+        }));
+        this.cdr.detectChanges();
+      });
     } else {
       this.unpaidInvoices = [];
+      this.cdr.detectChanges();
     }
   }
 
@@ -128,8 +226,52 @@ export class ReceiptsNew implements OnDestroy {
   }
 
   save(): void {
-    console.log('Saving receipt...', this.receiptData, this.unpaidInvoices);
-    this.router.navigate(['/sales/receipts']);
+    const payload = {
+      receipt_number: this.receiptData.receiptNumber,
+      customer_id: Number(this.receiptData.customer),
+      reference_number: this.receiptData.referenceNumber,
+      amount_received: Number(this.receiptData.amountReceived),
+      receipt_date: this.receiptData.paymentDate,
+      payment_mode: this.receiptData.paymentMode,
+      deposit_to_id: Number(this.receiptData.depositTo),
+      bank_charges: Number(this.receiptData.bankCharges),
+      notes: this.receiptData.notes,
+      applications: this.unpaidInvoices
+        .filter(inv => inv.paid > 0)
+        .map(inv => ({
+          invoice_id: inv.id,
+          amount_applied: Number(inv.paid)
+        }))
+    };
+
+    if (!payload.customer_id || !payload.amount_received || !payload.deposit_to_id) {
+      this.notificationService.error('Please fill all required fields');
+      return;
+    }
+
+    if (this.isEditMode && this.receiptId) {
+      this.receiptsService.updateReceipt(this.receiptId, payload).subscribe({
+        next: () => {
+          this.notificationService.success('Receipt updated successfully');
+          this.router.navigate(['/sales/receipts']);
+        },
+        error: (err: any) => {
+          console.error('Error updating receipt:', err);
+          this.notificationService.error('Error updating receipt');
+        }
+      });
+    } else {
+      this.receiptsService.createReceipt(payload).subscribe({
+        next: () => {
+          this.notificationService.success('Receipt created successfully');
+          this.router.navigate(['/sales/receipts']);
+        },
+        error: (err: any) => {
+          console.error('Error saving receipt:', err);
+          this.notificationService.error('Error saving receipt');
+        }
+      });
+    }
   }
 
   cancel(): void {

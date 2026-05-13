@@ -10,6 +10,7 @@ import { ManageColumnsComponent, ColumnDef } from '../../../../shared/components
 import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
 import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
 import { DeliveryNotesService } from '../services/delivery-notes.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
 
 @Component({
     selector: 'app-delivery-notes-list',
@@ -95,6 +96,7 @@ export class DeliveryNotesListComponent implements OnInit {
         private eRef: ElementRef, 
         private router: Router,
         private deliveryNotesService: DeliveryNotesService,
+        private notificationService: NotificationService,
         private cdr: ChangeDetectorRef
     ) { }
 
@@ -249,6 +251,7 @@ export class DeliveryNotesListComponent implements OnInit {
                     this.deliveryNotes = this.deliveryNotes.filter(n => n.id !== this.noteToDelete!.id);
                     this.selectedIds.delete(this.noteToDelete!.id.toString());
                     this.noteToDelete = null;
+                    this.notificationService.success('Delivery note deleted successfully');
                     this.cdr.detectChanges();
                     
                     if (this.itemsPerPage !== 'All') {
@@ -258,7 +261,10 @@ export class DeliveryNotesListComponent implements OnInit {
                         }
                     }
                 },
-                error: (err) => console.error('Error deleting delivery note:', err)
+                error: (err: any) => {
+                    console.error('Error deleting delivery note:', err);
+                    this.notificationService.error('Error deleting delivery note');
+                }
             });
         }
     }
@@ -307,8 +313,12 @@ export class DeliveryNotesListComponent implements OnInit {
                 next: () => {
                     this.loadDeliveryNotes();
                     this.selectedIds.clear();
+                    this.notificationService.success(`Successfully updated ${ids.length} delivery notes`);
                 },
-                error: (err) => console.error('Error updating bulk status:', err)
+                error: (err: any) => {
+                    console.error('Error updating bulk status:', err);
+                    this.notificationService.error('Error updating delivery notes');
+                }
             });
         }
     }
@@ -320,10 +330,12 @@ export class DeliveryNotesListComponent implements OnInit {
                 this.loadDeliveryNotes();
                 this.selectedIds.clear();
                 this.isBulkDeleteModalOpen = false;
+                this.notificationService.success('Successfully deleted delivery notes');
             },
-            error: (err) => {
+            error: (err: any) => {
                 console.error('Error bulk deleting delivery notes:', err);
                 this.isBulkDeleteModalOpen = false;
+                this.notificationService.error('Error deleting delivery notes');
             }
         });
     }

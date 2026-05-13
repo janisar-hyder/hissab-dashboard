@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, ElementRef } from '@angular/core';
+import { Component, OnInit, HostListener, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -9,6 +9,8 @@ import { BulkActionsComponent, BulkAction } from '../../../../shared/components/
 import { ManageColumnsComponent, ColumnDef } from '../../../../shared/components/manage-columns/manage-columns.component';
 import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
 import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
+import { ReceiptsService } from '../services/receipts.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
 
 export interface Receipt {
     id: string;
@@ -29,10 +31,8 @@ export interface Receipt {
     styleUrls: ['./receipts-list.component.scss']
 })
 export class ReceiptsListComponent implements OnInit {
-    receipts: Receipt[] = [
-        { id: '1', receiptNumber: 'RC-002', date: '14 Mar, 2026', customerName: 'The Habegger Corp', invoiceNo: 'INV-001, INV-004', paymentMode: 'Bank Transfer', amount: 275.000, status: 'Draft' },
-        { id: '2', receiptNumber: 'RC-001', date: '10 Mar, 2026', customerName: 'Sigler Wholesale', invoiceNo: 'INV-003', paymentMode: 'Cheque', amount: 2800.000, status: 'Paid' }
-    ];
+    receipts: any[] = [];
+    isLoading = true;
 
     selectedReceiptIds = new Set<string>();
 
@@ -42,8 +42,12 @@ export class ReceiptsListComponent implements OnInit {
 
     // Bulk actions
     bulkActions: BulkAction[] = [
-        { id: 'delete', label: 'Delete Receipts', colorClass: 'text-danger' }
+        { id: 'mark_as_paid', label: 'Mark as Paid', icon: 'las la-check-circle' },
+        { id: 'mark_as_draft', label: 'Mark as Draft', icon: 'las la-file-alt' },
+        { id: 'delete', label: 'Delete Receipts', colorClass: 'text-danger', icon: 'las la-trash' }
     ];
+
+    isBulkDeleteModalOpen = false;
 
     isManageColumnsOpen = false;
     openMenuId: string | null = null;
@@ -96,9 +100,45 @@ export class ReceiptsListComponent implements OnInit {
         return filtered.slice(startIndex, startIndex + this.itemsPerPage);
     }
 
-    constructor(private eRef: ElementRef, private router: Router) { }
+    constructor(
+        private eRef: ElementRef, 
+        private router: Router,
+        private receiptsService: ReceiptsService,
+        private notificationService: NotificationService,
+        private cdr: ChangeDetectorRef
+    ) { }
 
-    ngOnInit(): void { }
+    ngOnInit(): void {
+        this.loadReceipts();
+    }
+
+    loadReceipts(): void {
+        this.isLoading = true;
+        this.receiptsService.getReceipts().subscribe({
+            next: (res) => {
+                const rawData = res.data || [];
+                this.receipts = rawData.map((r: any) => ({
+                    id: r.id,
+                    receiptNumber: r.receipt_number,
+                    date: new Date(r.receipt_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+                    customerName: r.customer?.name || '',
+                    invoiceNo: r.applications?.length > 0 
+                        ? r.applications.map((a: any) => a.invoice?.invoice_number).filter(Boolean).join(', ') 
+                        : 'N/A',
+                    paymentMode: r.payment_mode,
+                    amount: Number(r.amount_received),
+                    status: r.status || 'Received'
+                }));
+                this.isLoading = false;
+                this.cdr.detectChanges();
+            },
+            error: (err: any) => {
+                console.error('Error loading receipts:', err);
+                this.isLoading = false;
+                this.cdr.detectChanges();
+            }
+        });
+    }
 
     navigateToNew(): void {
         this.router.navigate(['/sales/receipts/new']);
@@ -210,7 +250,7 @@ export class ReceiptsListComponent implements OnInit {
     navigateToEdit(id: string, event: Event): void {
         event.stopPropagation();
         this.openMenuId = null;
-        console.log('Navigate to edit receipt', id);
+        this.router.navigate(['/sales/receipts/edit', id]);
     }
 
     navigateToInfo(id: string): void {
@@ -223,37 +263,63 @@ export class ReceiptsListComponent implements OnInit {
 
     confirmDelete(): void {
         if (this.receiptToDelete) {
-            this.receipts = this.receipts.filter(i => i.id !== this.receiptToDelete!.id);
-            this.selectedReceiptIds.delete(this.receiptToDelete.id);
-            this.receiptToDelete = null;
-
-            const Math = window.Math;
-            if (this.itemsPerPage !== 'All') {
-                const maxPage = Math.ceil(this.receipts.length / this.itemsPerPage) || 1;
-                if (this.currentPage > maxPage) {
-                    this.currentPage = maxPage;
+            this.receiptsService.deleteReceipt(this.receiptToDelete.id).subscribe({
+                next: () => {
+                    this.loadReceipts();
+                    this.selectedReceiptIds.delete(this.receiptToDelete!.id.toString());
+                    this.receiptToDelete = null;
+                    this.notificationService.success('Receipt deleted successfully');
+                },
+                error: (err: any) => {
+                    console.error('Error deleting receipt:', err);
+                    this.notificationService.error('Error deleting receipt');
                 }
-            } else {
-                this.currentPage = 1;
-            }
+            });
         }
     }
 
     handleBulkAction(actionId: string): void {
         if (actionId === 'delete') {
-            this.receipts = this.receipts.filter(i => !this.selectedReceiptIds.has(i.id));
-            this.selectedReceiptIds.clear();
-
-            const Math = window.Math;
-            if (this.itemsPerPage !== 'All') {
-                const maxPage = Math.ceil(this.receipts.length / this.itemsPerPage) || 1;
-                if (this.currentPage > maxPage) {
-                    this.currentPage = maxPage;
+            this.isBulkDeleteModalOpen = true;
+        } else if (actionId === 'mark_as_paid' || actionId === 'mark_as_draft') {
+            const status = actionId === 'mark_as_paid' ? 'Paid' : 'Draft';
+            const ids = Array.from(this.selectedReceiptIds).map(id => Number(id));
+            
+            this.receiptsService.bulkStatusUpdate(ids, status).subscribe({
+                next: () => {
+                    this.loadReceipts();
+                    this.selectedReceiptIds.clear();
+                    this.notificationService.success(`Successfully updated ${ids.length} receipts`);
+                    this.cdr.detectChanges();
+                },
+                error: (err: any) => {
+                    console.error('Error bulk updating status:', err);
+                    this.notificationService.error('Error updating receipts');
                 }
-            } else {
-                this.currentPage = 1;
-            }
+            });
         }
+    }
+
+    closeBulkDeleteModal(): void {
+        this.isBulkDeleteModalOpen = false;
+    }
+
+    confirmBulkDelete(): void {
+        const ids = Array.from(this.selectedReceiptIds);
+        this.receiptsService.deleteBulkReceipts(ids).subscribe({
+            next: () => {
+                this.loadReceipts();
+                this.selectedReceiptIds.clear();
+                this.isBulkDeleteModalOpen = false;
+                this.notificationService.success('Successfully deleted receipts');
+                this.cdr.detectChanges();
+            },
+            error: (err: any) => {
+                console.error('Error bulk deleting receipts:', err);
+                this.isBulkDeleteModalOpen = false;
+                this.notificationService.error('Error deleting receipts');
+            }
+        });
     }
 
     onPageChange(page: number) {

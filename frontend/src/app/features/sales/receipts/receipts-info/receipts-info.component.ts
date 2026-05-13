@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { CustomFilterComponent } from '../../../../shared/components/custom-filter/custom-filter';
+import { ReceiptsService } from '../services/receipts.service';
 
 export interface ReceiptInvoiceItem {
     invoiceNumber: string;
@@ -32,35 +33,10 @@ export interface Receipt {
     styleUrl: './receipts-info.component.scss'
 })
 export class ReceiptsInfoComponent implements OnInit {
-    receipts: Receipt[] = [
-        { 
-            id: '1', 
-            receiptNumber: 'RC-002', 
-            date: '14 Mar, 2026', 
-            customerName: 'The Habegger Corp', 
-            paymentMode: 'Cash',
-            amountReceived: 275.000, 
-            status: 'Draft',
-            items: [
-                { invoiceNumber: 'INV-004', invoiceDate: '19 Feb, 2026', invoiceAmount: 200.000, paymentAmount: 100.000, balance: 100.000 },
-                { invoiceNumber: 'INV-001', invoiceDate: '29 Jan, 2026', invoiceAmount: 350.000, paymentAmount: 175.000, balance: 175.000 }
-            ]
-        },
-        { 
-            id: '2', 
-            receiptNumber: 'RC-001', 
-            date: '10 Mar, 2026', 
-            customerName: 'Sigler Wholesale', 
-            paymentMode: 'Bank Transfer',
-            amountReceived: 2800.000, 
-            status: 'Paid',
-            items: [
-                { invoiceNumber: 'INV-003', invoiceDate: '06 Feb, 2026', invoiceAmount: 2800.000, paymentAmount: 2800.000, balance: 0.000 }
-            ]
-        }
-    ];
-
-    selectedReceipt: Receipt | null = null;
+    receipts: any[] = [];
+    selectedReceipt: any = null;
+    isLoading = true;
+    isLoadingDetail = false;
     searchTerm: string = '';
     selectedStatus: string = 'All';
 
@@ -75,16 +51,44 @@ export class ReceiptsInfoComponent implements OnInit {
 
     constructor(
         private route: ActivatedRoute,
-        private router: Router
+        private router: Router,
+        private receiptsService: ReceiptsService,
+        private cdr: ChangeDetectorRef
     ) {}
 
     ngOnInit(): void {
-        this.route.params.subscribe(params => {
-            const id = params['id'];
-            if (id) {
-                this.selectReceipt(id);
-            } else if (this.receipts.length > 0) {
-                this.selectReceipt(this.receipts[0].id);
+        this.loadReceipts();
+    }
+
+    loadReceipts(): void {
+        this.isLoading = true;
+        this.receiptsService.getReceipts().subscribe({
+            next: (res) => {
+                const rawData = res.data || [];
+                this.receipts = rawData.map((r: any) => ({
+                    id: r.id.toString(),
+                    receiptNumber: r.receipt_number,
+                    date: new Date(r.receipt_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+                    customerName: r.customer?.name || '',
+                    amountReceived: Number(r.amount_received),
+                    status: r.status || 'Received'
+                }));
+                this.isLoading = false;
+                this.cdr.detectChanges();
+
+                // Handle initial selection from route
+                this.route.params.subscribe(params => {
+                    const id = params['id'];
+                    if (id) {
+                        this.selectReceipt(id);
+                    } else if (this.receipts.length > 0) {
+                        this.selectReceipt(this.receipts[0].id);
+                    }
+                });
+            },
+            error: (err: any) => {
+                console.error('Error loading receipts:', err);
+                this.isLoading = false;
             }
         });
     }
@@ -120,10 +124,35 @@ export class ReceiptsInfoComponent implements OnInit {
     }
 
     selectReceipt(id: string): void {
-        const found = this.receipts.find(r => r.id === id);
-        if (found) {
-            this.selectedReceipt = found;
-        }
+        this.isLoadingDetail = true;
+        this.receiptsService.getReceiptById(id).subscribe({
+            next: (res) => {
+                const r = res.data;
+                this.selectedReceipt = {
+                    id: r.id.toString(),
+                    receiptNumber: r.receipt_number,
+                    date: new Date(r.receipt_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+                    customerName: r.customer?.name || '',
+                    paymentMode: r.payment_mode,
+                    amountReceived: Number(r.amount_received),
+                    status: r.status || 'Received',
+                    notes: r.notes,
+                    items: (r.applications || []).map((a: any) => ({
+                        invoiceNumber: a.invoice?.invoice_number,
+                        invoiceDate: a.invoice?.invoice_date ? new Date(a.invoice.invoice_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
+                        invoiceAmount: Number(a.invoice?.grand_total || 0),
+                        paymentAmount: Number(a.amount_applied),
+                        balance: Number(a.invoice?.balance_due || 0)
+                    }))
+                };
+                this.isLoadingDetail = false;
+                this.cdr.detectChanges();
+            },
+            error: (err: any) => {
+                console.error('Error loading receipt detail:', err);
+                this.isLoadingDetail = false;
+            }
+        });
     }
 
     onReceiptClick(id: string): void {

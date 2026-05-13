@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -7,6 +7,7 @@ import { BreadcrumbsComponent } from '../../../../shared/components/breadcrumbs/
 import { AttachmentsModal } from '../../../../shared/components/attachments-modal/attachments-modal';
 import { CustomSelectComponent, SelectOption } from '../../../../shared/components/custom-select/custom-select.component';
 import { DeliveryNotesService } from '../services/delivery-notes.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
 
 interface DeliveryNoteItem {
   id?: number;
@@ -85,7 +86,9 @@ export class DeliveryNotesNewComponent implements OnInit {
   constructor(
     private router: Router, 
     private route: ActivatedRoute,
-    private deliveryNotesService: DeliveryNotesService
+    private deliveryNotesService: DeliveryNotesService,
+    private notificationService: NotificationService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -107,6 +110,7 @@ export class DeliveryNotesNewComponent implements OnInit {
   loadInitialData(): void {
     this.deliveryNotesService.getCustomers().subscribe(res => {
       this.customerOptions = (res.data || []).map((c: any) => ({ label: c.name, value: c.id }));
+      this.cdr.detectChanges();
     });
 
     this.deliveryNotesService.getItems().subscribe(res => {
@@ -115,6 +119,7 @@ export class DeliveryNotesNewComponent implements OnInit {
         label: item.name,
         value: item.id
       }));
+      this.cdr.detectChanges();
     });
 
     this.deliveryNotesService.getVatRates().subscribe(res => {
@@ -123,6 +128,7 @@ export class DeliveryNotesNewComponent implements OnInit {
         value: v.id,
         rate: v.rate 
       }));
+      this.cdr.detectChanges();
     });
 
     this.deliveryNotesService.getSettings('delivery-notes').subscribe(res => {
@@ -131,6 +137,7 @@ export class DeliveryNotesNewComponent implements OnInit {
           this.note = res.data.default_note || '';
           this.termsAndConditions = res.data.default_terms || '';
         }
+        this.cdr.detectChanges();
       }
     });
   }
@@ -140,6 +147,7 @@ export class DeliveryNotesNewComponent implements OnInit {
       const notes = res.data || [];
       const nextNum = notes.length + 1;
       this.deliveryNoteData.deliveryNoteNumber = `DN-${nextNum.toString().padStart(3, '0')}`;
+      this.cdr.detectChanges();
     });
   }
 
@@ -175,10 +183,12 @@ export class DeliveryNotesNewComponent implements OnInit {
         
         if (this.items.length === 0) this.addRow();
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error loading delivery note:', err);
         this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -387,7 +397,7 @@ export class DeliveryNotesNewComponent implements OnInit {
 
   submit(status: string): void {
     if (!this.deliveryNoteData.customer || !this.deliveryNoteData.deliveryNoteNumber || !this.deliveryNoteData.deliveryNoteDate) {
-      alert('Please fill in all required fields.');
+      this.notificationService.error('Please fill in all required fields.');
       return;
     }
 
@@ -395,13 +405,25 @@ export class DeliveryNotesNewComponent implements OnInit {
     
     if (this.isEditMode && this.deliveryNoteId) {
       this.deliveryNotesService.updateDeliveryNote(this.deliveryNoteId, payload).subscribe({
-        next: () => this.router.navigate(['/sales/delivery-notes']),
-        error: (err) => console.error('Error updating delivery note:', err)
+        next: () => {
+          this.notificationService.success('Delivery note updated successfully');
+          this.router.navigate(['/sales/delivery-notes']);
+        },
+        error: (err: any) => {
+          console.error('Error updating delivery note:', err);
+          this.notificationService.error('Error updating delivery note');
+        }
       });
     } else {
       this.deliveryNotesService.createDeliveryNote(payload).subscribe({
-        next: () => this.router.navigate(['/sales/delivery-notes']),
-        error: (err) => console.error('Error creating delivery note:', err)
+        next: () => {
+          this.notificationService.success('Delivery note created successfully');
+          this.router.navigate(['/sales/delivery-notes']);
+        },
+        error: (err: any) => {
+          console.error('Error creating delivery note:', err);
+          this.notificationService.error('Error creating delivery note');
+        }
       });
     }
   }
