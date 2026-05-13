@@ -86,6 +86,11 @@ exports.createReceipt = async (req, res, next) => {
       throw error;
     }
 
+    // Convert receipt_date to Date object if provided as string
+    if (receiptData.receipt_date && typeof receiptData.receipt_date === 'string') {
+      receiptData.receipt_date = new Date(receiptData.receipt_date);
+    }
+
     // Start a transaction
     const result = await prisma.$transaction(async (tx) => {
       // 1. Create the receipt
@@ -217,7 +222,7 @@ exports.updateReceipt = async (req, res, next) => {
   try {
     const { clientId, userId } = req.user;
     const { id } = req.params;
-    const { notes, reference_number, receipt_date, payment_mode, save_note_for_future } = req.body;
+    const { notes, reference_number, receipt_date, payment_mode, status, save_note_for_future } = req.body;
 
     const receipt = await prisma.receipt.findFirst({
       where: { id: parseInt(id), client_id: clientId }
@@ -234,6 +239,7 @@ exports.updateReceipt = async (req, res, next) => {
       data: {
         notes,
         reference_number,
+        status,
         receipt_date: receipt_date ? new Date(receipt_date) : undefined,
         payment_mode,
         updated_by: userId,
