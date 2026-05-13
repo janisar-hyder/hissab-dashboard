@@ -9,6 +9,9 @@ import { BulkActionsComponent, BulkAction } from '../../../../shared/components/
 import { ManageColumnsComponent, ColumnDef } from '../../../../shared/components/manage-columns/manage-columns.component';
 import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
 import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
+import { CreditNotesService } from '../services/credit-notes.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
+import { ChangeDetectorRef } from '@angular/core';
 
 export interface CreditNote {
     id: string;
@@ -41,13 +44,11 @@ export interface CreditNote {
     styleUrl: './credit-notes-list.component.scss'
 })
 export class CreditNotesListComponent implements OnInit {
-    creditNotes: CreditNote[] = [
-        { id: '1', creditNoteNumber: 'CN-003', date: '14 Mar, 2026', customerName: 'Sigler Wholesale', invoiceNo: '-', amount: 300.000, balance: 300.000, status: 'Draft' },
-        { id: '2', creditNoteNumber: 'CN-002', date: '14 Mar, 2026', customerName: 'Sigler Wholesale', invoiceNo: '-', amount: 200.000, balance: 200.000, status: 'Open' },
-        { id: '3', creditNoteNumber: 'CN-001', date: '10 Mar, 2026', customerName: 'The Habegger Corp', invoiceNo: 'INV-004, INV-003', amount: 275.000, balance: 0.000, status: 'Closed' }
-    ];
+    creditNotes: any[] = [];
+    isLoading = true;
 
     selectedCreditNoteIds = new Set<string>();
+    isBulkDeleteModalOpen = false;
 
     // Pagination properties
     currentPage = 1;
@@ -55,7 +56,9 @@ export class CreditNotesListComponent implements OnInit {
 
     // Bulk actions
     bulkActions: BulkAction[] = [
-        { id: 'delete', label: 'Delete Credit Notes', colorClass: 'text-danger' }
+        { id: 'mark_as_open', label: 'Mark as Open', icon: 'las la-door-open' },
+        { id: 'mark_as_draft', label: 'Mark as Draft', icon: 'las la-file-alt' },
+        { id: 'delete', label: 'Delete Credit Notes', colorClass: 'text-danger', icon: 'las la-trash' }
     ];
 
     isManageColumnsOpen = false;
@@ -110,9 +113,45 @@ export class CreditNotesListComponent implements OnInit {
         return filtered.slice(startIndex, startIndex + this.itemsPerPage);
     }
 
-    constructor(private eRef: ElementRef, private router: Router) { }
+    constructor(
+        private eRef: ElementRef, 
+        private router: Router,
+        private creditNotesService: CreditNotesService,
+        private notificationService: NotificationService,
+        private cdr: ChangeDetectorRef
+    ) { }
 
-    ngOnInit(): void { }
+    ngOnInit(): void {
+        this.loadCreditNotes();
+    }
+
+    loadCreditNotes(): void {
+        this.isLoading = true;
+        this.creditNotesService.getCreditNotes().subscribe({
+            next: (res) => {
+                const rawData = res.data || [];
+                this.creditNotes = rawData.map((cn: any) => ({
+                    id: cn.id,
+                    creditNoteNumber: cn.credit_note_number,
+                    date: new Date(cn.credit_note_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+                    customerName: cn.customer?.name || '',
+                    invoiceNo: cn.applications?.length > 0 
+                        ? cn.applications.map((a: any) => a.invoice?.invoice_number).filter(Boolean).join(', ') 
+                        : 'N/A',
+                    amount: Number(cn.grand_total),
+                    balance: Number(cn.balance),
+                    status: cn.status || 'Open'
+                }));
+                this.isLoading = false;
+                this.cdr.detectChanges();
+            },
+            error: (err: any) => {
+                console.error('Error loading credit notes:', err);
+                this.isLoading = false;
+                this.cdr.detectChanges();
+            }
+        });
+    }
 
     navigateToNew(): void {
         this.router.navigate(['/sales/credit-notes/new']);
@@ -232,33 +271,63 @@ export class CreditNotesListComponent implements OnInit {
 
     confirmDelete(): void {
         if (this.creditNoteToDelete) {
-            this.creditNotes = this.creditNotes.filter(cn => cn.id !== this.creditNoteToDelete!.id);
-            this.selectedCreditNoteIds.delete(this.creditNoteToDelete.id);
-            this.creditNoteToDelete = null;
-            
-            const Math = window.Math;
-            if (this.itemsPerPage !== 'All') {
-                const maxPage = Math.ceil(this.creditNotes.length / this.itemsPerPage) || 1;
-                if (this.currentPage > maxPage) {
-                    this.currentPage = maxPage;
+            this.creditNotesService.deleteCreditNote(this.creditNoteToDelete.id).subscribe({
+                next: () => {
+                    this.loadCreditNotes();
+                    this.selectedCreditNoteIds.delete(this.creditNoteToDelete!.id.toString());
+                    this.creditNoteToDelete = null;
+                    this.notificationService.success('Credit note deleted successfully');
+                },
+                error: (err: any) => {
+                    console.error('Error deleting credit note:', err);
+                    this.notificationService.error('Error deleting credit note');
                 }
-            }
+            });
         }
     }
 
     handleBulkAction(actionId: string): void {
         if (actionId === 'delete') {
-            this.creditNotes = this.creditNotes.filter(cn => !this.selectedCreditNoteIds.has(cn.id));
-            this.selectedCreditNoteIds.clear();
+            this.isBulkDeleteModalOpen = true;
+        } else if (actionId === 'mark_as_open' || actionId === 'mark_as_draft') {
+            const status = actionId === 'mark_as_open' ? 'Open' : 'Draft';
+            const ids = Array.from(this.selectedCreditNoteIds).map(id => Number(id));
             
-            const Math = window.Math;
-            if (this.itemsPerPage !== 'All') {
-                const maxPage = Math.ceil(this.creditNotes.length / this.itemsPerPage) || 1;
-                if (this.currentPage > maxPage) {
-                    this.currentPage = maxPage;
+            this.creditNotesService.bulkStatusUpdate(ids, status).subscribe({
+                next: () => {
+                    this.loadCreditNotes();
+                    this.selectedCreditNoteIds.clear();
+                    this.notificationService.success(`Successfully updated ${ids.length} credit notes`);
+                    this.cdr.detectChanges();
+                },
+                error: (err: any) => {
+                    console.error('Error bulk updating status:', err);
+                    this.notificationService.error('Error updating credit notes');
                 }
-            }
+            });
         }
+    }
+
+    closeBulkDeleteModal(): void {
+        this.isBulkDeleteModalOpen = false;
+    }
+
+    confirmBulkDelete(): void {
+        const ids = Array.from(this.selectedCreditNoteIds);
+        this.creditNotesService.deleteBulkCreditNotes(ids).subscribe({
+            next: () => {
+                this.loadCreditNotes();
+                this.selectedCreditNoteIds.clear();
+                this.isBulkDeleteModalOpen = false;
+                this.notificationService.success('Successfully deleted credit notes');
+                this.cdr.detectChanges();
+            },
+            error: (err: any) => {
+                console.error('Error bulk deleting credit notes:', err);
+                this.isBulkDeleteModalOpen = false;
+                this.notificationService.error('Error deleting credit notes');
+            }
+        });
     }
 
     onPageChange(page: number) {

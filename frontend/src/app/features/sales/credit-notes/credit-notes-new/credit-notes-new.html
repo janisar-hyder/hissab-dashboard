@@ -103,7 +103,7 @@
                         <div class="td-item-desc">
                             <div class="item-select-wrapper">
                                 <app-custom-select 
-                                    [(ngModel)]="item.name" 
+                                    [(ngModel)]="item.item_id" 
                                     [options]="itemSelectOptions" 
                                     placeholder="Select Item"
                                     (ngModelChange)="onItemSelect(item)">
@@ -142,7 +142,7 @@
                         <div class="td-cell td-vat">
                             <div class="vat-select-wrapper">
                                 <app-custom-select 
-                                    [(ngModel)]="item.vat" 
+                                    [(ngModel)]="item.vat_rate_id" 
                                     [options]="vatSelectOptions" 
                                     placeholder="Select"
                                     (ngModelChange)="updateAmount(item)">

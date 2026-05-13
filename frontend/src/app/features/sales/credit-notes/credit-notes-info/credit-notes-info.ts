@@ -5,6 +5,9 @@ import { FormsModule } from '@angular/forms';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
 import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
+import { CreditNotesService } from '../services/credit-notes.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
+import { ChangeDetectorRef } from '@angular/core';
 
 export interface CreditNoteItem {
     name: string;
@@ -46,6 +49,7 @@ export interface CreditNote {
     total: number;
     creditsUsed: number;
     creditsRemaining: number;
+    customer_id: number; // Added for fetching invoices
     appliedInvoices?: AppliedInvoice[];
 }
 
@@ -57,77 +61,8 @@ export interface CreditNote {
     styleUrls: ['./credit-notes-info.scss']
 })
 export class CreditNotesInfoComponent implements OnInit {
-    creditNotes: CreditNote[] = [
-        { 
-            id: '1', 
-            creditNoteNumber: 'CN-003', 
-            date: '14 Mar, 2026', 
-            customerName: 'Sigler Wholesale', 
-            customerContact: 'Sarah Smith',
-            customerAddress: ['Office 42, Trade Tower', 'Manama, Bahrain'],
-            amount: 300.000, 
-            balance: 300.000,
-            status: 'Draft',
-            items: [
-                { name: 'Technical Support', description: 'Consultation for system setup.', qty: 1, rate: 300.000, discount: 0, vat: 10 }
-            ],
-            subTotal: 300.000,
-            vatAmount: 30.000,
-            total: 330.000,
-            creditsUsed: 0,
-            creditsRemaining: 330.000
-        },
-        { 
-            id: '2', 
-            creditNoteNumber: 'CN-002', 
-            date: '14 Mar, 2026', 
-            customerName: 'Sigler Wholesale', 
-            customerContact: 'Sarah Smith',
-            customerAddress: ['Office 42, Trade Tower', 'Manama, Bahrain'],
-            amount: 200.000, 
-            balance: 200.000,
-            status: 'Open',
-            items: [
-                { name: 'Hardware Return', description: 'Return of faulty equipment.', qty: 2, rate: 100.000, discount: 0, vat: 0 }
-            ],
-            subTotal: 200.000,
-            vatAmount: 0,
-            total: 200.000,
-            creditsUsed: 0,
-            creditsRemaining: 200.000
-        },
-        { 
-            id: '3', 
-            creditNoteNumber: 'CN-001', 
-            date: '10 Mar, 2026', 
-            customerName: 'The Habegger Corp', 
-            customerContact: 'Sara Al-Mansoori',
-            customerAddress: ['Store 12, Complex 3045, Street 4567,', 'Zone 910, Riffa, Bahrain'],
-            amount: 275.000, 
-            balance: 0.000,
-            status: 'Closed',
-            items: [
-                { 
-                    name: 'Premium Website Development', 
-                    description: 'The project includes the design and development of a responsive website consisting of up to four pages such as Home, About, Services, and Contact.', 
-                    qty: 1, 
-                    rate: 300.000, 
-                    discount: 50.000, 
-                    vat: 10 
-                }
-            ],
-            subTotal: 250.000,
-            vatAmount: 25.000,
-            total: 275.000,
-            creditsUsed: 275.000,
-            creditsRemaining: 0.000,
-            appliedInvoices: [
-                { date: '14 Mar, 2026', invoiceNo: 'INV-004', amountCredited: 200.000 },
-                { date: '10 Mar, 2026', invoiceNo: 'INV-003', amountCredited: 75.000 }
-            ]
-        }
-    ];
-
+    creditNotes: any[] = [];
+    isLoading = false;
     selectedCreditNote: CreditNote | null = null;
     searchTerm: string = '';
     selectedStatus: string = 'All';
@@ -153,16 +88,92 @@ export class CreditNotesInfoComponent implements OnInit {
 
     constructor(
         private route: ActivatedRoute,
-        private router: Router
+        private router: Router,
+        private creditNotesService: CreditNotesService,
+        private notificationService: NotificationService,
+        private cdr: ChangeDetectorRef
     ) {}
 
     ngOnInit(): void {
+        this.loadCreditNotes();
         this.route.params.subscribe(params => {
             const id = params['id'];
             if (id) {
-                this.selectCreditNote(id);
-            } else if (this.creditNotes.length > 0) {
-                this.selectCreditNote(this.creditNotes[0].id);
+                this.loadCreditNoteDetails(id);
+            }
+        });
+    }
+
+    loadCreditNotes(): void {
+        this.isLoading = true;
+        this.creditNotesService.getCreditNotes().subscribe({
+            next: (res) => {
+                const rawData = res.data || [];
+                this.creditNotes = rawData.map((cn: any) => ({
+                    id: cn.id,
+                    creditNoteNumber: cn.credit_note_number,
+                    date: new Date(cn.credit_note_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+                    customerName: cn.customer?.name || '',
+                    amount: Number(cn.grand_total),
+                    balance: Number(cn.balance),
+                    status: cn.status || 'Open'
+                }));
+                
+                if (!this.selectedCreditNote && this.creditNotes.length > 0) {
+                    const idFromRoute = this.route.snapshot.params['id'];
+                    this.loadCreditNoteDetails(idFromRoute || this.creditNotes[0].id);
+                }
+                
+                this.isLoading = false;
+                this.cdr.detectChanges();
+            },
+            error: (err) => {
+                console.error('Error loading credit notes:', err);
+                this.isLoading = false;
+                this.cdr.detectChanges();
+            }
+        });
+    }
+
+    loadCreditNoteDetails(id: string | number): void {
+        this.creditNotesService.getCreditNoteById(id).subscribe({
+            next: (res) => {
+                const cn = res.data;
+                this.selectedCreditNote = {
+                    id: cn.id,
+                    creditNoteNumber: cn.credit_note_number,
+                    date: new Date(cn.credit_note_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+                    customerName: cn.customer?.name || '',
+                    customerContact: cn.customer?.contact_person || '',
+                    customerAddress: [cn.customer?.billing_address || '', cn.customer?.billing_city || ''].filter(Boolean),
+                    amount: Number(cn.grand_total),
+                    balance: Number(cn.balance),
+                    status: cn.status || 'Open',
+                    items: (cn.details || []).map((d: any) => ({
+                        name: d.item?.name || 'N/A',
+                        description: d.description || '',
+                        qty: Number(d.quantity),
+                        rate: Number(d.rate),
+                        discount: Number(d.discount_amount),
+                        vat: d.vatRate ? Number(d.vatRate.rate) : 0
+                    })),
+                    subTotal: Number(cn.sub_total),
+                    vatAmount: Number(cn.total_vat),
+                    total: Number(cn.grand_total),
+                    creditsUsed: Number(cn.grand_total) - Number(cn.balance),
+                    creditsRemaining: Number(cn.balance),
+                    customer_id: cn.customer_id,
+                    appliedInvoices: (cn.applications || []).map((a: any) => ({
+                        date: new Date(a.created_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+                        invoiceNo: a.invoice?.invoice_number || 'N/A',
+                        amountCredited: Number(a.amount_applied)
+                    }))
+                };
+                this.cdr.detectChanges();
+            },
+            error: (err) => {
+                console.error('Error loading credit note details:', err);
+                this.notificationService.error('Error loading credit note details');
             }
         });
     }
@@ -198,10 +209,7 @@ export class CreditNotesInfoComponent implements OnInit {
     }
 
     selectCreditNote(id: string): void {
-        const found = this.creditNotes.find(cn => cn.id === id);
-        if (found) {
-            this.selectedCreditNote = found;
-        }
+        this.loadCreditNoteDetails(id);
     }
 
     onCreditNoteClick(id: string): void {
@@ -230,11 +238,20 @@ export class CreditNotesInfoComponent implements OnInit {
         if (!this.selectedCreditNote) return;
         
         this.isApplyModalOpen = true;
-        // Mocking unpaid invoices for "The Habegger Corp" or similar
-        this.unpaidInvoices = [
-            { date: '17 Jan 2026', number: 'INV-005', amount: 1000.000, due: 1000.000, paid: 0, isFull: false },
-            { date: '04 Jan 2026', number: 'INV-002', amount: 250.000, due: 250.000, paid: 0, isFull: false }
-        ];
+        this.creditNotesService.getInvoices(this.selectedCreditNote.customer_id).subscribe({
+            next: (res) => {
+                this.unpaidInvoices = (res.data || []).map((inv: any) => ({
+                    date: new Date(inv.invoice_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+                    number: inv.invoice_number,
+                    amount: Number(inv.grand_total),
+                    due: Number(inv.balance_due),
+                    paid: 0,
+                    isFull: false,
+                    id: inv.id
+                }));
+                this.cdr.detectChanges();
+            }
+        });
     }
 
     closeApplyModal(): void {

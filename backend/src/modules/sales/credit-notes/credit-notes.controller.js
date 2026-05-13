@@ -99,6 +99,7 @@ exports.createCreditNote = async (req, res, next) => {
       const creditNote = await tx.creditNote.create({
         data: {
           ...creditNoteData,
+          credit_note_date: creditNoteData.credit_note_date ? new Date(creditNoteData.credit_note_date) : new Date(),
           client_id: clientId,
           created_by: userId,
           balance: creditNoteData.grand_total, // Initial balance is the full amount
@@ -253,7 +254,7 @@ exports.updateCreditNote = async (req, res, next) => {
   try {
     const { clientId, userId } = req.user;
     const { id } = req.params;
-    const { reference_number, customer_notes, terms_and_conditions, sales_person_id, save_note_for_future, save_terms_for_future } = req.body;
+    const { reference_number, credit_note_date, status, customer_notes, terms_and_conditions, sales_person_id, save_note_for_future, save_terms_for_future } = req.body;
 
     const existing = await prisma.creditNote.findFirst({
       where: { id: parseInt(id), client_id: clientId }
@@ -269,6 +270,8 @@ exports.updateCreditNote = async (req, res, next) => {
       where: { id: parseInt(id) },
       data: {
         reference_number,
+        credit_note_date: credit_note_date ? new Date(credit_note_date) : undefined,
+        status,
         customer_notes,
         terms_and_conditions,
         sales_person_id,

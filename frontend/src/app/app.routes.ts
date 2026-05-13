@@ -56,6 +56,7 @@ export const routes: Routes = [
             { path: 'sales/credit-notes', loadComponent: () => import('./features/sales/credit-notes/credit-notes-list/credit-notes-list.component').then(m => m.CreditNotesListComponent) },
             { path: 'sales/credit-notes/new', loadComponent: () => import('./features/sales/credit-notes/credit-notes-new/credit-notes-new').then(m => m.CreditNotesNew) },
             { path: 'sales/credit-notes/info/:id', loadComponent: () => import('./features/sales/credit-notes/credit-notes-info/credit-notes-info').then(m => m.CreditNotesInfoComponent) },
+            { path: 'sales/credit-notes/edit/:id', loadComponent: () => import('./features/sales/credit-notes/credit-notes-new/credit-notes-new').then(m => m.CreditNotesNew) },
             { path: 'sales/recurring-invoices', loadComponent: () => import('./features/sales/recurring-invoices/recurring-invoices-list/recurring-invoices-list.component').then(m => m.RecurringInvoicesListComponent) },
             { path: 'sales/recurring-invoices/new', loadComponent: () => import('./features/sales/recurring-invoices/recurring-invoices-new/recurring-invoices-new.component').then(m => m.RecurringInvoicesNewComponent) },
             { path: 'sales/recurring-invoices/info/:id', loadComponent: () => import('./features/sales/recurring-invoices/recurring-invoices-info/recurring-invoices-info.component').then(m => m.RecurringInvoicesInfoComponent) },
