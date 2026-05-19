@@ -137,6 +137,15 @@
             (itemsPerPageChange)="onItemsPerPageChange($event)">
         </app-pagination>
     </div>
+
+    <div class="loader-container" *ngIf="isLoading()">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <app-empty-state *ngIf="!isLoading() && quotations().length === 0 && !searchQuery()" title="No Quotations Found."
+        subtitle="It looks like you haven't added any quotations yet."
+        actionLabel="Add New Quotation" actionIconClass="las la-plus" (actionClick)="navigateToNew()">
+    </app-empty-state>
 </div>
 
 

@@ -144,7 +144,11 @@
         </app-pagination>
     </div>
 
-    <app-empty-state *ngIf="invoices.length === 0 && !searchQuery" title="No Invoices Found."
+        <div class="loader-container" *ngIf="isLoading">
+        <div class="loading-spinner"></div>
+    </div>
+
+<app-empty-state *ngIf="!isLoading && invoices.length === 0 && !searchQuery" title="No Invoices Found."
         subtitle="It looks like you haven't added any invoices yet."
         actionLabel="Add New Invoice" actionIconClass="las la-plus" (actionClick)="navigateToNew()">
     </app-empty-state>

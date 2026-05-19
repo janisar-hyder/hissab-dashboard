@@ -141,7 +141,11 @@
         </app-pagination>
     </div>
 
-    <app-empty-state *ngIf="creditNotes.length === 0 && !searchQuery" title="No Credit Notes Found."
+        <div class="loader-container" *ngIf="isLoading">
+        <div class="loading-spinner"></div>
+    </div>
+
+<app-empty-state *ngIf="!isLoading && creditNotes.length === 0 && !searchQuery" title="No Credit Notes Found."
         subtitle="It looks like you haven't added any credit notes yet."
         actionLabel="Add Credit Note" actionIconClass="las la-plus" (actionClick)="navigateToNew()">
     </app-empty-state>

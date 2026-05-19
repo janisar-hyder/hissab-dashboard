@@ -146,7 +146,11 @@
     </div>
 
     <!-- Empty State for Total Empty -->
-    <app-empty-state *ngIf="recurringInvoices.length === 0 && !searchQuery" title="No Recurring Invoices Found."
+        <div class="loader-container" *ngIf="isLoading">
+        <div class="loading-spinner"></div>
+    </div>
+
+<app-empty-state *ngIf="!isLoading && recurringInvoices.length === 0 && !searchQuery" title="No Recurring Invoices Found."
         subtitle="Start by creating your first recurring invoice profile."
         actionLabel="Add New Recurring Invoice" actionIconClass="las la-plus" (actionClick)="navigateToNew()">
     </app-empty-state>

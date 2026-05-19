@@ -145,7 +145,11 @@
         </app-pagination>
     </div>
 
-    <app-empty-state *ngIf="receipts.length === 0 && !searchQuery && !isLoading" title="No Receipts Found."
+        <div class="loader-container" *ngIf="isLoading">
+        <div class="loading-spinner"></div>
+    </div>
+
+<app-empty-state *ngIf="receipts.length === 0 && !searchQuery && !isLoading" title="No Receipts Found."
         subtitle="It looks like you haven't added any receipts yet."
         actionLabel="Add New Receipt" actionIconClass="las la-plus" (actionClick)="navigateToNew()">
     </app-empty-state>

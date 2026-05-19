@@ -142,7 +142,11 @@
     </div>
 
     <!-- Empty State for Total Empty -->
-    <app-empty-state *ngIf="deliveryNotes.length === 0 && !searchQuery && !isLoading" title="No Delivery Notes Found."
+        <div class="loader-container" *ngIf="isLoading">
+        <div class="loading-spinner"></div>
+    </div>
+
+<app-empty-state *ngIf="deliveryNotes.length === 0 && !searchQuery && !isLoading" title="No Delivery Notes Found."
         subtitle="Manage your shipments by creating your first delivery note."
         actionLabel="Add New Delivery Note" actionIconClass="las la-plus" (actionClick)="navigateToNew()">
     </app-empty-state>
