@@ -13,6 +13,7 @@ import { DeleteModalComponent } from '../../../../shared/components/delete-modal
 import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
 import { ReceiptsService } from '../services/receipts.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { ActionMenu, MenuAction } from '../../../../shared/components/action-menu/action-menu';
 
 export interface Receipt {
     id: string;
@@ -28,7 +29,9 @@ export interface Receipt {
 @Component({
     selector: 'app-receipts-list',
     standalone: true,
-    imports: [CommonModule, FormsModule, ButtonComponent, DecimalPipe, EmptyStateComponent, PaginationComponent, BulkActionsComponent, ManageColumnsComponent, DeleteModalComponent, CustomFilterComponent],
+    imports: [CommonModule, FormsModule, ButtonComponent, DecimalPipe, EmptyStateComponent, PaginationComponent, BulkActionsComponent, ManageColumnsComponent, DeleteModalComponent, CustomFilterComponent, 
+        ActionMenu
+    ],
     templateUrl: './receipts-list.component.html',
     styleUrls: ['./receipts-list.component.scss']
 })
@@ -336,5 +339,21 @@ export class ReceiptsListComponent implements OnInit {
     onItemsPerPageChange(size: number | 'All') {
         this.itemsPerPage = size;
         this.currentPage = 1;
+    }
+
+    getActions(item: any): MenuAction[] {
+        return [
+            { label: 'Edit', action: 'edit' },
+            { label: 'Delete', action: 'delete', customClass: 'delete-btn' }
+        ];
+    }
+
+    handleAction(event: {action: string, data: any}): void {
+        const item = event.data;
+        if (event.action === 'edit') {
+            this.navigateToEdit(item.id, new Event('click'));
+        } else if (event.action === 'delete') {
+            this.openDeleteModal(item, new Event('click'));
+        }
     }
 }

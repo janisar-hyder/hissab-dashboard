@@ -12,6 +12,7 @@ import { ManageColumnsComponent, ColumnDef } from '../../../../shared/components
 import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
 import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
 import { RecurringInvoicesService } from '../services/recurring-invoices.service';
+import { ActionMenu, MenuAction } from '../../../../shared/components/action-menu/action-menu';
 
 export interface RecurringInvoice {
     id: string;
@@ -39,6 +40,8 @@ export interface RecurringInvoice {
         ManageColumnsComponent, 
         DeleteModalComponent, 
         CustomFilterComponent
+    , 
+        ActionMenu
     ],
     templateUrl: './recurring-invoices-list.component.html',
     styleUrls: ['./recurring-invoices-list.component.scss']
@@ -360,5 +363,21 @@ export class RecurringInvoicesListComponent implements OnInit {
     onItemsPerPageChange(size: number | 'All') {
         this.itemsPerPage = size;
         this.currentPage = 1;
+    }
+
+    getActions(item: any): MenuAction[] {
+        return [
+            { label: 'Edit', action: 'edit' },
+            { label: 'Delete', action: 'delete', customClass: 'delete-btn' }
+        ];
+    }
+
+    handleAction(event: {action: string, data: any}): void {
+        const item = event.data;
+        if (event.action === 'edit') {
+            this.navigateToEdit(item.id, new Event('click'));
+        } else if (event.action === 'delete') {
+            this.openDeleteModal(item, new Event('click'));
+        }
     }
 }

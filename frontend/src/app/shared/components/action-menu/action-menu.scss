@@ -17,89 +17,49 @@
             background-color: var(--border-light);
         }
     }
+}
 
-    .action-dropdown {
-        position: absolute;
-        top: 100%;
-        right: 0;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-        border: 1px solid var(--border-light);
-        min-width: 200px;
-        z-index: 1000;
-        padding: 8px 0;
-        margin-top: 4px;
+// Since the dropdown is rendered in the CDK overlay container, we must define its styles outside the component container or globally. Wait, since action-menu.scss is scoped, if the CDK overlay container is appended to the body, standard ViewEncapsulation will prevent the styles from applying to .action-dropdown.
+// We must either use ::ng-deep or turn off ViewEncapsulation for this component.
+// I will use ::ng-deep here because it is a quick standard way to style CDK overlays without leaking styles globally (since we scope it to a specific class if possible, or we just target .action-dropdown which is specific enough).
 
-        .menu-item {
-            width: 100%;
-            text-align: left;
-            padding: 12px 20px;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            color: var(--text-dark);
-            display: flex;
-            align-items: center;
-            white-space: nowrap;
-            gap: 12px;
-            transition: background 0.2s;
+::ng-deep .action-dropdown {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--border-light);
+    padding: 8px;
+    min-width: 180px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 
-            // Handle la font icons
-            i.las {
-                font-size: 20px;
-                color: var(--text-muted);
-            }
+    .menu-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 10px 14px;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 14.5px;
+        color: var(--text-dark);
+        cursor: pointer;
+        transition: background-color 0.2s, color 0.2s;
+        text-align: left;
+        font-weight: 400;
 
-            // Handle custom mask SVGs
-            .svg-icon {
-                width: 20px;
-                height: 20px;
-                background-color: var(--text-muted);
-                -webkit-mask-size: contain;
-                -webkit-mask-repeat: no-repeat;
-                -webkit-mask-position: center;
-                mask-size: contain;
-                mask-repeat: no-repeat;
-                mask-position: center;
-            }
+        &:hover {
+            background-color: var(--bg-muted);
+        }
 
+        &.delete-btn {
             &:hover {
-                background: #f8fafc;
-                
-                i.las, .svg-icon {
-                    color: var(--text-dark);
-                    background-color: var(--text-dark);
-                }
-            }
-
-            &.edit-btn {
-                color: #525356;
-                i.las { color: #525356; }
-                .svg-icon { background-color: #525356; }
-
-                &:hover {
-                    background: #F3F4F6;
-                    color: #374151;
-                    i.las { color: #374151; }
-                    .svg-icon { background-color: #374151; }
-                }
-            }
-
-            &.delete-btn {
-                color: #F43F5E;
-                i.las { color: #F43F5E; }
-                .svg-icon { background-color: #F43F5E; }
-
-                &:hover {
-                    background: #FFF1F2;
-                    color: #E11D48;
-                    i.las, .svg-icon {
-                        color: #E11D48;
-                        background-color: #E11D48;
-                    }
-                }
+                color: var(--danger);
+                background-color: var(--danger-light);
+                font-weight: 500;
             }
         }
     }

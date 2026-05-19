@@ -119,21 +119,7 @@
                             </td>
                         </ng-container>
                         <td class="col-actions">
-                            <div class="action-menu-container">
-                                <button class="action-btn" (click)="toggleMenu(receipt.id, $event)"><i
-                                        class="las la-ellipsis-h"></i></button>
-
-                                <div class="action-dropdown" *ngIf="openMenuId === receipt.id">
-                                    <button class="menu-item edit-btn"
-                                        (click)="navigateToEdit(receipt.id, $event)">Edit</button>
-                                    <button class="menu-item delete-btn" (click)="openDeleteModal(receipt, $event)">
-                                        <div class="svg-icon"
-                                            style="-webkit-mask-image: url('/icons/delete.svg'); mask-image: url('/icons/delete.svg');">
-                                        </div>
-                                        Delete
-                                    </button>
-                                </div>
-                            </div>
+                            <app-action-menu [actions]="getActions(receipt)" [data]="receipt" (actionClick)="handleAction($event)"></app-action-menu>
                         </td>
                     </tr>
                     <!-- Empty State -->

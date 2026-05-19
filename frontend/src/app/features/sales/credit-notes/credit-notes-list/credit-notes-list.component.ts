@@ -14,6 +14,7 @@ import { CustomFilterComponent, FilterOption } from '../../../../shared/componen
 import { CreditNotesService } from '../services/credit-notes.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
 import { ChangeDetectorRef } from '@angular/core';
+import { ActionMenu, MenuAction } from '../../../../shared/components/action-menu/action-menu';
 
 export interface CreditNote {
     id: string;
@@ -41,6 +42,8 @@ export interface CreditNote {
         ManageColumnsComponent, 
         DeleteModalComponent, 
         CustomFilterComponent
+    , 
+        ActionMenu
     ],
     templateUrl: './credit-notes-list.component.html',
     styleUrl: './credit-notes-list.component.scss'
@@ -344,5 +347,21 @@ export class CreditNotesListComponent implements OnInit {
     onItemsPerPageChange(size: number | 'All') {
         this.itemsPerPage = size;
         this.currentPage = 1;
+    }
+
+    getActions(item: any): MenuAction[] {
+        return [
+            { label: 'Edit', action: 'edit' },
+            { label: 'Delete', action: 'delete', customClass: 'delete-btn' }
+        ];
+    }
+
+    handleAction(event: {action: string, data: any}): void {
+        const item = event.data;
+        if (event.action === 'edit') {
+            this.navigateToEdit(item.id, new Event('click'));
+        } else if (event.action === 'delete') {
+            this.openDeleteModal(item, new Event('click'));
+        }
     }
 }

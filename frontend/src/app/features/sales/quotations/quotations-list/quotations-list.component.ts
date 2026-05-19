@@ -13,6 +13,7 @@ import { QuotationsService, Quotation } from '../services/quotations.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
 import { ColumnPreferencesService } from '../../../../shared/services/column-preferences.service';
 import { ChangeDetectorRef } from '@angular/core';
+import { ActionMenu, MenuAction } from '../../../../shared/components/action-menu/action-menu';
 
 @Component({
     selector: 'app-quotations-list',
@@ -28,6 +29,8 @@ import { ChangeDetectorRef } from '@angular/core';
         ManageColumnsComponent, 
         DeleteModalComponent, 
         CustomFilterComponent
+    , 
+        ActionMenu
     ],
     templateUrl: './quotations-list.component.html',
     styleUrls: ['./quotations-list.component.scss'],
@@ -348,5 +351,21 @@ export class QuotationsListComponent implements OnInit {
             this.itemsPerPage.set(size);
         }
         this.currentPage.set(1);
+    }
+
+    getActions(item: any): MenuAction[] {
+        return [
+            { label: 'Edit', action: 'edit' },
+            { label: 'Delete', action: 'delete', customClass: 'delete-btn' }
+        ];
+    }
+
+    handleAction(event: {action: string, data: any}): void {
+        const item = event.data;
+        if (event.action === 'edit') {
+            this.navigateToEdit(item.id, new Event('click'));
+        } else if (event.action === 'delete') {
+            this.openDeleteModal(item, new Event('click'));
+        }
     }
 }

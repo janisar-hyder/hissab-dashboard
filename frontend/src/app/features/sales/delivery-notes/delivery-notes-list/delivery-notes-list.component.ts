@@ -13,6 +13,7 @@ import { DeleteModalComponent } from '../../../../shared/components/delete-modal
 import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
 import { DeliveryNotesService } from '../services/delivery-notes.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { ActionMenu, MenuAction } from '../../../../shared/components/action-menu/action-menu';
 
 @Component({
     selector: 'app-delivery-notes-list',
@@ -29,6 +30,8 @@ import { NotificationService } from '../../../../shared/services/notification.se
         ManageColumnsComponent, 
         DeleteModalComponent, 
         CustomFilterComponent
+    , 
+        ActionMenu
     ],
     templateUrl: './delivery-notes-list.component.html',
     styleUrls: ['./delivery-notes-list.component.scss']
@@ -358,6 +361,22 @@ export class DeliveryNotesListComponent implements OnInit {
     onItemsPerPageChange(size: number | 'All') {
         this.itemsPerPage = size;
         this.currentPage = 1;
+    }
+
+    getActions(item: any): MenuAction[] {
+        return [
+            { label: 'Edit', action: 'edit' },
+            { label: 'Delete', action: 'delete', customClass: 'delete-btn' }
+        ];
+    }
+
+    handleAction(event: {action: string, data: any}): void {
+        const item = event.data;
+        if (event.action === 'edit') {
+            this.navigateToEdit(item.id, new Event('click'));
+        } else if (event.action === 'delete') {
+            this.openDeleteModal(item, new Event('click'));
+        }
     }
 }
 
