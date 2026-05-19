@@ -166,8 +166,8 @@
 </div>
 
 <!-- Manage Columns Modal -->
-<app-manage-columns [isOpen]="isManageColumnsOpen" [columns]="availableColumns" (closePanel)="closeManageColumns()"
-    (columnsChange)="onColumnsChange($event)">
+<app-manage-columns pageId="recurring-invoices-list" [isOpen]="isManageColumnsOpen" [columns]="availableColumns" (closePanel)="closeManageColumns()"
+     (columnsChange)="availableColumns = $event">
 </app-manage-columns>
 
 <!-- Delete Confirmation Modal -->

@@ -11,6 +11,8 @@ import { DeleteModalComponent } from '../../../../shared/components/delete-modal
 import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
 import { QuotationsService, Quotation } from '../services/quotations.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { ColumnPreferencesService } from '../../../../shared/services/column-preferences.service';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
     selector: 'app-quotations-list',
@@ -36,6 +38,8 @@ export class QuotationsListComponent implements OnInit {
     private notificationService = inject(NotificationService);
     private router = inject(Router);
     private route = inject(ActivatedRoute);
+    private columnPreferencesService = inject(ColumnPreferencesService);
+    private cdr = inject(ChangeDetectorRef);
 
     searchQuery = signal('');
     currentFilter = signal('All');
@@ -100,6 +104,10 @@ export class QuotationsListComponent implements OnInit {
 
     ngOnInit(): void {
         this.loadQuotations();
+        this.columnPreferencesService.loadPreferences('quotations-list', this.availableColumns).subscribe(cols => {
+            this.availableColumns = cols;
+            this.cdr.detectChanges();
+        });
     }
 
     loadQuotations() {
@@ -229,10 +237,6 @@ export class QuotationsListComponent implements OnInit {
 
     closeManageColumns() {
         this.isManageColumnsOpen.set(false);
-    }
-
-    onColumnsChange(updatedColumns: ColumnDef[]): void {
-        this.availableColumns = updatedColumns;
     }
 
     setFilter(filter: string): void {

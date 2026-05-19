@@ -1,3 +1,5 @@
+import { ColumnPreferencesService } from '../../../../shared/services/column-preferences.service';
+import { inject } from '@angular/core';
 import { Component, OnInit, HostListener, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -42,6 +44,8 @@ export interface RecurringInvoice {
     styleUrls: ['./recurring-invoices-list.component.scss']
 })
 export class RecurringInvoicesListComponent implements OnInit {
+    private columnPreferencesService = inject(ColumnPreferencesService);
+
     recurringInvoices: any[] = [];
     isLoading = true;
 
@@ -117,6 +121,11 @@ export class RecurringInvoicesListComponent implements OnInit {
 
     ngOnInit(): void {
         this.loadRecurringInvoices();
+    
+        this.columnPreferencesService.loadPreferences('recurring-invoices-list', this.availableColumns).subscribe(cols => {
+            this.availableColumns = cols;
+            this.cdr.detectChanges();
+        });
     }
 
     loadRecurringInvoices(): void {
@@ -221,9 +230,7 @@ export class RecurringInvoicesListComponent implements OnInit {
         this.isManageColumnsOpen = false;
     }
 
-    onColumnsChange(updatedColumns: ColumnDef[]): void {
-        this.availableColumns = updatedColumns;
-    }
+    
 
     setFilter(filter: string): void {
         this.currentFilter = filter;

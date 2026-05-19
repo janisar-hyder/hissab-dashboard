@@ -162,8 +162,8 @@
 </div>
 
 <!-- Manage Columns Modal -->
-<app-manage-columns [isOpen]="isManageColumnsOpen" [columns]="availableColumns" (closePanel)="closeManageColumns()"
-    (columnsChange)="onColumnsChange($event)">
+<app-manage-columns pageId="delivery-notes-list" [isOpen]="isManageColumnsOpen" [columns]="availableColumns" (closePanel)="closeManageColumns()"
+     (columnsChange)="availableColumns = $event">
 </app-manage-columns>
 
 <!-- Delete Confirmation Modal -->

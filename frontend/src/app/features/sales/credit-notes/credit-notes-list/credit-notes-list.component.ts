@@ -1,3 +1,5 @@
+import { ColumnPreferencesService } from '../../../../shared/services/column-preferences.service';
+import { inject } from '@angular/core';
 import { Component, OnInit, HostListener, ElementRef } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -44,6 +46,8 @@ export interface CreditNote {
     styleUrl: './credit-notes-list.component.scss'
 })
 export class CreditNotesListComponent implements OnInit {
+    private columnPreferencesService = inject(ColumnPreferencesService);
+
     creditNotes: any[] = [];
     isLoading = true;
 
@@ -123,6 +127,11 @@ export class CreditNotesListComponent implements OnInit {
 
     ngOnInit(): void {
         this.loadCreditNotes();
+    
+        this.columnPreferencesService.loadPreferences('credit-notes-list', this.availableColumns).subscribe(cols => {
+            this.availableColumns = cols;
+            this.cdr.detectChanges();
+        });
     }
 
     loadCreditNotes(): void {
@@ -231,9 +240,7 @@ export class CreditNotesListComponent implements OnInit {
         this.isManageColumnsOpen = false;
     }
 
-    onColumnsChange(updatedColumns: ColumnDef[]): void {
-        this.availableColumns = updatedColumns;
-    }
+    
 
     setFilter(filter: 'All' | 'Open' | 'Closed' | 'Draft' | string): void {
         this.currentFilter = filter;

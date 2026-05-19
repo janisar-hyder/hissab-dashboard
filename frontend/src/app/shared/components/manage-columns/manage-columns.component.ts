@@ -1,8 +1,9 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkDragDrop, moveItemInArray, DragDropModule } from '@angular/cdk/drag-drop';
 import { ButtonComponent } from '../button/button.component';
+import { ColumnPreferencesService } from '../../services/column-preferences.service';
 
 export interface ColumnDef {
   id: string;
@@ -22,9 +23,12 @@ export interface ColumnDef {
 export class ManageColumnsComponent implements OnChanges {
   @Input() isOpen = false;
   @Input() columns: ColumnDef[] = [];
+  @Input() pageId = '';
 
   @Output() closePanel = new EventEmitter<void>();
   @Output() columnsChange = new EventEmitter<ColumnDef[]>();
+
+  private columnPreferencesService = inject(ColumnPreferencesService);
 
   // Internal working copy — changes here are NOT emitted until Save is clicked
   internalColumns: ColumnDef[] = [];
@@ -67,7 +71,13 @@ export class ManageColumnsComponent implements OnChanges {
       return;
     }
     this.saveError = '';
-    // Only now do we push the working copy out to the parent
+
+    // Persist to database if pageId is provided
+    if (this.pageId) {
+      this.columnPreferencesService.savePreferences(this.pageId, this.internalColumns).subscribe();
+    }
+
+    // Push the working copy out to the parent
     this.columnsChange.emit([...this.internalColumns]);
     this.close();
   }
@@ -76,6 +86,11 @@ export class ManageColumnsComponent implements OnChanges {
     // Restore original order AND original visibility
     this.internalColumns = this.defaultColumns.map(c => ({ ...c }));
     this.saveError = '';
+
+    // Clear saved preferences from database
+    if (this.pageId) {
+      this.columnPreferencesService.clearPreferences(this.pageId).subscribe();
+    }
   }
 
   toggleColumn(column: ColumnDef): void {
@@ -96,4 +111,3 @@ export class ManageColumnsComponent implements OnChanges {
     }
   }
 }
-

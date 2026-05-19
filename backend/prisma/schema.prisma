@@ -130,6 +130,7 @@ model Client {
   receipts                Receipt[]
   creditNotes             CreditNote[]
   salesModuleSettings     SalesModuleSettings[]
+  columnPreferences       UserColumnPreference[]
 
   @@map("clients")
 }
@@ -253,9 +254,26 @@ model ClientUser {
   createdVatRates          VatRate[]                @relation("VatRateCreatedBy")
   updatedVatRates          VatRate[]                @relation("VatRateUpdatedBy")
   updatedVatSettings       VatSetting[]             @relation("VatSettUpdatedBy")
+  columnPreferences        UserColumnPreference[]
 
   @@unique([client_id, email])
   @@map("client_users")
+}
+
+model UserColumnPreference {
+  id            Int        @id @default(autoincrement())
+  client_id     Int
+  user_id       Int
+  page_id       String     @db.VarChar(100)
+  columns       Json
+  created_date  DateTime   @default(now())
+  updated_date  DateTime   @default(now()) @updatedAt
+
+  client        Client     @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  user          ClientUser @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([client_id, user_id, page_id])
+  @@map("user_column_preferences")
 }
 
 model ClientContact {

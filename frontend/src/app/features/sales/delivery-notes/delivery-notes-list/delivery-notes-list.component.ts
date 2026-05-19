@@ -1,3 +1,5 @@
+import { ColumnPreferencesService } from '../../../../shared/services/column-preferences.service';
+import { inject } from '@angular/core';
 import { Component, OnInit, HostListener, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -32,6 +34,8 @@ import { NotificationService } from '../../../../shared/services/notification.se
     styleUrls: ['./delivery-notes-list.component.scss']
 })
 export class DeliveryNotesListComponent implements OnInit {
+    private columnPreferencesService = inject(ColumnPreferencesService);
+
     deliveryNotes: any[] = [];
     isLoading = true;
 
@@ -102,6 +106,11 @@ export class DeliveryNotesListComponent implements OnInit {
 
     ngOnInit(): void {
         this.loadDeliveryNotes();
+    
+        this.columnPreferencesService.loadPreferences('delivery-notes-list', this.availableColumns).subscribe(cols => {
+            this.availableColumns = cols;
+            this.cdr.detectChanges();
+        });
     }
 
     loadDeliveryNotes(): void {
@@ -206,9 +215,7 @@ export class DeliveryNotesListComponent implements OnInit {
         this.isManageColumnsOpen = false;
     }
 
-    onColumnsChange(updatedColumns: ColumnDef[]): void {
-        this.availableColumns = updatedColumns;
-    }
+    
 
     setFilter(filter: string): void {
         this.currentFilter = filter;

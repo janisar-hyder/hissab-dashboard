@@ -154,8 +154,8 @@
 
 
 <!-- Global Shared Output Models -->
-<app-manage-columns [isOpen]="isManageColumnsOpen()" [columns]="availableColumns" (closePanel)="closeManageColumns()"
-    (columnsChange)="onColumnsChange($event)">
+<app-manage-columns pageId="quotations-list" [isOpen]="isManageColumnsOpen()" [columns]="availableColumns" (closePanel)="closeManageColumns()"
+     (columnsChange)="availableColumns = $event">
 </app-manage-columns>
 
 <app-delete-modal [isOpen]="!!quotationToDelete()" title="Delete Quotation"

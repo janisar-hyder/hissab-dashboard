@@ -11,6 +11,8 @@ import { DeleteModalComponent } from '../../../../shared/components/delete-modal
 import { ActionMenu, MenuAction } from '../../../../shared/components/action-menu/action-menu';
 import { CustomersService, Customer } from '../services/customers.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { ColumnPreferencesService } from '../../../../shared/services/column-preferences.service';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
     selector: 'app-customers-list',
@@ -36,6 +38,8 @@ export class CustomersListComponent implements OnInit {
     private coaService = inject(CustomersService);
     private notificationService = inject(NotificationService);
     private router = inject(Router);
+    private columnPreferencesService = inject(ColumnPreferencesService);
+    private cdr = inject(ChangeDetectorRef);
 
     customers = signal<Customer[]>([]);
     isLoading = signal(false);
@@ -122,6 +126,10 @@ export class CustomersListComponent implements OnInit {
 
     ngOnInit(): void {
         this.loadCustomers();
+        this.columnPreferencesService.loadPreferences('customers-list', this.availableColumns).subscribe(cols => {
+            this.availableColumns = cols;
+            this.cdr.detectChanges();
+        });
     }
 
     loadCustomers(): void {
@@ -203,10 +211,6 @@ export class CustomersListComponent implements OnInit {
 
     closeManageColumns() {
         this.isManageColumnsOpen.set(false);
-    }
-
-    onColumnsChange(updatedColumns: ColumnDef[]): void {
-        this.availableColumns = updatedColumns;
     }
 
     getActions(node: Customer): MenuAction[] {

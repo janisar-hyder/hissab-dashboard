@@ -11,6 +11,7 @@ import { DeleteModalComponent } from '../../../../shared/components/delete-modal
 import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
 import { InvoicesService } from '../services/invoices.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { ColumnPreferencesService } from '../../../../shared/services/column-preferences.service';
 
 export interface Invoice {
     id: number;
@@ -115,11 +116,16 @@ export class InvoicesListComponent implements OnInit {
         private router: Router,
         private cdr: ChangeDetectorRef,
         private invoicesService: InvoicesService,
-        private notificationService: NotificationService
+        private notificationService: NotificationService,
+        private columnPreferencesService: ColumnPreferencesService
     ) { }
 
     ngOnInit(): void {
         this.loadInvoices();
+        this.columnPreferencesService.loadPreferences('invoices-list', this.availableColumns).subscribe(cols => {
+            this.availableColumns = cols;
+            this.cdr.detectChanges();
+        });
     }
 
     loadInvoices(): void {
@@ -228,10 +234,6 @@ export class InvoicesListComponent implements OnInit {
 
     closeManageColumns() {
         this.isManageColumnsOpen = false;
-    }
-
-    onColumnsChange(updatedColumns: ColumnDef[]): void {
-        this.availableColumns = updatedColumns;
     }
 
     setFilter(filter: string): void {

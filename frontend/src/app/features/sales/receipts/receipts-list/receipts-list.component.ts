@@ -1,3 +1,5 @@
+import { ColumnPreferencesService } from '../../../../shared/services/column-preferences.service';
+import { inject } from '@angular/core';
 import { Component, OnInit, HostListener, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -31,6 +33,8 @@ export interface Receipt {
     styleUrls: ['./receipts-list.component.scss']
 })
 export class ReceiptsListComponent implements OnInit {
+    private columnPreferencesService = inject(ColumnPreferencesService);
+
     receipts: any[] = [];
     isLoading = true;
 
@@ -110,6 +114,11 @@ export class ReceiptsListComponent implements OnInit {
 
     ngOnInit(): void {
         this.loadReceipts();
+    
+        this.columnPreferencesService.loadPreferences('receipts-list', this.availableColumns).subscribe(cols => {
+            this.availableColumns = cols;
+            this.cdr.detectChanges();
+        });
     }
 
     loadReceipts(): void {
@@ -223,9 +232,7 @@ export class ReceiptsListComponent implements OnInit {
         this.isManageColumnsOpen = false;
     }
 
-    onColumnsChange(updatedColumns: ColumnDef[]): void {
-        this.availableColumns = updatedColumns;
-    }
+    
 
     setFilter(filter: string): void {
         this.currentFilter = filter;

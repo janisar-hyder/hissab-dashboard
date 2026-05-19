@@ -167,7 +167,7 @@
 
 <!-- Global Shared Output Models -->
 <app-manage-columns [isOpen]="isManageColumnsOpen" [columns]="availableColumns" (closePanel)="closeManageColumns()"
-    (columnsChange)="onColumnsChange($event)">
+    pageId="invoices-list" (columnsChange)="availableColumns = $event">
 </app-manage-columns>
 
 <app-delete-modal *ngIf="invoiceToDelete" [isOpen]="true" 
