@@ -33,6 +33,7 @@ export class CustomerEditComponent implements OnInit {
     isAttachmentsModalOpen = false;
     isEditMode: boolean = false;
     sameAsBilling = false;
+    attachments: any[] = [];
 
     // Dropdown options for design consistency
     customerTypeOptions: SelectOption[] = [
@@ -148,6 +149,7 @@ export class CustomerEditComponent implements OnInit {
                     };
                     this.customerContacts = data.contacts || [];
                     this.remarks = data.remarks || '';
+                    this.attachments = data.attachments || [];
                 },
                 error: () => this.notificationService.error('Failed to load customer data')
             });
@@ -230,7 +232,8 @@ export class CustomerEditComponent implements OnInit {
             shipment_address_city: this.sameAsBilling ? this.billingAddress.city : this.shipmentAddress.city,
 
             remarks: this.remarks,
-            contacts: this.customerContacts
+            contacts: this.customerContacts,
+            attachments: this.attachments
         };
 
         const { contacts: _, ...updatePayload } = payload;

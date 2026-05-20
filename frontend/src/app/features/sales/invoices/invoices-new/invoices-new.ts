@@ -57,6 +57,7 @@ export class InvoicesNew implements OnInit {
 
   note = '';
   termsAndConditions = '';
+  attachments: any[] = [];
   saveNoteForFuture = false;
   saveTermsForFuture = false;
 
@@ -238,6 +239,7 @@ export class InvoicesNew implements OnInit {
 
         this.note = inv.customer_notes || '';
         this.termsAndConditions = inv.terms_and_conditions || '';
+        this.attachments = inv.attachments || [];
 
         if (inv.details && inv.details.length > 0) {
           this.items = inv.details.map((d: any, index: number) => {
@@ -484,6 +486,7 @@ export class InvoicesNew implements OnInit {
       terms_and_conditions: this.termsAndConditions,
       save_note_for_future: this.saveNoteForFuture,
       save_terms_for_future: this.saveTermsForFuture,
+      attachments: this.attachments,
       details: validItems.map(item => ({
         item_id: item.item_id as number,
         description: item.description,

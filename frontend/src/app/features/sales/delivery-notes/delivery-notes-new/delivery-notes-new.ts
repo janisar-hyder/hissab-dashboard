@@ -31,13 +31,14 @@ interface DeliveryNoteItem {
 })
 export class DeliveryNotesNewComponent implements OnInit {
   isAttachmentsModalOpen = false;
+  attachments: any[] = [];
   isEditMode = false;
   deliveryNoteId: string | null = null;
   isLoading = false;
 
   deliveryNoteData = {
     customer: null as any,
-    deliveryNoteNumber: '',
+    deliveryNoteNumber: 'Auto Generated',
     deliveryNoteDate: '',
     referenceNumber: '',
     discountAt: 'Line Item Level',
@@ -102,7 +103,7 @@ export class DeliveryNotesNewComponent implements OnInit {
       } else {
         const today = new Date().toISOString().split('T')[0];
         this.deliveryNoteData.deliveryNoteDate = today;
-        this.loadNextNumber();
+        this.deliveryNoteData.deliveryNoteNumber = 'Auto Generated';
       }
     });
   }
@@ -142,14 +143,7 @@ export class DeliveryNotesNewComponent implements OnInit {
     });
   }
 
-  loadNextNumber(): void {
-    this.deliveryNotesService.getDeliveryNotes().subscribe(res => {
-      const notes = res.data || [];
-      const nextNum = notes.length + 1;
-      this.deliveryNoteData.deliveryNoteNumber = `DN-${nextNum.toString().padStart(3, '0')}`;
-      this.cdr.detectChanges();
-    });
-  }
+
 
   loadDeliveryNote(id: string): void {
     this.isLoading = true;
@@ -167,6 +161,7 @@ export class DeliveryNotesNewComponent implements OnInit {
         };
         this.note = data.notes || '';
         this.termsAndConditions = data.terms_and_conditions || '';
+        this.attachments = data.attachments || [];
         
         this.items = (data.details || []).map((d: any) => ({
           id: d.id ? Number(d.id) : undefined,
@@ -360,7 +355,7 @@ export class DeliveryNotesNewComponent implements OnInit {
   getPayload(status: string) {
     return {
       customer_id: this.deliveryNoteData.customer,
-      delivery_note_number: this.deliveryNoteData.deliveryNoteNumber,
+      delivery_note_number: this.deliveryNoteData.deliveryNoteNumber === 'Auto Generated' ? undefined : this.deliveryNoteData.deliveryNoteNumber,
       delivery_date: this.deliveryNoteData.deliveryNoteDate,
       reference_number: this.deliveryNoteData.referenceNumber,
       status: status,
@@ -374,6 +369,7 @@ export class DeliveryNotesNewComponent implements OnInit {
       terms_and_conditions: this.termsAndConditions,
       save_note: this.saveNoteForFuture,
       save_terms: this.saveTermsForFuture,
+      attachments: this.attachments,
       details: this.items.filter(i => i.item_id).map(i => ({
         item_id: i.item_id,
         description: i.description,

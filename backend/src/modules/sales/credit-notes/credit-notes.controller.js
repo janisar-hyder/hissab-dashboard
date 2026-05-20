@@ -87,6 +87,21 @@ exports.createCreditNote = async (req, res, next) => {
     const { clientId, userId } = req.user;
     const { details, applications, save_note_for_future, save_terms_for_future, ...creditNoteData } = req.body;
 
+    // Auto-generate credit_note_number if not provided or if 'Auto Generated'
+    if (!creditNoteData.credit_note_number || creditNoteData.credit_note_number === 'Auto Generated') {
+      const lastCreditNote = await prisma.creditNote.findFirst({
+        where: { client_id: clientId },
+        orderBy: { id: 'desc' },
+        select: { credit_note_number: true }
+      });
+      let nextNum = 1;
+      if (lastCreditNote && lastCreditNote.credit_note_number) {
+        const match = lastCreditNote.credit_note_number.match(/(\d+)$/);
+        if (match) nextNum = parseInt(match[1]) + 1;
+      }
+      creditNoteData.credit_note_number = `CN-${String(nextNum).padStart(4, '0')}`;
+    }
+
     if (!creditNoteData.customer_id || !creditNoteData.credit_note_number || !details || !Array.isArray(details) || details.length === 0) {
       const error = new Error('Credit note number, Customer and at least one item are required');
       error.statusCode = 400;
@@ -254,7 +269,7 @@ exports.updateCreditNote = async (req, res, next) => {
   try {
     const { clientId, userId } = req.user;
     const { id } = req.params;
-    const { reference_number, credit_note_date, status, customer_notes, terms_and_conditions, sales_person_id, save_note_for_future, save_terms_for_future } = req.body;
+    const { reference_number, credit_note_date, status, customer_notes, terms_and_conditions, sales_person_id, save_note_for_future, save_terms_for_future, attachments } = req.body;
 
     const existing = await prisma.creditNote.findFirst({
       where: { id: parseInt(id), client_id: clientId }
@@ -275,6 +290,7 @@ exports.updateCreditNote = async (req, res, next) => {
         customer_notes,
         terms_and_conditions,
         sales_person_id,
+        attachments,
         updated_by: userId,
         updated_date: new Date()
       }

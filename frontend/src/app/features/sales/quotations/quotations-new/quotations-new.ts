@@ -57,6 +57,7 @@ export class QuotationsNew implements OnInit {
 
   note = '';
   termsAndConditions = '';
+  attachments: any[] = [];
   saveNoteForFuture = false;
   saveTermsForFuture = false;
 
@@ -223,6 +224,7 @@ export class QuotationsNew implements OnInit {
 
         this.note = q.customer_notes || '';
         this.termsAndConditions = q.terms_and_conditions || '';
+        this.attachments = q.attachments || [];
 
         this.items = q.details.map((d: any, index: number) => {
           const item: QuotationItem = {
@@ -459,6 +461,7 @@ export class QuotationsNew implements OnInit {
       terms_and_conditions: this.termsAndConditions,
       save_note_for_future: this.saveNoteForFuture,
       save_terms_for_future: this.saveTermsForFuture,
+      attachments: this.attachments,
       details: validItems.map(i => ({
           item_id: i.item_id as number,
           description: i.description,

@@ -15,7 +15,13 @@ const contactsRoutes = require('./modules/contacts/contacts.routes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 
+const attachmentsRoutes = require('./routes/attachments.routes');
+const path = require('path');
+
 const app = express();
+
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // 1. Global Security Middleware
 app.use(helmet({
@@ -39,6 +45,7 @@ app.use('/api/v1/accounts', accountRoutes);
 app.use('/api/v1/purchases', purchasesRoutes);
 app.use('/api/v1/sales', salesRoutes);
 app.use('/api/v1/contacts', contactsRoutes);
+app.use('/api/v1/attachments', attachmentsRoutes);
 
 // Base Routes
 app.get('/', (req, res) => {

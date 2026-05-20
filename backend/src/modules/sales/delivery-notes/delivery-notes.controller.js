@@ -96,6 +96,21 @@ exports.createDeliveryNote = async (req, res, next) => {
     const { clientId, userId } = req.user;
     const { details, save_note, save_terms, ...deliveryNoteData } = req.body;
 
+    // Auto-generate delivery_note_number if not provided or if 'Auto Generated'
+    if (!deliveryNoteData.delivery_note_number || deliveryNoteData.delivery_note_number === 'Auto Generated') {
+      const lastDeliveryNote = await prisma.deliveryNote.findFirst({
+        where: { client_id: clientId },
+        orderBy: { id: 'desc' },
+        select: { delivery_note_number: true }
+      });
+      let nextNum = 1;
+      if (lastDeliveryNote && lastDeliveryNote.delivery_note_number) {
+        const match = lastDeliveryNote.delivery_note_number.match(/(\d+)$/);
+        if (match) nextNum = parseInt(match[1]) + 1;
+      }
+      deliveryNoteData.delivery_note_number = `DN-${String(nextNum).padStart(4, '0')}`;
+    }
+
     if (!deliveryNoteData.customer_id || !deliveryNoteData.delivery_note_number || !details || !Array.isArray(details) || details.length === 0) {
       const error = new Error('Delivery note number, Customer and at least one item are required');
       error.statusCode = 400;

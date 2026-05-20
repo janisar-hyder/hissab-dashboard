@@ -100,9 +100,8 @@ exports.createInvoice = async (req, res, next) => {
       }
     });
 
-    // Auto-generate invoice_number if not provided
-    if (!invoiceData.invoice_number) {
-      const year = new Date().getFullYear();
+    // Auto-generate invoice_number if not provided or if 'Auto Generated'
+    if (!invoiceData.invoice_number || invoiceData.invoice_number === 'Auto Generated') {
       const lastInvoice = await prisma.invoice.findFirst({
         where: { client_id: clientId },
         orderBy: { id: 'desc' },
@@ -113,7 +112,7 @@ exports.createInvoice = async (req, res, next) => {
         const match = lastInvoice.invoice_number.match(/(\d+)$/);
         if (match) nextNum = parseInt(match[1]) + 1;
       }
-      invoiceData.invoice_number = `INV-${year}-${String(nextNum).padStart(3, '0')}`;
+      invoiceData.invoice_number = `INV-${String(nextNum).padStart(4, '0')}`;
     }
 
     // Start a transaction

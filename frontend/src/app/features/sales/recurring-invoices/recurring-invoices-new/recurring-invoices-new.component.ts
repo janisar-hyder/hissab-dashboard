@@ -20,6 +20,7 @@ import { forkJoin } from 'rxjs';
 })
 export class RecurringInvoicesNewComponent implements OnInit {
   isAttachmentsModalOpen = false;
+  attachments: any[] = [];
 
   formData = {
     customer: null as any,
@@ -202,6 +203,7 @@ export class RecurringInvoicesNewComponent implements OnInit {
 
         this.note = data.customer_notes;
         this.termsAndConditions = data.terms_and_conditions;
+        this.attachments = data.attachments || [];
 
         this.items = data.details.map((d: any) => ({
           id: this.nextId++,
@@ -413,6 +415,7 @@ export class RecurringInvoicesNewComponent implements OnInit {
       terms_and_conditions: this.termsAndConditions,
       save_note_for_future: this.saveNoteForFuture,
       save_terms_for_future: this.saveTermsForFuture,
+      attachments: this.attachments,
       details: this.items.map(item => ({
         item_id: item.item_id,
         quantity: item.qty,

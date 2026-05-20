@@ -136,7 +136,7 @@ exports.createQuotation = async (req, res, next) => {
               };
               // Only include vat_rate_id if it has a valid value
               if (item.vat_rate_id != null) {
-                detail.vat_rate_id = item.vat_rate_id;
+                detail.vat_rate_id = parseInt(item.vat_rate_id, 10);
               }
               return detail;
             })
@@ -235,7 +235,7 @@ exports.updateQuotation = async (req, res, next) => {
             quantity: item.quantity,
             rate: item.rate,
             discount_amount: item.discount_amount || 0,
-            vat_rate_id: item.vat_rate_id,
+            vat_rate_id: item.vat_rate_id != null ? parseInt(item.vat_rate_id, 10) : null,
             line_total: item.line_total,
             description: item.description
           }))

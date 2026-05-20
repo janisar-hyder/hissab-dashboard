@@ -30,11 +30,12 @@ export interface UnpaidInvoice {
 })
 export class ReceiptsNew implements OnDestroy {
   isAttachmentsModalOpen = false;
+  attachments: any[] = [];
   isEditMode = false;
   receiptId: string | null = null;
 
   receiptData = {
-    receiptNumber: '',
+    receiptNumber: 'Auto Generated',
     customer: null as any,
     referenceNumber: '',
     amountReceived: null as any,
@@ -103,10 +104,8 @@ export class ReceiptsNew implements OnDestroy {
       this.cdr.detectChanges();
     });
 
-    // 3. Load Next Receipt Number (only if new)
-    if (!this.isEditMode) {
-      this.loadNextNumber();
-    } else {
+    // 3. Load Receipt if editing
+    if (this.isEditMode) {
       this.loadReceiptForEdit();
     }
   }
@@ -128,6 +127,7 @@ export class ReceiptsNew implements OnDestroy {
           bankCharges: Number(data.bank_charges) || 0,
           notes: data.notes || ''
         };
+        this.attachments = data.attachments || [];
 
         // Load invoices for this customer to show applications
         this.receiptsService.getInvoices(data.customer_id).subscribe(invRes => {
@@ -152,14 +152,7 @@ export class ReceiptsNew implements OnDestroy {
     });
   }
 
-  loadNextNumber(): void {
-    this.receiptsService.getReceipts().subscribe(res => {
-      const receipts = res.data || [];
-      const count = receipts.length + 1;
-      this.receiptData.receiptNumber = `RCP-${new Date().getFullYear()}-${count.toString().padStart(3, '0')}`;
-      this.cdr.detectChanges();
-    });
-  }
+
 
   onCustomerChange(): void {
     if (this.receiptData.customer) {
@@ -227,7 +220,7 @@ export class ReceiptsNew implements OnDestroy {
 
   save(): void {
     const payload = {
-      receipt_number: this.receiptData.receiptNumber,
+      receipt_number: this.receiptData.receiptNumber === 'Auto Generated' ? undefined : this.receiptData.receiptNumber,
       customer_id: Number(this.receiptData.customer),
       reference_number: this.receiptData.referenceNumber,
       amount_received: Number(this.receiptData.amountReceived),
@@ -236,6 +229,7 @@ export class ReceiptsNew implements OnDestroy {
       deposit_to_id: Number(this.receiptData.depositTo),
       bank_charges: Number(this.receiptData.bankCharges),
       notes: this.receiptData.notes,
+      attachments: this.attachments,
       applications: this.unpaidInvoices
         .filter(inv => inv.paid > 0)
         .map(inv => ({

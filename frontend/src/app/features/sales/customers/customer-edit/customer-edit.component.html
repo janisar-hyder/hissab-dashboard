@@ -330,5 +330,7 @@
     *ngIf="isAttachmentsModalOpen"
     [isAttachmentsModalOpen]="isAttachmentsModalOpen"
     [isEditMode]="isEditMode"
+    [attachments]="attachments"
+    (attachmentsChange)="attachments = $event"
     (closeModal)="closeAttachmentsModal()">
 </app-attachments-modal>

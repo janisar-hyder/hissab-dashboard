@@ -607,6 +607,7 @@ model Customer {
   shipment_address_city      String?            @db.VarChar(100)
   shipment_address_country   String?            @db.VarChar(100)
   shipment_address_details   String?
+  attachments                Json?
   contacts                   CustomerContact[]
   client                     Client             @relation(fields: [client_id], references: [id], onDelete: Cascade)
   createdByUser              ClientUser?        @relation("CustCreatedBy", fields: [created_by], references: [id])
@@ -1051,6 +1052,7 @@ model Receipt {
   bank_charges        Decimal? @default(0.000) @db.Decimal(18, 3)
   notes               String?  @db.Text
   status              String?  @default("Received") @db.VarChar(50)
+  attachments         Json?
   created_date        DateTime @default(now())
   created_by          Int?
   updated_date        DateTime @default(now()) @updatedAt
@@ -1100,6 +1102,7 @@ model CreditNote {
   balance             Decimal? @default(0.000) @db.Decimal(18, 3)
   customer_notes      String?  @db.Text
   terms_and_conditions String? @db.Text
+  attachments         Json?
   created_date        DateTime @default(now())
   created_by          Int?
   updated_date        DateTime @default(now()) @updatedAt

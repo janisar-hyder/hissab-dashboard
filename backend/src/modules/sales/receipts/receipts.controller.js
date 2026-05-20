@@ -80,6 +80,21 @@ exports.createReceipt = async (req, res, next) => {
     const { clientId, userId } = req.user;
     const { applications, save_note_for_future, ...receiptData } = req.body;
 
+    // Auto-generate receipt_number if not provided or if 'Auto Generated'
+    if (!receiptData.receipt_number || receiptData.receipt_number === 'Auto Generated') {
+      const lastReceipt = await prisma.receipt.findFirst({
+        where: { client_id: clientId },
+        orderBy: { id: 'desc' },
+        select: { receipt_number: true }
+      });
+      let nextNum = 1;
+      if (lastReceipt && lastReceipt.receipt_number) {
+        const match = lastReceipt.receipt_number.match(/(\d+)$/);
+        if (match) nextNum = parseInt(match[1]) + 1;
+      }
+      receiptData.receipt_number = `RCP-${String(nextNum).padStart(4, '0')}`;
+    }
+
     if (!receiptData.customer_id || !receiptData.receipt_number || !receiptData.amount_received) {
       const error = new Error('Receipt number, Customer and Amount are required');
       error.statusCode = 400;
@@ -222,7 +237,7 @@ exports.updateReceipt = async (req, res, next) => {
   try {
     const { clientId, userId } = req.user;
     const { id } = req.params;
-    const { notes, reference_number, receipt_date, payment_mode, status, save_note_for_future } = req.body;
+    const { notes, reference_number, receipt_date, payment_mode, status, save_note_for_future, attachments } = req.body;
 
     const receipt = await prisma.receipt.findFirst({
       where: { id: parseInt(id), client_id: clientId }
@@ -242,6 +257,7 @@ exports.updateReceipt = async (req, res, next) => {
         status,
         receipt_date: receipt_date ? new Date(receipt_date) : undefined,
         payment_mode,
+        attachments,
         updated_by: userId,
         updated_date: new Date()
       }

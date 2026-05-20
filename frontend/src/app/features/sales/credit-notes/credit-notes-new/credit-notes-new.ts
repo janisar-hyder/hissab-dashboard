@@ -31,10 +31,11 @@ interface CreditNoteItem {
 })
 export class CreditNotesNew implements OnInit {
   isAttachmentsModalOpen = false;
+  attachments: any[] = [];
 
   creditNoteData = {
     customer: '',
-    creditNoteNumber: 'CN-001',
+    creditNoteNumber: 'Auto Generated',
     creditNoteDate: '',
     referenceNumber: '',
     accountsReceivable: 'Accounts Receivable',
@@ -135,6 +136,7 @@ export class CreditNotesNew implements OnInit {
 
         this.note = cn.customer_notes || '';
         this.termsAndConditions = cn.terms_and_conditions || '';
+        this.attachments = cn.attachments || [];
 
         if (cn.details && cn.details.length > 0) {
           this.items = cn.details.map((d: any, index: number) => ({
@@ -395,7 +397,7 @@ export class CreditNotesNew implements OnInit {
 
     this.isSaving = true;
     const payload = {
-      credit_note_number: this.creditNoteData.creditNoteNumber,
+      credit_note_number: this.creditNoteData.creditNoteNumber === 'Auto Generated' ? undefined : this.creditNoteData.creditNoteNumber,
       customer_id: parseInt(this.creditNoteData.customer),
       credit_note_date: this.creditNoteData.creditNoteDate,
       reference_number: this.creditNoteData.referenceNumber,
@@ -408,6 +410,7 @@ export class CreditNotesNew implements OnInit {
       terms_and_conditions: this.termsAndConditions,
       save_note_for_future: this.saveNoteForFuture,
       save_terms_for_future: this.saveTermsForFuture,
+      attachments: this.attachments,
       details: validItems.map(item => ({
         item_id: Number(item.item_id),
         description: item.description,
