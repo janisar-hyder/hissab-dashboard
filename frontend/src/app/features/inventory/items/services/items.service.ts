@@ -21,6 +21,9 @@ export interface InventoryItem {
     purchase_description?: string;
     inventory_account_id?: number;
     stock_in_hand?: number;
+    brands?: string;
+    opening_stock?: number;
+    opening_stock_value?: number;
     status: string;
     warranty_period?: string;
     shelf_life?: string;

@@ -93,13 +93,6 @@ export class ReceiptsNew implements OnDestroy {
     // 2. Get Deposit Accounts (Chart of Accounts)
     this.receiptsService.getAccounts().subscribe(res => {
       this.depositToOptions = (res.data || [])
-        .filter((acc: any) => 
-          acc.type === 'Bank' || 
-          acc.type === 'Cash' || 
-          acc.type === 'Other Current Asset' || 
-          acc.type === 'Asset' ||
-          acc.type === 'Stock'
-        )
         .map((acc: any) => ({ label: acc.name, value: acc.id }));
       this.cdr.detectChanges();
     });

@@ -535,6 +535,9 @@ model InventoryItem {
   purchase_description    String?
   inventory_account_id    Int?
   stock_in_hand           Decimal?                 @default(0) @db.Decimal(18, 3)
+  brands                  String?                  @db.VarChar(255)
+  opening_stock           Decimal?                 @default(0) @db.Decimal(18, 3)
+  opening_stock_value     Decimal?                 @default(0.000) @db.Decimal(18, 3)
   status                  String?                  @default("Active") @db.VarChar(50)
   warranty_period         String?                  @db.VarChar(100)
   shelf_life              String?                  @db.VarChar(100)

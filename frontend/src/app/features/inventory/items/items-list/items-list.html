@@ -48,11 +48,14 @@
                 <ng-container *ngFor="let col of availableColumns">
                     <ng-container *ngIf="col.visible" [ngSwitch]="col.id">
                         <div *ngSwitchCase="'name'"        class="col-name header-cell">{{ col.label }} <i [class]="sortColumn() === 'name' ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('name', $event)"></i></div>
+                        <div *ngSwitchCase="'brands'"      class="col-brand header-cell">{{ col.label }} <i [class]="sortColumn() === 'brands' ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('brands', $event)"></i></div>
                         <div *ngSwitchCase="'stockInHand'" class="col-stock header-cell">{{ col.label }} <i [class]="sortColumn() === 'stockInHand' ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('stockInHand', $event)"></i></div>
                         <div *ngSwitchCase="'unit'"        class="col-unit header-cell">{{ col.label }} <i [class]="sortColumn() === 'unit' ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('unit', $event)"></i></div>
                         <div *ngSwitchCase="'sellingPrice'" class="col-price header-cell">{{ col.label }} <i [class]="sortColumn() === 'sellingPrice' ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('sellingPrice', $event)"></i></div>
                         <div *ngSwitchCase="'costPrice'"   class="col-price header-cell">{{ col.label }} <i [class]="sortColumn() === 'costPrice' ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('costPrice', $event)"></i></div>
                         <div *ngSwitchCase="'stockValue'"  class="col-price header-cell">{{ col.label }} <i [class]="sortColumn() === 'stockValue' ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('stockValue', $event)"></i></div>
+                        <div *ngSwitchCase="'openingStock'" class="col-stock header-cell">{{ col.label }} <i [class]="sortColumn() === 'openingStock' ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('openingStock', $event)"></i></div>
+                        <div *ngSwitchCase="'openingStockValue'" class="col-price header-cell">{{ col.label }} <i [class]="sortColumn() === 'openingStockValue' ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('openingStockValue', $event)"></i></div>
                         <div *ngSwitchCase="'status'"      class="col-status header-cell">{{ col.label }} <i [class]="sortColumn() === 'status' ? (sortDirection() === 'asc' ? 'las la-sort-up' : 'las la-sort-down') : 'las la-sort'" (click)="sort('status', $event)"></i></div>
                     </ng-container>
                 </ng-container>
@@ -76,11 +79,14 @@
                                 <div class="item-name">{{ item.name }}</div>
                                 <div class="item-desc">{{ item.description }}</div>
                             </div>
+                            <div *ngSwitchCase="'brands'"      class="col-brand text-muted">{{ item.brands ? item.brands : '-' }}</div>
                             <div *ngSwitchCase="'stockInHand'" class="col-stock text-muted">{{ item.stock_in_hand !== null ? item.stock_in_hand : '-' }}</div>
                             <div *ngSwitchCase="'unit'"        class="col-unit text-muted">{{ item.uom?.name ? item.uom.name : '-' }}</div>
-                            <div *ngSwitchCase="'sellingPrice'" class="col-price text-muted">{{ item.sales_rate !== null ? 'BHD ' + (item.sales_rate | number:'1.3-3') : '-' }}</div>
-                            <div *ngSwitchCase="'costPrice'"   class="col-price text-muted">{{ item.purchase_cost !== null ? 'BHD ' + (item.purchase_cost | number:'1.3-3') : '-' }}</div>
-                            <div *ngSwitchCase="'stockValue'"  class="col-price text-muted">-</div>
+                            <div *ngSwitchCase="'sellingPrice'" class="col-price text-muted">{{ item.sales_rate !== null && item.sales_rate !== undefined ? 'BHD ' + (item.sales_rate | number:'1.3-3') : '-' }}</div>
+                            <div *ngSwitchCase="'costPrice'"   class="col-price text-muted">{{ item.purchase_cost !== null && item.purchase_cost !== undefined ? 'BHD ' + (item.purchase_cost | number:'1.3-3') : '-' }}</div>
+                            <div *ngSwitchCase="'stockValue'"  class="col-price text-muted">{{ (item.stock_in_hand !== null && item.stock_in_hand !== undefined && item.purchase_cost !== null && item.purchase_cost !== undefined) ? 'BHD ' + ((item.stock_in_hand! * item.purchase_cost!) | number:'1.3-3') : '-' }}</div>
+                            <div *ngSwitchCase="'openingStock'" class="col-stock text-muted">{{ item.opening_stock !== null ? item.opening_stock : '-' }}</div>
+                            <div *ngSwitchCase="'openingStockValue'" class="col-price text-muted">{{ item.opening_stock_value !== null ? 'BHD ' + (item.opening_stock_value | number:'1.3-3') : '-' }}</div>
                             <div *ngSwitchCase="'status'" class="col-status">
                                 <span class="status-pill" [ngClass]="(item.status || 'Active').toLowerCase()">
                                     <span class="dot"></span> {{ item.status || 'Active' }}

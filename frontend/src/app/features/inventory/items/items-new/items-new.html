@@ -54,6 +54,7 @@
                     <label>Category</label>
                     <app-custom-select 
                         [(ngModel)]="itemData.category" 
+                        (ngModelChange)="onCategoryChange($event)"
                         [options]="categoryOptions" 
                         placeholder="Select Category">
                     </app-custom-select>
@@ -65,6 +66,7 @@
                     <app-custom-select 
                         [(ngModel)]="itemData.subCategory" 
                         [options]="subCategoryOptions" 
+                        [disabled]="subCategoryOptions.length === 0"
                         placeholder="Select Sub Category">
                     </app-custom-select>
                 </div>
@@ -73,6 +75,12 @@
                 <div class="form-group">
                     <label>SKU</label>
                     <input type="text" class="form-control" [(ngModel)]="itemData.sku" placeholder="Enter your SKU">
+                </div>
+
+                <!-- Brand -->
+                <div class="form-group">
+                    <label>Brand</label>
+                    <input type="text" class="form-control" [(ngModel)]="itemData.brands" placeholder="Enter Brand Name">
                 </div>
 
                 <!-- Description (Full Width) -->
@@ -167,6 +175,27 @@
                         [options]="inventoryAccountOptions" 
                         placeholder="Select Account">
                     </app-custom-select>
+                </div>
+
+                <!-- Stock in Hand -->
+                <div class="form-group">
+                    <label>Stock in Hand</label>
+                    <input type="number" class="form-control" [(ngModel)]="itemData.stockInHand" placeholder="0">
+                </div>
+
+                <!-- Opening Stock -->
+                <div class="form-group">
+                    <label>Opening Stock</label>
+                    <input type="number" class="form-control" [(ngModel)]="itemData.openingStock" placeholder="0">
+                </div>
+
+                <!-- Opening Stock Value -->
+                <div class="form-group">
+                    <label>Opening Stock Value</label>
+                    <div class="input-with-suffix">
+                        <input type="number" class="form-control" [(ngModel)]="itemData.openingStockValue" step="0.001" placeholder="0.000">
+                        <div class="suffix">BHD</div>
+                    </div>
                 </div>
 
                 <!-- Warranty Period -->

@@ -40,6 +40,7 @@ export class ItemsNewComponent implements OnInit {
     category: '',
     subCategory: '',
     sku: '',
+    brands: '',
     description: '',
     salesRate: null as any,
     vatPreference: '',
@@ -58,12 +59,16 @@ export class ItemsNewComponent implements OnInit {
     valuationMethod: '',
     volumePerUnit: '',
     volumeUom: '',
-    inventoryDescription: ''
+    inventoryDescription: '',
+    openingStock: null as any,
+    openingStockValue: null as any,
+    stockInHand: null as any
   };
 
   uomOptions: SelectOption[] = [];
   categoryOptions: SelectOption[] = [];
   subCategoryOptions: SelectOption[] = [];
+  allSubCategories: any[] = [];
   vatPreferenceOptions: SelectOption[] = [];
   salesAccountOptions: SelectOption[] = [];
   purchaseAccountOptions: SelectOption[] = [];
@@ -105,6 +110,7 @@ export class ItemsNewComponent implements OnInit {
           category: item.category_id?.toString() || '',
           subCategory: item.sub_category_id?.toString() || '',
           sku: item.sku || '',
+          brands: item.brands || '',
           description: item.description || '',
           salesRate: item.sales_rate,
           vatPreference: item.vat_rate_id?.toString() || '',
@@ -123,8 +129,12 @@ export class ItemsNewComponent implements OnInit {
           valuationMethod: item.valuation_method || '',
           volumePerUnit: item.volume_per_unit?.toString() || '',
           volumeUom: item.volume_uom_id?.toString() || '',
-          inventoryDescription: item.inventory_description || ''
+          inventoryDescription: item.inventory_description || '',
+          openingStock: item.opening_stock,
+          openingStockValue: item.opening_stock_value,
+          stockInHand: item.stock_in_hand
         };
+        this.filterSubCategories();
         this.cdr.detectChanges();
       },
       error: () => {
@@ -140,7 +150,8 @@ export class ItemsNewComponent implements OnInit {
       this.cdr.detectChanges();
     });
     this.itemsService.getSubCategories().subscribe(res => {
-      this.subCategoryOptions = res.data.map((c: any) => ({ label: c.name, value: c.id.toString() }));
+      this.allSubCategories = res.data || [];
+      this.filterSubCategories();
       this.cdr.detectChanges();
     });
     this.itemsService.getUoms().subscribe(res => {
@@ -159,19 +170,32 @@ export class ItemsNewComponent implements OnInit {
     });
     this.itemsService.getChartOfAccounts().subscribe(res => {
       const accounts = res.data || [];
-      this.salesAccountOptions = accounts
-        .filter((a: any) => a.type === 'Income' || a.type === 'Sales')
-        .map((a: any) => ({ label: a.name, value: a.id.toString() }));
+      const allAccounts = accounts.map((a: any) => ({ label: a.name, value: a.id.toString() }));
       
-      this.purchaseAccountOptions = accounts
-        .filter((a: any) => a.type === 'Expense' || a.type === 'Cost of Goods Sold')
-        .map((a: any) => ({ label: a.name, value: a.id.toString() }));
-
-      this.inventoryAccountOptions = accounts
-        .filter((a: any) => a.type === 'Asset' || a.name.includes('Inventory'))
-        .map((a: any) => ({ label: a.name, value: a.id.toString() }));
+      this.salesAccountOptions = allAccounts;
+      this.purchaseAccountOptions = allAccounts;
+      this.inventoryAccountOptions = allAccounts;
       this.cdr.detectChanges();
     });
+  }
+
+  onCategoryChange(categoryId: string) {
+    this.filterSubCategories();
+    // If the currently selected subcategory is not in the filtered options, reset it
+    if (this.itemData.subCategory && !this.subCategoryOptions.some(opt => opt.value === this.itemData.subCategory)) {
+      this.itemData.subCategory = '';
+    }
+  }
+
+  filterSubCategories() {
+    const selectedCatId = this.itemData.category;
+    if (!selectedCatId) {
+      this.subCategoryOptions = [];
+    } else {
+      this.subCategoryOptions = this.allSubCategories
+        .filter((sub: any) => sub.category_id.toString() === selectedCatId)
+        .map((sub: any) => ({ label: sub.name, value: sub.id.toString() }));
+    }
   }
 
   setTab(tabId: string) {
@@ -198,6 +222,7 @@ export class ItemsNewComponent implements OnInit {
       category_id: Number(this.itemData.category),
       sub_category_id: this.itemData.subCategory ? Number(this.itemData.subCategory) : undefined,
       sku: this.itemData.sku,
+      brands: this.itemData.brands || undefined,
       description: this.itemData.description,
       sales_rate: this.itemData.salesRate ? Number(this.itemData.salesRate) : undefined,
       vat_rate_id: this.itemData.vatPreference ? Number(this.itemData.vatPreference) : undefined,
@@ -217,6 +242,9 @@ export class ItemsNewComponent implements OnInit {
       volume_per_unit: this.itemData.volumePerUnit ? Number(this.itemData.volumePerUnit) : undefined,
       volume_uom_id: this.itemData.volumeUom ? Number(this.itemData.volumeUom) : undefined,
       inventory_description: this.itemData.inventoryDescription,
+      opening_stock: (this.itemData.openingStock !== null && this.itemData.openingStock !== '') ? Number(this.itemData.openingStock) : undefined,
+      opening_stock_value: (this.itemData.openingStockValue !== null && this.itemData.openingStockValue !== '') ? Number(this.itemData.openingStockValue) : undefined,
+      stock_in_hand: (this.itemData.stockInHand !== null && this.itemData.stockInHand !== '') ? Number(this.itemData.stockInHand) : undefined,
       status: 'Active'
     };
 

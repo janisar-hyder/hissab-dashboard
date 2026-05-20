@@ -36,9 +36,9 @@ export interface SelectOption {
           <div class="menu-item" 
                *ngFor="let option of filteredOptions" 
                (click)="selectOption(option, $event)"
-               [class.active]="option.value === value">
+               [class.active]="isSelected(option.value)">
             <span class="label-text">{{ option.label }}</span>
-            <i class="las la-check check-icon" *ngIf="option.value === value"></i>
+            <i class="las la-check check-icon" *ngIf="isSelected(option.value)"></i>
           </div>
 
           <div class="no-results" *ngIf="filteredOptions.length === 0">
@@ -317,8 +317,14 @@ export class CustomSelectComponent implements ControlValueAccessor, OnDestroy {
     });
   }
 
+  isSelected(optionValue: any): boolean {
+    if (this.value === optionValue) return true;
+    if (this.value === null || this.value === undefined || optionValue === null || optionValue === undefined) return false;
+    return String(this.value) === String(optionValue);
+  }
+
   get selectedLabel(): string | undefined {
-    const selected = this.options.find(opt => opt.value === this.value);
+    const selected = this.options.find(opt => this.isSelected(opt.value));
     return selected ? selected.label : undefined;
   }
 
@@ -349,7 +355,11 @@ export class CustomSelectComponent implements ControlValueAccessor, OnDestroy {
 
   selectOption(option: SelectOption, event: Event) {
     event.stopPropagation();
-    this.value = option.value;
+    if (this.isSelected(option.value)) {
+      this.value = null;
+    } else {
+      this.value = option.value;
+    }
     this.onChange(this.value);
     this.onTouched();
     this.isOpen = false;

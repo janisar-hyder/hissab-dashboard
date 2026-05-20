@@ -92,11 +92,14 @@ export class ItemsList implements OnInit {
   
   availableColumns: ColumnDef[] = [
     { id: 'name', label: 'Item & Description', visible: true},
+    { id: 'brands', label: 'Brand', visible: true },
     { id: 'stockInHand', label: 'Stock in hand', visible: true },
     { id: 'unit', label: 'Unit', visible: true },
     { id: 'sellingPrice', label: 'Selling Price', visible: true },
     { id: 'costPrice', label: 'Cost Price', visible: true },
     { id: 'stockValue', label: 'Stock Value', visible: true },
+    { id: 'openingStock', label: 'Opening Stock', visible: false },
+    { id: 'openingStockValue', label: 'Opening Stock Value', visible: false },
     { id: 'status', label: 'Status', visible: true }
   ];
 
@@ -144,10 +147,17 @@ export class ItemsList implements OnInit {
         let valB = (b as any)[sortCol];
 
         // Map frontend labels to backend properties
+        if (sortCol === 'brands') { valA = a.brands; valB = b.brands; }
         if (sortCol === 'stockInHand') { valA = a.stock_in_hand; valB = b.stock_in_hand; }
         if (sortCol === 'unit') { valA = a.uom?.name; valB = b.uom?.name; }
         if (sortCol === 'sellingPrice') { valA = a.sales_rate; valB = b.sales_rate; }
         if (sortCol === 'costPrice') { valA = a.purchase_cost; valB = b.purchase_cost; }
+        if (sortCol === 'openingStock') { valA = a.opening_stock; valB = b.opening_stock; }
+        if (sortCol === 'openingStockValue') { valA = a.opening_stock_value; valB = b.opening_stock_value; }
+        if (sortCol === 'stockValue') {
+          valA = (a.stock_in_hand !== null && a.stock_in_hand !== undefined && a.purchase_cost !== null && a.purchase_cost !== undefined) ? a.stock_in_hand * a.purchase_cost : null;
+          valB = (b.stock_in_hand !== null && b.stock_in_hand !== undefined && b.purchase_cost !== null && b.purchase_cost !== undefined) ? b.stock_in_hand * b.purchase_cost : null;
+        }
 
         if (valA === null || valA === undefined) return 1;
         if (valB === null || valB === undefined) return -1;

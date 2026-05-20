@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ElementRef, ViewChild } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ElementRef, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpEventType } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
@@ -47,7 +47,7 @@ export class AttachmentsModal {
   // List of files currently being uploaded or already uploaded in this session
   uploadList: Attachment[] = [];
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     if (this.attachments && this.attachments.length > 0) {
@@ -125,6 +125,7 @@ export class AttachmentsModal {
       this.uploadList.push(attachment);
       this.uploadFile(file, attachment);
     });
+    this.cdr.detectChanges();
   }
 
   uploadFile(file: File, attachment: Attachment): void {
@@ -138,6 +139,7 @@ export class AttachmentsModal {
       next: (event) => {
         if (event.type === HttpEventType.UploadProgress && event.total) {
           attachment.progress = Math.round(100 * event.loaded / event.total);
+          this.cdr.detectChanges();
         } else if (event.type === HttpEventType.Response) {
           attachment.progress = 100;
           attachment.status = 'completed';
@@ -147,12 +149,14 @@ export class AttachmentsModal {
             attachment.fileName = uploadedFile.fileName;
             attachment.url = uploadedFile.url;
           }
+          this.cdr.detectChanges();
         }
       },
       error: (err) => {
         console.error('Upload error', err);
         attachment.status = 'error';
         alert(`Failed to upload ${file.name}`);
+        this.cdr.detectChanges();
       }
     });
   }
@@ -161,6 +165,7 @@ export class AttachmentsModal {
     if (attachment.status === 'uploading') {
       // It's uploading, just remove it from UI (cancel upload isn't trivially supported without subscription)
       this.uploadList.splice(index, 1);
+      this.cdr.detectChanges();
       return;
     }
 
@@ -170,15 +175,18 @@ export class AttachmentsModal {
       }).subscribe({
         next: () => {
           this.uploadList.splice(index, 1);
+          this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('Failed to delete file on server', err);
           // Remove it from UI anyway
           this.uploadList.splice(index, 1);
+          this.cdr.detectChanges();
         }
       });
     } else {
       this.uploadList.splice(index, 1);
+      this.cdr.detectChanges();
     }
   }
 

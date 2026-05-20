@@ -236,8 +236,9 @@
     <!-- Sticky Footer -->
     <div class="page-footer">
         <button class="footer-btn btn-cancel" (click)="cancel()">Cancel</button>
-        <button class="footer-btn btn-draft" (click)="saveAsDraft()">Save as Draft</button>
-        <button class="footer-btn btn-save" (click)="save()">Save</button>
+        <button *ngIf="!isEditMode" class="footer-btn btn-draft" (click)="saveAsDraft()">Save as Draft</button>
+        <button *ngIf="!isEditMode" class="footer-btn btn-save" (click)="save()">Save</button>
+        <button *ngIf="isEditMode" class="footer-btn btn-save" (click)="save()">Save & Update</button>
     </div>
 </div>
 
