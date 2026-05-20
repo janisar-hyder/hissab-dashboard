@@ -218,6 +218,9 @@ async function main() {
       purchase_description: 'Purchase of Premium AC Units',
       inventory_account_id: stockAccount?.id,
       stock_in_hand: 15.000,
+      brands: 'Samsung',
+      opening_stock: 15.000,
+      opening_stock_value: 4800.000,
       status: 'Active',
       warranty_period: '2 Years',
       shelf_life: '10 Years',
@@ -241,6 +244,9 @@ async function main() {
       category_id: category1.id,
       sales_rate: 250.000,
       purchase_cost: 180.000,
+      brands: 'LG',
+      opening_stock: 10.000,
+      opening_stock_value: 1800.000,
       status: 'Active',
       created_by: clientUser.id
     }
@@ -255,6 +261,9 @@ async function main() {
       category_id: category2.id,
       sales_rate: 1.500,
       purchase_cost: 1.000,
+      brands: 'Ducab',
+      opening_stock: 100.000,
+      opening_stock_value: 100.000,
       status: 'Active',
       created_by: clientUser.id
     }
