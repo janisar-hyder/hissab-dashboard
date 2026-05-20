@@ -61,7 +61,7 @@
             <div class="form-grid form-grid-3" style="margin-bottom: 24px;">
                 <div class="form-group">
                     <label>Amount Received <span class="required">*</span></label>
-                    <input type="number" class="form-control" [(ngModel)]="receiptData.amountReceived" placeholder="0.000" step="0.001">
+                    <input type="number" min="0" (keydown)="preventNegative($event)" class="form-control" [(ngModel)]="receiptData.amountReceived" placeholder="0.000" step="0.001">
                 </div>
                 <div class="form-group">
                     <label>Payment Date <span class="required">*</span></label>
@@ -89,7 +89,7 @@
                 </div>
                 <div class="form-group">
                     <label>Bank Charges (If any)</label>
-                    <input type="number" class="form-control" [(ngModel)]="receiptData.bankCharges" placeholder="0.000" step="0.001">
+                    <input type="number" min="0" (keydown)="preventNegative($event)" class="form-control" [(ngModel)]="receiptData.bankCharges" placeholder="0.000" step="0.001">
                 </div>
             </div>
             
@@ -132,6 +132,8 @@
                             <div class="td-cell td-amt-paid">
                                 <div class="cell-input-wrapper">
                                     <input type="number" 
+                                           min="0"
+                                           (keydown)="preventNegative($event)"
                                            class="cell-input" 
                                            [(ngModel)]="invoice.paid" 
                                            (ngModelChange)="onPaidAmountChange(invoice)"

@@ -77,18 +77,6 @@
         text-align: left;
         box-sizing: border-box;
 
-        .icon-container {
-            width: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            .dot {
-                width: 6px;
-                height: 6px;
-                border-radius: 50%;
-            }
-        }
 
         .text-content {
             font-weight: 400;

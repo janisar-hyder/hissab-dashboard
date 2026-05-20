@@ -94,6 +94,36 @@ export class CreditNotesListComponent implements OnInit {
         { id: 'status', label: 'Status', visible: true },
     ];
 
+    get emptyStateTitle(): string {
+        const filter = this.currentFilter;
+        if (filter !== 'All') {
+            return `No ${filter} Credit Notes Found.`;
+        }
+        return 'No Credit Notes Found.';
+    }
+
+    get emptyStateSubtitle(): string {
+        const filter = this.currentFilter;
+        const query = this.searchQuery;
+        if (filter !== 'All' && query) {
+            return `We couldn't find any ${filter.toLowerCase()} credit notes matching '${query}'.`;
+        }
+        if (filter !== 'All') {
+            return `It looks like you don't have any ${filter.toLowerCase()} credit notes yet.`;
+        }
+        if (query) {
+            return `We couldn't find any credit notes matching '${query}'.`;
+        }
+        return `It looks like you haven't added any credit notes yet.`;
+    }
+
+    get emptyStateActionLabel(): string {
+        if (this.currentFilter !== 'All' || this.searchQuery) {
+            return '';
+        }
+        return 'Add New Credit Note';
+    }
+
     get filteredCreditNotes(): CreditNote[] {
         let filtered = this.creditNotes;
 

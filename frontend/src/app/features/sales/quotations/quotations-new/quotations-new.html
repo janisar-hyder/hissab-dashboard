@@ -172,7 +172,7 @@
 
                         <!-- Rate -->
                         <div class="td-cell td-rate">
-                            <input type="number" class="cell-input"
+                            <input type="number" min="0" (keydown)="preventNegative($event)" class="cell-input"
                                 [(ngModel)]="item.rate"
                                 (ngModelChange)="updateAmount(item)"
                                 step="0.001"
@@ -181,7 +181,7 @@
 
                         <!-- Qty -->
                         <div class="td-cell td-qty">
-                            <input type="number" class="cell-input"
+                            <input type="number" min="0" (keydown)="preventNegative($event)" class="cell-input"
                                 [(ngModel)]="item.qty"
                                 (ngModelChange)="updateAmount(item)"
                                 step="0.01"
@@ -191,7 +191,7 @@
                         <!-- Discount: fused number + %/BHD select (Conditional) -->
                         <div class="td-cell td-discount" *ngIf="quotationData.discountAt === 'Line Item Level'">
                             <div class="discount-input-group">
-                                <input type="number" class="discount-control-num"
+                                <input type="number" min="0" (keydown)="preventNegative($event)" class="discount-control-num"
                                     [(ngModel)]="item.discount"
                                     (input)="updateAmount(item)"
                                     (ngModelChange)="updateAmount(item)"
@@ -264,7 +264,7 @@
                         <!-- Transaction Level: show input combo -->
                         <div class="transaction-discount-wrapper" *ngIf="quotationData.discountAt === 'Transaction Level'">
                             <div class="discount-input-group">
-                                <input type="number" class="discount-control-num"
+                                <input type="number" min="0" (keydown)="preventNegative($event)" class="discount-control-num"
                                     [(ngModel)]="quotationData.transactionDiscount"
                                     placeholder="0">
                                 <div class="discount-divider"></div>

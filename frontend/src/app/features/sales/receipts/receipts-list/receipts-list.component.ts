@@ -81,6 +81,36 @@ export class ReceiptsListComponent implements OnInit {
         { id: 'status', label: 'Status', visible: true },
     ];
 
+    get emptyStateTitle(): string {
+        const filter = this.currentFilter;
+        if (filter !== 'All') {
+            return `No ${filter} Receipts Found.`;
+        }
+        return 'No Receipts Found.';
+    }
+
+    get emptyStateSubtitle(): string {
+        const filter = this.currentFilter;
+        const query = this.searchQuery;
+        if (filter !== 'All' && query) {
+            return `We couldn't find any ${filter.toLowerCase()} receipts matching '${query}'.`;
+        }
+        if (filter !== 'All') {
+            return `It looks like you don't have any ${filter.toLowerCase()} receipts yet.`;
+        }
+        if (query) {
+            return `We couldn't find any receipts matching '${query}'.`;
+        }
+        return `It looks like you haven't added any receipts yet.`;
+    }
+
+    get emptyStateActionLabel(): string {
+        if (this.currentFilter !== 'All' || this.searchQuery) {
+            return '';
+        }
+        return 'Add New Receipt';
+    }
+
     get filteredReceipts(): Receipt[] {
         let filtered = this.receipts;
 

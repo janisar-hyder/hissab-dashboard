@@ -89,6 +89,36 @@ export class InvoicesListComponent implements OnInit {
         { id: 'status', label: 'Status', visible: true },
     ];
 
+    get emptyStateTitle(): string {
+        const filter = this.currentFilter;
+        if (filter !== 'All') {
+            return `No ${filter} Invoices Found.`;
+        }
+        return 'No Invoices Found.';
+    }
+
+    get emptyStateSubtitle(): string {
+        const filter = this.currentFilter;
+        const query = this.searchQuery;
+        if (filter !== 'All' && query) {
+            return `We couldn't find any ${filter.toLowerCase()} invoices matching '${query}'.`;
+        }
+        if (filter !== 'All') {
+            return `It looks like you don't have any ${filter.toLowerCase()} invoices yet.`;
+        }
+        if (query) {
+            return `We couldn't find any invoices matching '${query}'.`;
+        }
+        return `It looks like you haven't added any invoices yet.`;
+    }
+
+    get emptyStateActionLabel(): string {
+        if (this.currentFilter !== 'All' || this.searchQuery) {
+            return '';
+        }
+        return 'Add New Invoice';
+    }
+
     get filteredInvoices(): Invoice[] {
         let filtered = this.invoices;
 

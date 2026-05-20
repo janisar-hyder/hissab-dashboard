@@ -33,7 +33,7 @@
     </div>
 
     <!-- Data Card -->
-    <div class="data-card" *ngIf="receipts.length > 0 || searchQuery">
+    <div class="data-card" *ngIf="receipts.length > 0 || searchQuery || currentFilter !== 'All'">
 
         <!-- Toolbar -->
         <div class="card-toolbar">
@@ -126,10 +126,10 @@
                     <tr *ngIf="paginatedReceipts.length === 0">
                         <td [attr.colspan]="availableColumns.length + 2" style="padding: 0;">
                             <app-empty-state 
-                                [title]="searchQuery ? 'No Receipts Found.' : 'No Receipts Found.'"
-                                [subtitle]="searchQuery ? 'We couldn\'t find any receipts matching \'' + searchQuery + '\'' : 'It looks like you haven\'t added any receipts yet.'"
-                                [actionLabel]="searchQuery ? '' : 'Add New Receipt'" 
-                                [actionIconClass]="searchQuery ? '' : 'las la-plus'" 
+                                [title]="emptyStateTitle"
+                                [subtitle]="emptyStateSubtitle"
+                                [actionLabel]="emptyStateActionLabel" 
+                                [actionIconClass]="emptyStateActionLabel ? 'las la-plus' : ''" 
                                 (actionClick)="navigateToNew()">
                             </app-empty-state>
                         </td>
@@ -149,9 +149,12 @@
         <div class="loading-spinner"></div>
     </div>
 
-<app-empty-state *ngIf="receipts.length === 0 && !searchQuery && !isLoading" title="No Receipts Found."
-        subtitle="It looks like you haven't added any receipts yet."
-        actionLabel="Add New Receipt" actionIconClass="las la-plus" (actionClick)="navigateToNew()">
+<app-empty-state *ngIf="!isLoading && receipts.length === 0 && !searchQuery && currentFilter === 'All'" 
+        [title]="emptyStateTitle"
+        [subtitle]="emptyStateSubtitle"
+        [actionLabel]="emptyStateActionLabel" 
+        [actionIconClass]="emptyStateActionLabel ? 'las la-plus' : ''" 
+        (actionClick)="navigateToNew()">
     </app-empty-state>
 
 </div>

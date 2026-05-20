@@ -34,7 +34,7 @@
     </div>
 
     <!-- Data Card -->
-    <div class="data-card" *ngIf="invoices.length > 0 || searchQuery">
+    <div class="data-card" *ngIf="invoices.length > 0 || searchQuery || currentFilter !== 'All'">
 
         <!-- Toolbar -->
         <div class="card-toolbar">
@@ -125,10 +125,10 @@
                     <tr *ngIf="paginatedInvoices.length === 0">
                         <td [attr.colspan]="availableColumns.length + 2" style="padding: 0;">
                             <app-empty-state 
-                                [title]="searchQuery ? 'No Invoices Found.' : 'No Invoices Found.'"
-                                [subtitle]="searchQuery ? 'We couldn\'t find any invoices matching \'' + searchQuery + '\'' : 'It looks like you haven\'t added any invoices matching this filter yet.'"
-                                [actionLabel]="searchQuery ? '' : 'Add New Invoice'" 
-                                [actionIconClass]="searchQuery ? '' : 'las la-plus'" 
+                                [title]="emptyStateTitle"
+                                [subtitle]="emptyStateSubtitle"
+                                [actionLabel]="emptyStateActionLabel" 
+                                [actionIconClass]="emptyStateActionLabel ? 'las la-plus' : ''" 
                                 (actionClick)="navigateToNew()">
                             </app-empty-state>
                         </td>
@@ -148,9 +148,12 @@
         <div class="loading-spinner"></div>
     </div>
 
-<app-empty-state *ngIf="!isLoading && invoices.length === 0 && !searchQuery" title="No Invoices Found."
-        subtitle="It looks like you haven't added any invoices yet."
-        actionLabel="Add New Invoice" actionIconClass="las la-plus" (actionClick)="navigateToNew()">
+<app-empty-state *ngIf="!isLoading && invoices.length === 0 && !searchQuery && currentFilter === 'All'" 
+        [title]="emptyStateTitle"
+        [subtitle]="emptyStateSubtitle"
+        [actionLabel]="emptyStateActionLabel" 
+        [actionIconClass]="emptyStateActionLabel ? 'las la-plus' : ''" 
+        (actionClick)="navigateToNew()">
     </app-empty-state>
 
 </div>

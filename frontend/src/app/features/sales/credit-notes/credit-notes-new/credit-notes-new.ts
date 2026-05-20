@@ -438,6 +438,12 @@ export class CreditNotesNew implements OnInit {
     });
   }
 
+  preventNegative(event: KeyboardEvent) {
+    if (event.key === '-' || event.key === '+' || event.key === 'e' || event.key === 'E') {
+      event.preventDefault();
+    }
+  }
+
   cancel(): void {
     this.router.navigate(['/sales/credit-notes']);
   }

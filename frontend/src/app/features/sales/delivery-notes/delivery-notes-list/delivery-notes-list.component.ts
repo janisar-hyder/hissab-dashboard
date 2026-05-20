@@ -74,6 +74,36 @@ export class DeliveryNotesListComponent implements OnInit {
         { id: 'invoice_status', label: 'Invoice Status', visible: true },
     ];
 
+    get emptyStateTitle(): string {
+        const filter = this.currentFilter;
+        if (filter !== 'All') {
+            return `No ${filter} Delivery Notes Found.`;
+        }
+        return 'No Delivery Notes Found.';
+    }
+
+    get emptyStateSubtitle(): string {
+        const filter = this.currentFilter;
+        const query = this.searchQuery;
+        if (filter !== 'All' && query) {
+            return `We couldn't find any ${filter.toLowerCase()} delivery notes matching '${query}'.`;
+        }
+        if (filter !== 'All') {
+            return `It looks like you don't have any ${filter.toLowerCase()} delivery notes yet.`;
+        }
+        if (query) {
+            return `We couldn't find any delivery notes matching '${query}'.`;
+        }
+        return `It looks like you haven't added any delivery notes yet.`;
+    }
+
+    get emptyStateActionLabel(): string {
+        if (this.currentFilter !== 'All' || this.searchQuery) {
+            return '';
+        }
+        return 'Add New Delivery Note';
+    }
+
     get filteredNotes(): any[] {
         let filtered = this.deliveryNotes;
         

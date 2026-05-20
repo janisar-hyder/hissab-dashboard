@@ -27,7 +27,7 @@
     </div>
 
     <!-- Data Card -->
-    <div class="data-card" *ngIf="customers().length > 0 || searchQuery()">
+    <div class="data-card" *ngIf="customers().length > 0 || searchQuery() || currentFilter() !== 'All'">
 
         <!-- Toolbar -->
         <div class="card-toolbar">
@@ -36,7 +36,16 @@
                 <input type="text" placeholder="Search for something.." class="search-input" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event); currentPage.set(1)">
                 <i class="las la-times clear-icon" *ngIf="searchQuery()" (click)="clearSearch()"></i>
             </div>
-            <app-button variant="outline" iconPrefix="las la-sliders-h" (clicked)="toggleManageColumns()">Manage Columns</app-button>
+            
+            <div class="toolbar-right">
+                <app-custom-filter
+                    [options]="customerFilterOptions"
+                    [currentFilter]="currentFilter()"
+                    activeLabelPrefix="All Customers"
+                    (filterChange)="setFilter($event)">
+                </app-custom-filter>
+                <app-button variant="outline" iconPrefix="las la-sliders-h" (clicked)="toggleManageColumns()">Manage Columns</app-button>
+            </div>
         </div>
 
         <!-- Table -->
@@ -45,10 +54,10 @@
                 <thead>
                     <tr>
                         <th class="col-checkbox">
-                            <label class="custom-checkbox">
-                                <input type="checkbox" [checked]="isAllSelected()" [indeterminate]="isPartiallySelected()" (change)="toggleAll($event)">
-                                <span class="checkmark"></span>
-                            </label>
+                             <label class="custom-checkbox">
+                                 <input type="checkbox" [checked]="isAllSelected()" [indeterminate]="isPartiallySelected()" (change)="toggleAll($event)">
+                                 <span class="checkmark"></span>
+                             </label>
                         </th>
                         <ng-container *ngFor="let col of availableColumns">
                             <th *ngIf="col.visible">
@@ -99,10 +108,10 @@
                     <tr *ngIf="paginatedCustomers().length === 0">
                         <td colspan="8" style="padding: 0;">
                             <app-empty-state 
-                                [title]="searchQuery() ? 'No Customers Found.' : 'No Customers Found.'"
-                                [subtitle]="searchQuery() ? 'We couldn\'t find any customers matching \'' + searchQuery() + '\'' : 'It looks like you haven\'t added any customers yet.'"
-                                [actionLabel]="searchQuery() ? '' : 'Add New Customer'" 
-                                [actionIconClass]="searchQuery() ? '' : 'las la-plus'" 
+                                [title]="emptyStateTitle()"
+                                [subtitle]="emptyStateSubtitle()"
+                                [actionLabel]="emptyStateActionLabel()" 
+                                [actionIconClass]="emptyStateActionLabel() ? 'las la-plus' : ''" 
                                 (actionClick)="navigateToNew()">
                             </app-empty-state>
                         </td>
@@ -121,9 +130,12 @@
         <div class="loading-spinner"></div>
     </div>
 
-    <app-empty-state *ngIf="!isLoading() && customers().length === 0 && !searchQuery()" title="No Customers Found."
-        subtitle="It looks like you haven't added any customers yet." actionLabel="Add New Customer"
-        actionIconClass="las la-plus" (actionClick)="navigateToNew()">
+    <app-empty-state *ngIf="!isLoading() && customers().length === 0 && !searchQuery() && currentFilter() === 'All'" 
+        [title]="emptyStateTitle()"
+        [subtitle]="emptyStateSubtitle()" 
+        [actionLabel]="emptyStateActionLabel()"
+        [actionIconClass]="emptyStateActionLabel() ? 'las la-plus' : ''" 
+        (actionClick)="navigateToNew()">
     </app-empty-state>
 
 </div>

@@ -13,6 +13,7 @@ import { CustomersService, Customer } from '../services/customers.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
 import { ColumnPreferencesService } from '../../../../shared/services/column-preferences.service';
 import { ChangeDetectorRef } from '@angular/core';
+import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
 
 @Component({
     selector: 'app-customers-list',
@@ -28,7 +29,8 @@ import { ChangeDetectorRef } from '@angular/core';
         BulkActionsComponent, 
         ManageColumnsComponent, 
         DeleteModalComponent,
-        ActionMenu
+        ActionMenu,
+        CustomFilterComponent
     ],
     templateUrl: './customers-list.component.html',
     styleUrls: ['./customers-list.component.scss'],
@@ -80,6 +82,52 @@ export class CustomersListComponent implements OnInit {
     sortColumn = signal('');
     sortDirection = signal<'asc' | 'desc'>('asc');
     searchQuery = signal('');
+    currentFilter = signal('All');
+    customerFilterOptions: FilterOption[] = [
+        { label: 'Active', value: 'Active' },
+        { label: 'Inactive', value: 'Inactive' }
+    ];
+
+    emptyStateTitle = computed(() => {
+        const filter = this.currentFilter();
+        const query = this.searchQuery();
+        if (filter !== 'All') {
+            return `No ${filter} Customers Found.`;
+        }
+        if (query) {
+            return 'No Customers Found.';
+        }
+        return 'No Customers Found.';
+    });
+
+    emptyStateSubtitle = computed(() => {
+        const filter = this.currentFilter();
+        const query = this.searchQuery();
+        if (filter !== 'All' && query) {
+            return `We couldn't find any ${filter.toLowerCase()} customers matching '${query}'.`;
+        }
+        if (filter !== 'All') {
+            return `It looks like you don't have any ${filter.toLowerCase()} customers yet.`;
+        }
+        if (query) {
+            return `We couldn't find any customers matching '${query}'.`;
+        }
+        return `It looks like you haven't added any customers yet.`;
+    });
+
+    emptyStateActionLabel = computed(() => {
+        const filter = this.currentFilter();
+        const query = this.searchQuery();
+        if (filter !== 'All' || query) {
+            return '';
+        }
+        return 'Add New Customer';
+    });
+
+    setFilter(filter: string): void {
+        this.currentFilter.set(filter);
+        this.currentPage.set(1);
+    }
 
     availableColumns: ColumnDef[] = [
         { id: 'name', label: 'Display Name', visible: true },
@@ -91,7 +139,13 @@ export class CustomersListComponent implements OnInit {
 
     filteredCustomers = computed(() => {
         let filtered = this.customers();
+        const filter = this.currentFilter();
         const query = this.searchQuery().toLowerCase();
+
+        if (filter !== 'All') {
+            const isActive = filter === 'Active';
+            filtered = filtered.filter(c => c.is_active === isActive);
+        }
 
         if (query) {
             filtered = filtered.filter(c => 

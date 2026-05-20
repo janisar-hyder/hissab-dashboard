@@ -10,9 +10,6 @@
         </button>
         <button *ngFor="let option of options" class="menu-item" (click)="setFilter(option.value, $event)"
             [class.active]="currentFilter === option.value">
-            <div class="icon-container">
-                <div class="dot" [style.background-color]="option.colorHex || '#6B7280'"></div>
-            </div>
             <span class="text-content">{{ option.label }}</span>
         </button>
     </div>

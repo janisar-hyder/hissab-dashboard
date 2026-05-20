@@ -68,6 +68,42 @@ export class QuotationsListComponent implements OnInit {
     sortColumn = signal<string>('');
     sortDirection = signal<'asc' | 'desc'>('asc');
 
+    emptyStateTitle = computed(() => {
+        const filter = this.currentFilter();
+        const query = this.searchQuery();
+        if (filter !== 'All') {
+            return `No ${filter} Quotations Found.`;
+        }
+        if (query) {
+            return 'No Quotations Found.';
+        }
+        return 'No Quotations Found.';
+    });
+
+    emptyStateSubtitle = computed(() => {
+        const filter = this.currentFilter();
+        const query = this.searchQuery();
+        if (filter !== 'All' && query) {
+            return `We couldn't find any ${filter.toLowerCase()} quotations matching '${query}'.`;
+        }
+        if (filter !== 'All') {
+            return `It looks like you don't have any ${filter.toLowerCase()} quotations yet.`;
+        }
+        if (query) {
+            return `We couldn't find any quotations matching '${query}'.`;
+        }
+        return `It looks like you haven't added any quotations yet.`;
+    });
+
+    emptyStateActionLabel = computed(() => {
+        const filter = this.currentFilter();
+        const query = this.searchQuery();
+        if (filter !== 'All' || query) {
+            return '';
+        }
+        return 'Add New Quotation';
+    });
+
     bulkActions = computed<BulkAction[]>(() => {
         const selectedIds = this.selectedQuotationIds();
         const allQuotations = this.quotations();

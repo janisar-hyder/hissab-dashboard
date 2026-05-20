@@ -114,18 +114,18 @@
 
                         <!-- Rate -->
                         <div class="td-cell td-rate">
-                            <input type="number" class="cell-input" [(ngModel)]="item.rate" (ngModelChange)="updateAmount(item)" step="0.001" placeholder="0.000">
+                            <input type="number" min="0" (keydown)="preventNegative($event)" class="cell-input" [(ngModel)]="item.rate" (ngModelChange)="updateAmount(item)" step="0.001" placeholder="0.000">
                         </div>
 
                         <!-- Qty -->
                         <div class="td-cell td-qty">
-                            <input type="number" class="cell-input" [(ngModel)]="item.qty" (ngModelChange)="updateAmount(item)" step="0.01" placeholder="1.00">
+                            <input type="number" min="0" (keydown)="preventNegative($event)" class="cell-input" [(ngModel)]="item.qty" (ngModelChange)="updateAmount(item)" step="0.01" placeholder="1.00">
                         </div>
 
                         <!-- Discount -->
                         <div class="td-cell td-discount" *ngIf="creditNoteData.discountAt === 'Line Item Level'">
                             <div class="discount-input-group">
-                                <input type="number" class="discount-control-num" [(ngModel)]="item.discount" (input)="updateAmount(item)" (ngModelChange)="updateAmount(item)" placeholder="0">
+                                <input type="number" min="0" (keydown)="preventNegative($event)" class="discount-control-num" [(ngModel)]="item.discount" (input)="updateAmount(item)" (ngModelChange)="updateAmount(item)" placeholder="0">
                                 <div class="discount-divider"></div>
                                 <div class="discount-control-type-wrapper">
                                     <app-custom-select 
@@ -186,7 +186,7 @@
                         <span class="total-value" *ngIf="creditNoteData.discountAt === 'Line Item Level'">-{{ totalDiscount.toFixed(3) }}</span>
                         <div class="transaction-discount-wrapper" *ngIf="creditNoteData.discountAt === 'Transaction Level'">
                             <div class="discount-input-group">
-                                <input type="number" class="discount-control-num" [(ngModel)]="creditNoteData.transactionDiscount" placeholder="0">
+                                <input type="number" min="0" (keydown)="preventNegative($event)" class="discount-control-num" [(ngModel)]="creditNoteData.transactionDiscount" placeholder="0">
                                 <div class="discount-divider"></div>
                                 <div class="discount-control-type-wrapper">
                                     <app-custom-select 
