@@ -5,7 +5,7 @@
   "rewrites": [
     {
       "source": "/api/v1/:path*",
-      "destination": "http://tamezyy2.ap-south-1.elasticbeanstalk.com/api/v1/:path*"
+      "destination": "http://tamezy01.ap-south-1.elasticbeanstalk.com/api/v1/:path*"
     },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
