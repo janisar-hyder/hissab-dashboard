@@ -233,12 +233,14 @@ export class RecurringInvoicesNewComponent implements OnInit {
     if (selected) {
       item.name = selected.name;
       item.description = selected.description;
-      item.rate = Number(selected.selling_price) || 0;
+      item.rate = Number(selected.sales_rate) || 0;
       if (item.qty === 0) item.qty = 1;
+      item.vat_rate_id = selected.vat_rate_id ? Number(selected.vat_rate_id) : null;
     } else {
       item.name = '';
       item.description = '';
       item.rate = 0;
+      item.vat_rate_id = null;
     }
     this.updateAmount(item);
   }
@@ -369,11 +371,11 @@ export class RecurringInvoicesNewComponent implements OnInit {
         item_id: product.id,
         name: product.name,
         description: product.description,
-        rate: product.selling_price,
+        rate: Number(product.sales_rate) || 0,
         qty: 1,
         discount: 0,
         discountType: '%',
-        vat_rate_id: null,
+        vat_rate_id: product.vat_rate_id ? Number(product.vat_rate_id) : null,
         line_total: 0
       };
       this.updateAmount(newItem);

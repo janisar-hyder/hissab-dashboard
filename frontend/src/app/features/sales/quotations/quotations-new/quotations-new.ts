@@ -259,13 +259,12 @@ export class QuotationsNew implements OnInit {
         item.qty = 1;
       }
       // Auto-select VAT if item has one
-      if (selected.vat_rate_id) {
-        item.vat_rate_id = selected.vat_rate_id;
-      }
+      item.vat_rate_id = selected.vat_rate_id ? Number(selected.vat_rate_id) : null;
     } else {
       item.item_id = null;
       item.description = '';
       item.rate = 0;
+      item.vat_rate_id = null;
     }
     this.updateAmount(item);
   }
@@ -405,7 +404,7 @@ export class QuotationsNew implements OnInit {
         qty: 1,
         discount: 0,
         discountType: '%',
-        vat_rate_id: product.vat_rate_id || null,
+        vat_rate_id: product.vat_rate_id ? Number(product.vat_rate_id) : null,
         amount: 0
       };
       this.updateAmount(newItem);

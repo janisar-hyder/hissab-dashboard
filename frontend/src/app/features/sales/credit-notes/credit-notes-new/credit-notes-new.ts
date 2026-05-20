@@ -211,11 +211,13 @@ export class CreditNotesNew implements OnInit {
     const selected = this.itemOptions.find(i => i.id.toString() === item.item_id?.toString());
     if (selected) {
       item.description = selected.description || '';
-      item.rate = Number(selected.selling_price) || Number(selected.rate) || 0;
+      item.rate = Number(selected.sales_rate) || 0;
       if (!item.qty || item.qty === 0) item.qty = 1;
+      item.vat_rate_id = selected.vat_rate_id ? selected.vat_rate_id.toString() : null;
     } else {
       item.description = '';
       item.rate = 0;
+      item.vat_rate_id = null;
     }
     this.updateAmount(item);
   }
@@ -364,11 +366,11 @@ export class CreditNotesNew implements OnInit {
         id: this.nextId++,
         item_id: product.id,
         description: product.description || '',
-        rate: Number(product.selling_price) || Number(product.rate) || 0,
+        rate: Number(product.sales_rate) || 0,
         qty: 1,
         discount: null as any,
         discountType: '%',
-        vat_rate_id: null,
+        vat_rate_id: product.vat_rate_id ? product.vat_rate_id.toString() : null,
         amount: 0
       };
       this.updateAmount(newItem);
