@@ -17,6 +17,8 @@ export interface Customer {
     is_active: boolean;
     created_date?: string;
     updated_date?: string;
+    total_credit?: number;
+    available_credit?: number;
     currency?: {
         id: number;
         name: string;

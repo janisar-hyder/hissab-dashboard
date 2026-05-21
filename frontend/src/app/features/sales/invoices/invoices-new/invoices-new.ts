@@ -42,7 +42,7 @@ export class InvoicesNew implements OnInit {
     invoiceDate: new Date().toISOString().split('T')[0],
     referenceNumber: '',
     paymentTerms: '',
-    dueDate: '',
+    dueDate: new Date().toISOString().split('T')[0],
     salesPersonId: null as any,
     discountAt: 'Line Item Level',
     transactionDiscount: null as any,
@@ -83,6 +83,7 @@ export class InvoicesNew implements OnInit {
   itemOptions: any[] = [];
   itemSelectOptions: SelectOption[] = [];
   salesPersonOptions: SelectOption[] = [];
+  rawSalesPartners: any[] = [];
   salesPartnerOptions: SelectOption[] = [];
   vatOptions: any[] = [];
   vatSelectOptions: SelectOption[] = [];
@@ -185,6 +186,7 @@ export class InvoicesNew implements OnInit {
     });
 
     this.invoicesService.getSalesPartners().subscribe(res => {
+      this.rawSalesPartners = res.data || [];
       this.salesPartnerOptions = res.data.map((s: any) => ({ label: s.name, value: s.id.toString() }));
       this.cdr.detectChanges();
     });
@@ -205,6 +207,110 @@ export class InvoicesNew implements OnInit {
       this.selectedCustomer = this.rawCustomers.find(c => c.id.toString() === customerId.toString()) || null;
     } else {
       this.selectedCustomer = null;
+    }
+  }
+
+  calculateDueDate(terms: string, invoiceDateStr: string): string {
+    if (!invoiceDateStr) return '';
+    const date = new Date(invoiceDateStr);
+    if (isNaN(date.getTime())) return '';
+
+    switch (terms) {
+      case '': // Due on Receipt
+        return invoiceDateStr;
+      case 'Net 15':
+        date.setDate(date.getDate() + 15);
+        return date.toISOString().split('T')[0];
+      case 'Net 30':
+        date.setDate(date.getDate() + 30);
+        return date.toISOString().split('T')[0];
+      case 'Net 45':
+        date.setDate(date.getDate() + 45);
+        return date.toISOString().split('T')[0];
+      case 'Net 60':
+        date.setDate(date.getDate() + 60);
+        return date.toISOString().split('T')[0];
+      case 'Due end of the month': {
+        const y = date.getFullYear();
+        const m = date.getMonth();
+        const lastDay = new Date(y, m + 1, 0);
+        return lastDay.toISOString().split('T')[0];
+      }
+      case 'Due end of next month': {
+        const y = date.getFullYear();
+        const m = date.getMonth();
+        const lastDay = new Date(y, m + 2, 0);
+        return lastDay.toISOString().split('T')[0];
+      }
+      default:
+        return '';
+    }
+  }
+
+  onInvoiceDateChange(): void {
+    const terms = this.invoiceData.paymentTerms;
+    if (terms !== 'Custom') {
+      this.invoiceData.dueDate = this.calculateDueDate(terms, this.invoiceData.invoiceDate);
+    } else {
+      if (this.invoiceData.dueDate && this.invoiceData.dueDate < this.invoiceData.invoiceDate) {
+        this.invoiceData.dueDate = this.invoiceData.invoiceDate;
+      }
+    }
+  }
+
+  onPaymentTermsChange(): void {
+    const terms = this.invoiceData.paymentTerms;
+    if (terms !== 'Custom') {
+      this.invoiceData.dueDate = this.calculateDueDate(terms, this.invoiceData.invoiceDate);
+    }
+  }
+
+  onDueDateChange(): void {
+    if (this.invoiceData.dueDate && this.invoiceData.dueDate < this.invoiceData.invoiceDate) {
+      this.invoiceData.dueDate = this.invoiceData.invoiceDate;
+    }
+    this.updatePaymentTermsFromDueDate();
+  }
+
+  updatePaymentTermsFromDueDate(): void {
+    const invoiceDate = this.invoiceData.invoiceDate;
+    const dueDate = this.invoiceData.dueDate;
+    if (!invoiceDate || !dueDate) return;
+
+    const terms = ['', 'Net 15', 'Net 30', 'Net 45', 'Net 60', 'Due end of the month', 'Due end of next month'];
+    let matchedTerm = 'Custom';
+
+    for (const term of terms) {
+      if (this.calculateDueDate(term, invoiceDate) === dueDate) {
+        matchedTerm = term;
+        break;
+      }
+    }
+
+    this.invoiceData.paymentTerms = matchedTerm;
+  }
+
+  onSalesPartnerChange(): void {
+    const partnerId = this.commissionData.salesPartnerId;
+    if (partnerId) {
+      const partner = this.rawSalesPartners.find(p => p.id.toString() === partnerId.toString());
+      if (partner) {
+        this.commissionData.commissionPercentage = partner.commission !== undefined && partner.commission !== null ? Number(partner.commission) : null;
+      } else {
+        this.commissionData.commissionPercentage = null;
+      }
+    } else {
+      this.commissionData.commissionPercentage = null;
+    }
+    this.calculateCommissionAmount();
+  }
+
+  calculateCommissionAmount(): void {
+    if (this.commissionData.commissionPercentage !== null && this.commissionData.commissionPercentage !== undefined) {
+      const percentage = Number(this.commissionData.commissionPercentage) || 0;
+      this.commissionData.commissionAmount = (this.subtotal * percentage) / 100;
+    } else {
+      this.commissionData.commissionAmount = null;
     }
   }
 
@@ -365,6 +471,7 @@ export class InvoicesNew implements OnInit {
     const discAmt = item.discountType === '%' ? base * discount / 100 : discount;
     const discounted = base - discAmt;
     item.amount = discounted + (discounted * vatRate / 100);
+    this.calculateCommissionAmount();
   }
 
   addRow(): void {
@@ -384,6 +491,7 @@ export class InvoicesNew implements OnInit {
   removeRow(id: number): void {
     if (this.items.length > 1) {
       this.items = this.items.filter(i => i.id !== id);
+      this.calculateCommissionAmount();
     }
   }
 
@@ -445,6 +553,7 @@ export class InvoicesNew implements OnInit {
     });
 
     if (this.items.length === 0) this.addRow();
+    this.calculateCommissionAmount();
     this.closeBulkModal();
   }
 

@@ -23,16 +23,35 @@ exports.getCustomers = async (req, res, next) => {
             symbol: true
           }
         },
+        creditNotes: {
+          where: { deleted_date: null },
+          select: {
+            sub_total: true,
+            balance: true
+          }
+        },
         _count: {
           select: { contacts: true }
         }
       }
     });
 
+    const customersWithCredits = customers.map(customer => {
+      const total_credit = customer.creditNotes.reduce((sum, cn) => sum + Number(cn.sub_total || 0), 0);
+      const available_credit = customer.creditNotes.reduce((sum, cn) => sum + Number(cn.balance || 0), 0);
+      
+      const { creditNotes, ...customerData } = customer;
+      return {
+        ...customerData,
+        total_credit,
+        available_credit
+      };
+    });
+
     res.status(200).json({
       success: true,
-      count: customers.length,
-      data: customers
+      count: customersWithCredits.length,
+      data: customersWithCredits
     });
   } catch (err) {
     next(err);
@@ -56,7 +75,14 @@ exports.getCustomerById = async (req, res, next) => {
       },
       include: {
         currency: true,
-        contacts: true
+        contacts: true,
+        creditNotes: {
+          where: { deleted_date: null },
+          select: {
+            sub_total: true,
+            balance: true
+          }
+        }
       }
     });
 
@@ -66,9 +92,18 @@ exports.getCustomerById = async (req, res, next) => {
       throw error;
     }
 
+    const total_credit = customer.creditNotes.reduce((sum, cn) => sum + Number(cn.sub_total || 0), 0);
+    const available_credit = customer.creditNotes.reduce((sum, cn) => sum + Number(cn.balance || 0), 0);
+
+    const { creditNotes, ...customerData } = customer;
+
     res.status(200).json({
       success: true,
-      data: customer
+      data: {
+        ...customerData,
+        total_credit,
+        available_credit
+      }
     });
   } catch (err) {
     next(err);

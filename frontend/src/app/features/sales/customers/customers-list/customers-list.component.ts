@@ -134,6 +134,7 @@ export class CustomersListComponent implements OnInit {
         { id: 'email', label: 'Email', visible: true },
         { id: 'phone', label: 'Phone', visible: true },
         { id: 'receivables', label: 'Receivables', visible: true },
+        { id: 'total_credit', label: 'Credit Note', visible: true },
         { id: 'status', label: 'Status', visible: true },
     ];
 
