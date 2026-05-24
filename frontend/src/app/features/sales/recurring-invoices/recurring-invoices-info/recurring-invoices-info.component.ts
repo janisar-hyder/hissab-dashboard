@@ -5,8 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { RecurringInvoicesService } from '../services/recurring-invoices.service';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+import { exportToSelectablePdf, PdfColumn, PdfSummaryRow } from '../../../../shared/utils/selectable-pdf';
 
 export interface RecurringProfileItem {
     name: string;
@@ -178,24 +177,84 @@ export class RecurringInvoicesInfoComponent implements OnInit {
         this.router.navigate(['/sales/recurring-invoices']);
     }
 
-    async downloadPdf() {
-        if (!this.selectedProfile()) return;
-        
-        const element = document.getElementById('recurring-invoice-document');
-        if (!element) return;
+    downloadPdf() {
+        const profile = this.selectedProfile();
+        if (!profile) return;
 
-        const canvas = await html2canvas(element, {
-            scale: 2,
-            useCORS: true,
-            logging: false
+        const formatDate = (d: any) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+
+        const customerInfo = {
+            name: profile.customer?.name || '',
+            email: profile.customer?.email,
+            phone: profile.customer?.phone,
+            addressLines: [
+                profile.customer?.billing_address_details || '',
+                [profile.customer?.billing_address_city, profile.customer?.billing_address_country].filter(Boolean).join(', ')
+            ].filter((l: string) => l.trim())
+        };
+
+        const metadata = [
+            { label: 'Starts On', value: formatDate(profile.starts_on) }
+        ];
+        if (profile.ends_on) {
+            metadata.push({ label: 'Ends On', value: formatDate(profile.ends_on) });
+        }
+        if (profile.receivableAccount?.name) {
+            metadata.push({ label: 'Account', value: profile.receivableAccount.name });
+        }
+
+        const columns: PdfColumn[] = [
+            { header: '#', width: 10, align: 'left', key: 'hash' },
+            { header: 'Item', width: 80, align: 'left', key: 'item' },
+            { header: 'Qty', width: 20, align: 'right', key: 'qtyVal' },
+            { header: 'Rate', width: 25, align: 'right', key: 'rateVal' },
+            { header: 'Discount', width: 20, align: 'right', key: 'discVal' },
+            { header: 'Amount', width: 25, align: 'right', key: 'amtVal' }
+        ];
+
+        const rows = (profile.details || []).map((item: any) => ({
+            itemName: item.item?.name || '',
+            itemDesc: item.description,
+            qtyVal: Number(item.quantity).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            rateVal: Number(item.rate).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
+            discVal: Number(item.discount_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
+            amtVal: Number(item.line_total).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })
+        }));
+
+        const summary: PdfSummaryRow[] = [
+            { label: 'Sub Total', value: Number(profile.sub_total).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) }
+        ];
+        const disc = this.calculatedDiscountTotal();
+        if (disc > 0) {
+            summary.push({
+                label: 'Discount',
+                value: `-${disc.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`,
+                isDanger: true
+            });
+        }
+        if (profile.total_vat > 0) {
+            summary.push({
+                label: 'VAT',
+                value: Number(profile.total_vat).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })
+            });
+        }
+        summary.push({
+            label: 'Total (BHD)',
+            value: `BHD ${Number(profile.grand_total).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`,
+            isTotal: true
         });
 
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const imgWidth = 210;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-        pdf.save(`RecurringProfile-${this.selectedProfile().profileName}.pdf`);
+        exportToSelectablePdf({
+            docType: 'Recurring Invoice',
+            docNumber: profile.profile_name || 'INV-AUTO',
+            customerInfo,
+            metadata,
+            columns,
+            rows,
+            summary,
+            notes: profile.customer_notes,
+            terms: profile.terms_and_conditions,
+            companyTRN: '236334556400002'
+        }, `RecurringProfile-${profile.profile_name || 'profile'}.pdf`);
     }
 }

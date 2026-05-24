@@ -117,9 +117,12 @@
                         <label>Customer Info</label>
                         <h4>{{ selectedQuotation()?.customer?.name }}</h4>
                         <div class="address-details">
-                            <p>{{ selectedQuotation()?.customer?.email }}</p>
-                            <p>{{ selectedQuotation()?.customer?.phone }}</p>
-                            <p>{{ selectedQuotation()?.customer?.billing_address }}</p>
+                            <p *ngIf="selectedQuotation()?.customer?.email">{{ selectedQuotation()?.customer?.email }}</p>
+                            <p *ngIf="selectedQuotation()?.customer?.phone || selectedQuotation()?.customer?.mobile">{{ selectedQuotation()?.customer?.phone || selectedQuotation()?.customer?.mobile }}</p>
+                            <p *ngIf="selectedQuotation()?.customer?.billing_address_details || selectedQuotation()?.customer?.billing_address">{{ selectedQuotation()?.customer?.billing_address_details || selectedQuotation()?.customer?.billing_address }}</p>
+                            <p *ngIf="selectedQuotation()?.customer?.billing_address_city || selectedQuotation()?.customer?.billing_address_country">
+                                {{ selectedQuotation()?.customer?.billing_address_city }}{{ (selectedQuotation()?.customer?.billing_address_city && selectedQuotation()?.customer?.billing_address_country) ? ', ' : '' }}{{ selectedQuotation()?.customer?.billing_address_country }}
+                            </p>
                         </div>
                     </div>
                     <div class="quote-meta" *ngIf="selectedQuotation()">

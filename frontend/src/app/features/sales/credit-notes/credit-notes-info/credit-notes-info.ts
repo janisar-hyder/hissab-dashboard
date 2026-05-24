@@ -8,6 +8,7 @@ import { CustomFilterComponent, FilterOption } from '../../../../shared/componen
 import { CreditNotesService } from '../services/credit-notes.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
 import { ChangeDetectorRef } from '@angular/core';
+import { exportToSelectablePdf, PdfColumn, PdfSummaryRow } from '../../../../shared/utils/selectable-pdf';
 
 export interface CreditNoteItem {
     name: string;
@@ -39,6 +40,8 @@ export interface CreditNote {
     date: string;
     customerName: string;
     customerContact: string;
+    customerEmail?: string;
+    customerPhone?: string;
     customerAddress: string[];
     amount: number;
     balance: number;
@@ -145,7 +148,12 @@ export class CreditNotesInfoComponent implements OnInit {
                     date: new Date(cn.credit_note_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
                     customerName: cn.customer?.name || '',
                     customerContact: cn.customer?.contact_person || '',
-                    customerAddress: [cn.customer?.billing_address || '', cn.customer?.billing_city || ''].filter(Boolean),
+                    customerEmail: cn.customer?.email || '',
+                    customerPhone: cn.customer?.phone || cn.customer?.mobile || '',
+                    customerAddress: [
+                        cn.customer?.billing_address_details || cn.customer?.billing_address || '',
+                        [cn.customer?.billing_address_city || cn.customer?.billing_city, cn.customer?.billing_address_country || cn.customer?.billing_country].filter(Boolean).join(', ')
+                    ].filter(Boolean),
                     amount: Number(cn.grand_total),
                     balance: Number(cn.balance),
                     status: cn.status || 'Open',
@@ -312,30 +320,61 @@ export class CreditNotesInfoComponent implements OnInit {
         this.closeApplyModal();
     }
 
-    async downloadPdf() {
+    downloadPdf() {
         if (!this.selectedCreditNote) return;
 
-        const { default: jsPDF } = await import('jspdf');
-        const { default: html2canvas } = await import('html2canvas');
+        const customerInfo = {
+            name: this.selectedCreditNote.customerName,
+            email: this.selectedCreditNote.customerEmail || undefined,
+            phone: this.selectedCreditNote.customerPhone || undefined,
+            addressLines: this.selectedCreditNote.customerAddress
+        };
 
-        const element = document.getElementById('credit-note-document');
-        if (!element) return;
+        const metadata = [
+            { label: 'Credit Date', value: this.selectedCreditNote.date }
+        ];
 
-        const canvas = await html2canvas(element, {
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            backgroundColor: '#ffffff'
+        const columns: PdfColumn[] = [
+            { header: '#', width: 10, align: 'left', key: 'hash' },
+            { header: 'Item', width: 75, align: 'left', key: 'item' },
+            { header: 'Qty', width: 20, align: 'right', key: 'qtyVal' },
+            { header: 'Rate', width: 25, align: 'right', key: 'rateVal' },
+            { header: 'Discount', width: 18, align: 'right', key: 'discVal' },
+            { header: 'VAT', width: 12, align: 'right', key: 'vatVal' },
+            { header: 'Amount', width: 20, align: 'right', key: 'amtVal' }
+        ];
+
+        const rows = this.selectedCreditNote.items.map((item: any) => {
+            const amt = item.qty * item.rate - item.discount;
+            return {
+                itemName: item.name,
+                itemDesc: item.description,
+                qtyVal: item.qty.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                rateVal: item.rate.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
+                discVal: item.discount.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
+                vatVal: `${item.vat}%`,
+                amtVal: amt.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })
+            };
         });
 
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        
-        const imgWidth = 210;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        
-        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-        pdf.save(`CreditNote-${this.selectedCreditNote.creditNoteNumber}.pdf`);
+        const summary: PdfSummaryRow[] = [
+            { label: 'Sub Total', value: this.selectedCreditNote.subTotal.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) },
+            { label: 'VAT (10%)', value: this.selectedCreditNote.vatAmount.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) },
+            { label: 'Total', value: `BHD ${this.selectedCreditNote.total.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`, isTotal: true },
+            { label: 'Credits Used', value: `-${this.selectedCreditNote.creditsUsed.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`, isDanger: true },
+            { label: 'Credits Remaining', value: `BHD ${this.selectedCreditNote.creditsRemaining.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`, isTotal: true }
+        ];
+
+        exportToSelectablePdf({
+            docType: 'Credit Note',
+            docNumber: this.selectedCreditNote.creditNoteNumber,
+            customerInfo,
+            metadata,
+            columns,
+            rows,
+            summary,
+            companyTRN: '236334556400002'
+        }, `CreditNote-${this.selectedCreditNote.creditNoteNumber}.pdf`);
     }
 
     openDeleteConfirm(index: number): void {

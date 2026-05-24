@@ -128,9 +128,14 @@
                         <label>Customer Info</label>
                         <h4>{{ selectedProfile().customer?.name }}</h4>
                         <div class="address-details">
-                            <p>{{ selectedProfile().customer?.email }}</p>
-                            <p>{{ selectedProfile().customer?.phone }}</p>
-                            <p>{{ selectedProfile().customer?.address }}</p>
+                            <p *ngIf="selectedProfile().customer?.email">{{ selectedProfile().customer?.email }}</p>
+                            <p *ngIf="selectedProfile().customer?.phone || selectedProfile().customer?.mobile">{{ selectedProfile().customer?.phone || selectedProfile().customer?.mobile }}</p>
+                            <p *ngIf="selectedProfile().customer?.billing_address_details || selectedProfile().customer?.billing_address || selectedProfile().customer?.address">
+                                {{ selectedProfile().customer?.billing_address_details || selectedProfile().customer?.billing_address || selectedProfile().customer?.address }}
+                            </p>
+                            <p *ngIf="selectedProfile().customer?.billing_address_city || selectedProfile().customer?.billing_address_country">
+                                {{ selectedProfile().customer?.billing_address_city }}{{ (selectedProfile().customer?.billing_address_city && selectedProfile().customer?.billing_address_country) ? ', ' : '' }}{{ selectedProfile().customer?.billing_address_country }}
+                            </p>
                         </div>
                     </div>
                     <div class="invoice-meta" *ngIf="selectedProfile()">

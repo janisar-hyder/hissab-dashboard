@@ -14,7 +14,7 @@
 
     /* Left Sidebar List */
     .sidebar-list {
-        width: 480px;
+        width: 580px;
         background: #f8fafc;
         border-right: 1px solid #e2e8f0;
         display: flex;
@@ -47,18 +47,25 @@
                     align-items: center;
                     justify-content: center;
                     cursor: pointer;
+                    transition: all 0.2s;
                     border: 1px solid #e2e8f0;
                     
                     &.primary {
                         background: #2563eb;
                         border-color: #2563eb;
                         color: #fff;
+                        &:hover { background: #1d4ed8; }
                         .plus-icon { font-size: 22px; font-weight: 300; }
                     }
 
                     &.outline {
                         background: #fff;
                         color: #94a3b8;
+                        &:hover { 
+                            background: #f1f5f9; 
+                            color: #64748b;
+                            border-color: #cbd5e1;
+                        }
                     }
                 }
             }
@@ -235,38 +242,27 @@
                     &:hover { background: #f8fafc; color: #1e293b; }
                 }
 
-                .apply-btn {
-                    height: 36px;
-                    background: white;
-                    border: 1px solid #e2e8f0;
+                .btn-convert {
                     padding: 0 16px;
-                    border-radius: 6px;
-                    font-size: 13.5px;
-                    font-weight: 500;
-                    color: #4b5563;
+                    height: 36px;
+                    border-radius: 8px;
+                    border: 1px solid #e2e8f0;
+                    background: #fff;
+                    font-family: inherit;
+                    font-size: 14px;
+                    color: #475569;
+                    font-weight: 400;
                     cursor: pointer;
-                    transition: all 0.2s;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    outline: none;
+                    transition: all 0.2s;
+                    white-space: nowrap;
 
                     &:hover {
                         background: #f8fafc;
                         border-color: #cbd5e1;
                         color: #1e293b;
-                    }
-
-                    &.main-action {
-                        background: #fff;
-                        color: #1e293b;
-                        border-color: #e2e8f0;
-                        min-width: 140px;
-                        
-                        &:hover {
-                            border-color: #cbd5e1;
-                            background: #f8fafc;
-                        }
                     }
                 }
 

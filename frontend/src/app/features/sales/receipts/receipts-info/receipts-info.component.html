@@ -147,22 +147,23 @@
                         <h4>{{ selectedReceipt.customerName }}</h4>
                     </div>
                     <div class="invoice-meta" *ngIf="selectedReceipt">
-                        <h2 style="color: #2563eb;">RECEIPT</h2>
+                        <h2>RECEIPT</h2>
                         <p class="invoice-num"># {{ selectedReceipt.receiptNumber }}</p>
                     </div>
                 </div>
 
-                <!-- Receipt Specific Meta Row -->
-                <div class="receipt-meta-details" *ngIf="selectedReceipt">
-                    <div class="meta-item">
-                        <span class="label">Payment Mode</span>
-                        <span class="value">{{ selectedReceipt.paymentMode }}</span>
+                <!-- Receipt Meta Row: Payment Mode (left) | Received Date (right) -->
+                <div class="receipt-meta-row" *ngIf="selectedReceipt">
+                    <div class="meta-pair">
+                        <span class="meta-label">Payment Mode</span>
+                        <span class="meta-value">{{ selectedReceipt.paymentMode }}</span>
                     </div>
-                    <div class="meta-item">
-                        <span class="label">Payment Date</span>
-                        <span class="value">{{ selectedReceipt.date }}</span>
+                    <div class="meta-pair">
+                        <span class="meta-label">Received Date</span>
+                        <span class="meta-value">{{ selectedReceipt.date }}</span>
                     </div>
                 </div>
+
 
                 <div class="items-table receipt-table" *ngIf="selectedReceipt">
                     <div class="table-header">

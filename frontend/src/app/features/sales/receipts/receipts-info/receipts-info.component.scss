@@ -293,7 +293,7 @@
                 }
 
                 .doc-info-grid {
-                    display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 0px;
+                    display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 0;
                     .customer-info {
                         label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 6px; }
                         h4 { margin: 0; font-size: 16px; color: #1e293b; font-weight: 500; }
@@ -301,26 +301,28 @@
                     .invoice-meta {
                         text-align: right;
                         h2 { margin: 0; font-size: 24px; text-transform: uppercase; color: #2563eb; }
-                        .invoice-num { font-size: 12.5px; color: #64748b; margin-top: 4px; }
+                        .invoice-num { font-size: 12.5px; color: #64748b; margin: 4px 0 0 0; }
                     }
                 }
 
-                // Receipt Specific Styles
-                .receipt-meta-details {
+                .receipt-meta-row {
                     display: flex;
                     justify-content: space-between;
-                    margin-bottom: 30px;
-                    padding: 0;
+                    align-items: center;
+                    margin: 2px 0 30px 0;
+                    padding: 14px 0;
 
-                    .meta-item {
+                    .meta-pair {
                         display: flex;
                         align-items: center;
-                        gap: 24px;
+                        gap: 12px;
 
-                        .label { font-size: 12.5px; color: #94a3b8; }
-                        .value { font-size: 13.5px; font-weight: 500; color: #1e293b; }
+                        .meta-label { font-size: 12.5px; color: #94a3b8; }
+                        .meta-value { font-size: 13.5px; font-weight: 500; color: #1e293b; }
                     }
                 }
+
+
 
                 .items-table {
                     margin-bottom: 30px;

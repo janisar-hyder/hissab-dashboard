@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { CustomFilterComponent } from '../../../../shared/components/custom-filter/custom-filter';
 import { ReceiptsService } from '../services/receipts.service';
+import { exportToSelectablePdf, PdfColumn, PdfSummaryRow } from '../../../../shared/utils/selectable-pdf';
 
 export interface ReceiptInvoiceItem {
     invoiceNumber: string;
@@ -19,6 +20,9 @@ export interface Receipt {
     receiptNumber: string;
     date: string;
     customerName: string;
+    customerEmail?: string;
+    customerPhone?: string;
+    customerAddress?: string[];
     paymentMode: string;
     amountReceived: number;
     status: 'Paid' | 'Draft';
@@ -133,6 +137,12 @@ export class ReceiptsInfoComponent implements OnInit {
                     receiptNumber: r.receipt_number,
                     date: new Date(r.receipt_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
                     customerName: r.customer?.name || '',
+                    customerEmail: r.customer?.email || '',
+                    customerPhone: r.customer?.phone || r.customer?.mobile || '',
+                    customerAddress: [
+                        r.customer?.billing_address_details || '',
+                        [r.customer?.billing_address_city, r.customer?.billing_address_country].filter(Boolean).join(', ')
+                    ].filter(Boolean),
                     paymentMode: r.payment_mode,
                     amountReceived: Number(r.amount_received),
                     status: r.status || 'Received',
@@ -172,29 +182,55 @@ export class ReceiptsInfoComponent implements OnInit {
         this.router.navigate(['/sales/receipts']);
     }
 
-    async downloadPdf() {
+    downloadPdf() {
         if (!this.selectedReceipt) return;
 
-        const { default: jsPDF } = await import('jspdf');
-        const { default: html2canvas } = await import('html2canvas');
+        const customerInfo = {
+            name: this.selectedReceipt.customerName,
+            email: this.selectedReceipt.customerEmail || undefined,
+            phone: this.selectedReceipt.customerPhone || undefined,
+            addressLines: this.selectedReceipt.customerAddress || []
+        };
 
-        const element = document.getElementById('receipt-document');
-        if (!element) return;
+        const metadata = [
+            { label: 'Payment Mode', value: this.selectedReceipt.paymentMode },
+            { label: 'Payment Date', value: this.selectedReceipt.date }
+        ];
 
-        const canvas = await html2canvas(element, {
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            backgroundColor: '#ffffff'
-        });
+        const columns: PdfColumn[] = [
+            { header: 'Invoice Number', width: 45, align: 'left', key: 'invoiceNumber' },
+            { header: 'Invoice Date', width: 35, align: 'left', key: 'invoiceDate' },
+            { header: 'Invoice Amount', width: 35, align: 'right', key: 'invAmtVal' },
+            { header: 'Payment Amount', width: 35, align: 'right', key: 'payAmtVal' },
+            { header: 'Balance', width: 30, align: 'right', key: 'balVal' }
+        ];
 
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        
-        const imgWidth = 210;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        
-        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-        pdf.save(`Receipt-${this.selectedReceipt.receiptNumber}.pdf`);
+        const rows = this.selectedReceipt.items.map((item: any) => ({
+            invoiceNumber: item.invoiceNumber,
+            invoiceDate: item.invoiceDate,
+            invAmtVal: Number(item.invoiceAmount).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
+            payAmtVal: Number(item.paymentAmount).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
+            balVal: Number(item.balance).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })
+        }));
+
+        const summary: PdfSummaryRow[] = [
+            {
+                label: 'Amount Received',
+                value: `BHD ${this.selectedReceipt.amountReceived.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`,
+                isTotal: true
+            }
+        ];
+
+        exportToSelectablePdf({
+            docType: 'Receipt',
+            docNumber: this.selectedReceipt.receiptNumber,
+            customerInfo,
+            metadata,
+            columns,
+            rows,
+            summary,
+            notes: this.selectedReceipt.notes,
+            companyTRN: '235334556400002'
+        }, `Receipt-${this.selectedReceipt.receiptNumber}.pdf`);
     }
 }

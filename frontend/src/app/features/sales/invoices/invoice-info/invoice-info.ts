@@ -7,6 +7,7 @@ import { CustomFilterComponent } from '../../../../shared/components/custom-filt
 import { RecordPaymentModalComponent } from './components/record-payment-modal/record-payment-modal.component';
 import { InvoicesService } from '../services/invoices.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { exportToSelectablePdf, PdfColumn, PdfSummaryRow } from '../../../../shared/utils/selectable-pdf';
 
 export interface InvoiceItem {
     name: string;
@@ -24,6 +25,8 @@ export interface Invoice {
     dueDate: string;
     customerName: string;
     customerContact: string;
+    customerEmail?: string;
+    customerPhone?: string;
     customerAddress: string[];
     amount: number;
     status: string;
@@ -106,6 +109,8 @@ export class InvoiceInfoComponent implements OnInit {
             dueDate: inv.due_date ? new Date(inv.due_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—',
             customerName: inv.customer?.name || 'Unknown',
             customerContact: inv.customer?.contact_person || inv.customer?.name || '',
+            customerEmail: inv.customer?.email || '',
+            customerPhone: inv.customer?.phone || inv.customer?.mobile || '',
             customerAddress: [
                 inv.customer?.billing_address_details || '',
                 [inv.customer?.billing_address_city, inv.customer?.billing_address_country].filter(Boolean).join(', ')
@@ -196,31 +201,72 @@ export class InvoiceInfoComponent implements OnInit {
         this.router.navigate(['/sales/invoices']);
     }
 
-    async downloadPdf() {
+    downloadPdf() {
         if (!this.selectedInvoice) return;
 
-        const { default: jsPDF } = await import('jspdf');
-        const { default: html2canvas } = await import('html2canvas');
+        const customerInfo = {
+            name: this.selectedInvoice.customerName,
+            email: this.selectedInvoice.customerEmail || undefined,
+            phone: this.selectedInvoice.customerPhone || undefined,
+            addressLines: this.selectedInvoice.customerAddress
+        };
 
-        const element = document.getElementById('invoice-document');
-        if (!element) return;
+        const metadata = [
+            { label: 'Invoice Date', value: this.selectedInvoice.date },
+            { label: 'Due Date', value: this.selectedInvoice.dueDate }
+        ];
 
-        const canvas = await html2canvas(element, {
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            backgroundColor: '#ffffff'
+        const columns: PdfColumn[] = [
+            { header: '#', width: 10, align: 'left', key: 'hash' },
+            { header: 'Item', width: 80, align: 'left', key: 'item' },
+            { header: 'Qty', width: 20, align: 'right', key: 'qtyVal' },
+            { header: 'Rate', width: 25, align: 'right', key: 'rateVal' },
+            { header: 'Discount', width: 20, align: 'right', key: 'discVal' },
+            { header: 'Amount', width: 25, align: 'right', key: 'amtVal' }
+        ];
+
+        const rows = this.selectedInvoice.items.map((item) => {
+            const amt = item.qty * item.rate - item.discount;
+            return {
+                itemName: item.name,
+                itemDesc: item.description,
+                qtyVal: item.qty.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                rateVal: item.rate.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
+                discVal: item.discount.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
+                amtVal: amt.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })
+            };
         });
 
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        
-        const imgWidth = 210;
-        const pageHeight = 297;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        
-        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-        pdf.save(`Invoice-${this.selectedInvoice.invoiceNumber}.pdf`);
+        const summary: PdfSummaryRow[] = [
+            { label: 'Gross Amount', value: this.selectedInvoice.grossAmount.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) }
+        ];
+
+        if (this.selectedInvoice.totalDiscount > 0) {
+            summary.push({
+                label: 'Discount',
+                value: `-${this.selectedInvoice.totalDiscount.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`,
+                isDanger: true
+            });
+        }
+
+        summary.push({
+            label: 'Total (BHD)',
+            value: `BHD ${this.selectedInvoice.grandTotal.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`,
+            isTotal: true
+        });
+
+        exportToSelectablePdf({
+            docType: 'Invoice',
+            docNumber: this.selectedInvoice.invoiceNumber,
+            customerInfo,
+            metadata,
+            columns,
+            rows,
+            summary,
+            notes: this.selectedInvoice.notes,
+            terms: this.selectedInvoice.termsAndConditions,
+            companyTRN: '235334556400002'
+        }, `Invoice-${this.selectedInvoice.invoiceNumber}.pdf`);
     }
 
     openRecordPaymentModal() {

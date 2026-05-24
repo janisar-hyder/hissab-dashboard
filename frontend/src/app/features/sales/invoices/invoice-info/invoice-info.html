@@ -150,7 +150,8 @@
                         <label>Customer Info</label>
                         <h4>{{ selectedInvoice.customerName }}</h4>
                         <div class="address-details">
-                            <p>{{ selectedInvoice.customerContact }}</p>
+                            <p *ngIf="selectedInvoice.customerEmail">{{ selectedInvoice.customerEmail }}</p>
+                            <p *ngIf="selectedInvoice.customerPhone">{{ selectedInvoice.customerPhone }}</p>
                             <p *ngFor="let line of selectedInvoice.customerAddress">{{ line }}</p>
                         </div>
                     </div>

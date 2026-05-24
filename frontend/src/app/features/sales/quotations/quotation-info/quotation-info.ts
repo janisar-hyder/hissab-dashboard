@@ -6,6 +6,7 @@ import { PaginationComponent } from '../../../../shared/components/pagination/pa
 import { CustomFilterComponent } from '../../../../shared/components/custom-filter/custom-filter';
 import { QuotationsService, Quotation } from '../services/quotations.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { exportToSelectablePdf, PdfColumn, PdfSummaryRow } from '../../../../shared/utils/selectable-pdf';
 
 @Component({
     selector: 'app-quotation-info',
@@ -140,30 +141,84 @@ export class QuotationInfoComponent implements OnInit {
         this.router.navigate(['/sales/quotations']);
     }
 
-    async downloadPdf() {
+    downloadPdf() {
         const quotation = this.selectedQuotation();
         if (!quotation) return;
 
-        const { default: jsPDF } = await import('jspdf');
-        const { default: html2canvas } = await import('html2canvas');
+        const formatDate = (d: any) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
 
-        const element = document.getElementById('quotation-document');
-        if (!element) return;
+        const customerInfo = {
+            name: quotation.customer?.name || '',
+            email: quotation.customer?.email,
+            phone: quotation.customer?.phone,
+            addressLines: [
+                quotation.customer?.billing_address_details || '',
+                [quotation.customer?.billing_address_city, quotation.customer?.billing_address_country].filter(Boolean).join(', ')
+            ].filter((l: string) => l.trim())
+        };
 
-        const canvas = await html2canvas(element, {
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            backgroundColor: '#ffffff'
+        const metadata = [
+            { label: 'Quote Date', value: formatDate(quotation.quotation_date) }
+        ];
+        if (quotation.expiry_date) {
+            metadata.push({ label: 'Expiry Date', value: formatDate(quotation.expiry_date) });
+        }
+
+        const columns: PdfColumn[] = [
+            { header: '#', width: 10, align: 'left', key: 'hash' },
+            { header: 'Item', width: 80, align: 'left', key: 'item' },
+            { header: 'Qty', width: 20, align: 'right', key: 'qtyVal' },
+            { header: 'Rate', width: 25, align: 'right', key: 'rateVal' },
+            { header: 'Discount', width: 20, align: 'right', key: 'discVal' },
+            { header: 'Amount', width: 25, align: 'right', key: 'amtVal' }
+        ];
+
+        const rows = (quotation.details || []).map((item: any) => ({
+            itemName: item.item?.name || '',
+            itemDesc: item.description,
+            qtyVal: Number(item.quantity).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            rateVal: Number(item.rate).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
+            discVal: Number(item.discount_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
+            amtVal: Number(item.line_total).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })
+        }));
+
+        const summary: PdfSummaryRow[] = [
+            { label: 'Subtotal', value: Number(quotation.sub_total).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) }
+        ];
+
+        if (Number(quotation.total_discount) > 0) {
+            summary.push({
+                label: 'Discount',
+                value: `-${Number(quotation.total_discount).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`,
+                isDanger: true
+            });
+        }
+
+        if (Number(quotation.total_vat) > 0) {
+            summary.push({
+                label: 'VAT',
+                value: Number(quotation.total_vat).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })
+            });
+        }
+
+        const currencyCode = quotation.currency?.code || 'BHD';
+        summary.push({
+            label: `Total (${currencyCode})`,
+            value: `${quotation.currency?.symbol || 'BHD'} ${Number(quotation.grand_total).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`,
+            isTotal: true
         });
 
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        
-        const imgWidth = 210;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        
-        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-        pdf.save(`Quotation-${quotation.quotation_number}.pdf`);
+        exportToSelectablePdf({
+            docType: 'Quote',
+            docNumber: quotation.quotation_number,
+            customerInfo,
+            metadata,
+            columns,
+            rows,
+            summary,
+            notes: quotation.customer_notes,
+            terms: quotation.terms_and_conditions,
+            companyTRN: '235334556400002'
+        }, `Quotation-${quotation.quotation_number}.pdf`);
     }
 }

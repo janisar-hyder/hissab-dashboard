@@ -128,7 +128,8 @@
                         <label>Customer Info</label>
                         <h4>{{ selectedCreditNote.customerName }}</h4>
                         <div class="address-details">
-                            <p>{{ selectedCreditNote.customerContact }}</p>
+                            <p *ngIf="selectedCreditNote.customerEmail">{{ selectedCreditNote.customerEmail }}</p>
+                            <p *ngIf="selectedCreditNote.customerPhone">{{ selectedCreditNote.customerPhone }}</p>
                             <p *ngFor="let line of selectedCreditNote.customerAddress">{{ line }}</p>
                         </div>
                     </div>

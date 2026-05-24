@@ -6,6 +6,7 @@ import { PaginationComponent } from '../../../../shared/components/pagination/pa
 import { DeleteModalComponent } from '../../../../shared/components/delete-modal/delete-modal.component';
 import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
 import { DeliveryNotesService } from '../services/delivery-notes.service';
+import { exportToSelectablePdf, PdfColumn, PdfSummaryRow } from '../../../../shared/utils/selectable-pdf';
 
 @Component({
     selector: 'app-delivery-notes-info',
@@ -182,9 +183,80 @@ export class DeliveryNotesInfoComponent implements OnInit {
         }
     }
 
-    async downloadPdf() {
-        if (!this.selectedNote()) return;
-        console.log('Downloading PDF...');
+    downloadPdf() {
+        const note = this.selectedNote();
+        if (!note) return;
+
+        const formatDate = (d: any) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+
+        const customerInfo = {
+            name: note.customer?.name || '',
+            email: note.customer?.email,
+            phone: note.customer?.phone || note.customer?.mobile,
+            addressLines: note.delivery_address ? [note.delivery_address] : []
+        };
+
+        const metadata = [
+            { label: 'Date', value: formatDate(note.delivery_date) }
+        ];
+        if (note.reference_number) {
+            metadata.push({ label: 'Ref#', value: note.reference_number });
+        }
+
+        const columns: PdfColumn[] = [
+            { header: '#', width: 10, align: 'left', key: 'hash' },
+            { header: 'Item', width: 95, align: 'left', key: 'item' },
+            { header: 'Qty', width: 20, align: 'right', key: 'qtyVal' },
+            { header: 'Rate', width: 25, align: 'right', key: 'rateVal' },
+            { header: 'Amount', width: 30, align: 'right', key: 'amtVal' }
+        ];
+
+        const rows = (note.details || []).map((item: any) => ({
+            itemName: item.item?.name || '',
+            itemDesc: item.description,
+            qtyVal: Number(item.quantity).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            rateVal: Number(item.rate).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
+            amtVal: Number(item.line_total).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })
+        }));
+
+        const summary: PdfSummaryRow[] = [
+            { label: 'Sub Total', value: Number(note.sub_total).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) }
+        ];
+
+        if (note.discount_amount) {
+            summary.push({
+                label: 'Discount',
+                value: `-${Number(note.discount_amount).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`,
+                isDanger: true
+            });
+        }
+
+        if (note.total_vat) {
+            summary.push({
+                label: 'VAT',
+                value: Number(note.total_vat).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })
+            });
+        }
+
+        summary.push({
+            label: 'Total (BHD)',
+            value: `BHD ${Number(note.grand_total).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`,
+            isTotal: true
+        });
+
+        exportToSelectablePdf({
+            docType: 'Delivery Note',
+            docNumber: note.delivery_note_number,
+            customerInfo,
+            metadata,
+            columns,
+            rows,
+            summary,
+            notes: note.notes,
+            terms: note.terms_and_conditions,
+            showSignature: true,
+            companyTRN: '236334556400002'
+        }, `DeliveryNote-${note.delivery_note_number}.pdf`);
     }
 
     navigateToEdit(): void {
