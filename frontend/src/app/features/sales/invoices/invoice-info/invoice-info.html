@@ -136,12 +136,21 @@
                 
                 <div class="doc-header">
                     <div class="company-logo">
-                        <img src="/icons/tamezy-logo.svg" alt="Logo" class="main-logo">
+                        <img [src]="companyLogo" alt="Company Logo" class="main-logo">
                     </div>
                     <div class="company-address">
-                        <p>Flat 10, Building 1234 Road 123, Block 123</p>
-                        <p>Manama North Sehla, Bahrain</p>
-                        <p>TRN: 235334556400002</p>
+                        <ng-container *ngIf="companyProfile; else defaultAddress">
+                            <p *ngIf="companyProfile.company_name" style="font-weight: 500; color: var(--text-dark); margin-bottom: 4px;">{{ companyProfile.company_name }}</p>
+                            <p *ngIf="companyProfile.billing_address_details">{{ companyProfile.billing_address_details }}</p>
+                            <p *ngIf="companyProfile.billing_address_city || companyProfile.billing_address_country">
+                                {{ companyProfile.billing_address_city }}{{ companyProfile.billing_address_city && companyProfile.billing_address_country ? ', ' : '' }}{{ companyProfile.billing_address_country }}
+                            </p>
+                        </ng-container>
+                        <ng-template #defaultAddress>
+                            <p>Flat 10, Building 1234 Road 123, Block 123</p>
+                            <p>Manama North Sehla, Bahrain</p>
+                        </ng-template>
+                        <p *ngIf="isVatRegistered && companyTrn">TRN: {{ companyTrn }}</p>
                     </div>
                 </div>
 
@@ -150,8 +159,7 @@
                         <label>Customer Info</label>
                         <h4>{{ selectedInvoice.customerName }}</h4>
                         <div class="address-details">
-                            <p *ngIf="selectedInvoice.customerEmail">{{ selectedInvoice.customerEmail }}</p>
-                            <p *ngIf="selectedInvoice.customerPhone">{{ selectedInvoice.customerPhone }}</p>
+
                             <p *ngFor="let line of selectedInvoice.customerAddress">{{ line }}</p>
                         </div>
                     </div>

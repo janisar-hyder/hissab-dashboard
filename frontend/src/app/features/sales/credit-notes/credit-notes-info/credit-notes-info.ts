@@ -9,6 +9,8 @@ import { CreditNotesService } from '../services/credit-notes.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
 import { ChangeDetectorRef } from '@angular/core';
 import { exportToSelectablePdf, PdfColumn, PdfSummaryRow } from '../../../../shared/utils/selectable-pdf';
+import { VatSettingsService } from '../../../settings/vat-compliance/vat-settings/services/vat-settings.service';
+import { CompanyProfileService } from '../../../settings/company-profile/services/company-profile.service';
 
 export interface CreditNoteItem {
     name: string;
@@ -94,8 +96,21 @@ export class CreditNotesInfoComponent implements OnInit {
         private router: Router,
         private creditNotesService: CreditNotesService,
         private notificationService: NotificationService,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        private vatSettingsService: VatSettingsService,
+        private companyProfileService: CompanyProfileService
     ) {}
+
+    get isVatRegistered(): boolean { return this.vatSettingsService.isVatRegistered; }
+    get companyTrn(): string | null { return this.vatSettingsService.trn; }
+
+    get companyLogo(): string | null {
+        return localStorage.getItem('company_logo') || '/icons/tamezy-logo.svg';
+    }
+
+    get companyProfile() {
+        return this.companyProfileService.currentProfile;
+    }
 
     ngOnInit(): void {
         this.loadCreditNotes();
@@ -373,7 +388,9 @@ export class CreditNotesInfoComponent implements OnInit {
             columns,
             rows,
             summary,
-            companyTRN: '236334556400002'
+            companyTRN: this.companyTrn || undefined,
+            companyProfile: this.companyProfile,
+            companyLogo: this.companyLogo || undefined
         }, `CreditNote-${this.selectedCreditNote.creditNoteNumber}.pdf`);
     }
 

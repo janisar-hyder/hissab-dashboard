@@ -9,6 +9,7 @@ import { AttachmentsModal } from '../../../../shared/components/attachments-moda
 import { QuotationsService, Quotation, QuotationDetail } from '../services/quotations.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
 import { SalesSettingsService } from '../../../settings/services/sales-settings.service';
+import { VatSettingsService } from '../../../settings/vat-compliance/vat-settings/services/vat-settings.service';
 
 interface QuotationItem {
   id: number; // Local ID for tracking rows
@@ -37,6 +38,9 @@ export class QuotationsNew implements OnInit {
   private route = inject(ActivatedRoute);
   private cdr = inject(ChangeDetectorRef);
   private salesSettingsService = inject(SalesSettingsService);
+  private vatSettingsService = inject(VatSettingsService);
+
+  get isVatRegistered(): boolean { return this.vatSettingsService.isVatRegistered; }
 
   isAttachmentsModalOpen = false;
   isEditMode = false;

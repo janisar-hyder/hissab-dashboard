@@ -114,12 +114,21 @@
                 
                 <div class="doc-header">
                     <div class="company-logo">
-                        <img src="/icons/tamezy-logo.svg" alt="Logo" class="main-logo">
+                        <img [src]="companyLogo" alt="Company Logo" class="main-logo">
                     </div>
                     <div class="company-address">
-                        <p>Flat 10, Building 1234 Road 123, Block 123</p>
-                        <p>Manama North Sehla, Bahrain</p>
-                        <p>TRN: 236334556400002</p>
+                        <ng-container *ngIf="companyProfile; else defaultAddress">
+                            <p *ngIf="companyProfile.company_name" style="font-weight: 500; color: var(--text-dark); margin-bottom: 4px;">{{ companyProfile.company_name }}</p>
+                            <p *ngIf="companyProfile.billing_address_details">{{ companyProfile.billing_address_details }}</p>
+                            <p *ngIf="companyProfile.billing_address_city || companyProfile.billing_address_country">
+                                {{ companyProfile.billing_address_city }}{{ companyProfile.billing_address_city && companyProfile.billing_address_country ? ', ' : '' }}{{ companyProfile.billing_address_country }}
+                            </p>
+                        </ng-container>
+                        <ng-template #defaultAddress>
+                            <p>Flat 10, Building 1234 Road 123, Block 123</p>
+                            <p>Manama North Sehla, Bahrain</p>
+                        </ng-template>
+                        <p *ngIf="isVatRegistered && companyTrn">TRN: {{ companyTrn }}</p>
                     </div>
                 </div>
 
@@ -128,8 +137,7 @@
                         <label>Customer Info</label>
                         <h4>{{ selectedCreditNote.customerName }}</h4>
                         <div class="address-details">
-                            <p *ngIf="selectedCreditNote.customerEmail">{{ selectedCreditNote.customerEmail }}</p>
-                            <p *ngIf="selectedCreditNote.customerPhone">{{ selectedCreditNote.customerPhone }}</p>
+
                             <p *ngFor="let line of selectedCreditNote.customerAddress">{{ line }}</p>
                         </div>
                     </div>
@@ -150,7 +158,7 @@
                         <div class="col-qty">Qty</div>
                         <div class="col-rate">Rate</div>
                         <div class="col-disc">Discount</div>
-                        <div class="col-vat">VAT</div>
+                        <div class="col-vat" *ngIf="isVatRegistered">VAT</div>
                         <div class="col-amt">Amount</div>
                     </div>
                     <div class="table-row" *ngFor="let item of selectedCreditNote.items; let i = index">
@@ -162,7 +170,7 @@
                         <div class="col-qty">{{ item.qty | number:'1.2-2' }}</div>
                         <div class="col-rate">{{ item.rate | number:'1.3-3' }}</div>
                         <div class="col-disc">{{ item.discount | number:'1.3-3' }}</div>
-                        <div class="col-vat">{{ item.vat }}%</div>
+                        <div class="col-vat" *ngIf="isVatRegistered">{{ item.vat }}%</div>
                         <div class="col-amt">{{ (item.qty * item.rate - item.discount) | number:'1.3-3' }}</div>
                     </div>
                 </div>
@@ -173,7 +181,7 @@
                             <span>Sub Total</span>
                             <span>{{ selectedCreditNote.subTotal | number:'1.3-3' }}</span>
                         </div>
-                        <div class="summary-row">
+                        <div class="summary-row" *ngIf="isVatRegistered">
                             <span>VAT (10%)</span>
                             <span>{{ selectedCreditNote.vatAmount | number:'1.3-3' }}</span>
                         </div>

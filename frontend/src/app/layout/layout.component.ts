@@ -16,18 +16,6 @@ import { ToastContainerComponent } from '../shared/components/toast/toast-contai
             <img src="/icons/tamezy-logo.svg" alt="Tamezy" class="brand-logo-img">
         </div>
         <div class="topbar-right">
-          <div class="workspace-selector">
-              <span class="workspace-logo">OPTIMA</span>
-              <span class="workspace-name">OPTIMA</span>
-              <i class="las la-angle-down"></i>
-          </div>
-          <div class="topbar-actions">
-              <button class="icon-btn"><div class="svg-icon" style="-webkit-mask-image: url('/icons/glob.svg'); mask-image: url('/icons/glob.svg');"></div></button>
-              <button class="icon-btn notification">
-              <div class="svg-icon" style="-webkit-mask-image: url('/icons/bell.svg'); mask-image: url('/icons/bell.svg');"></div>
-              <span class="badge"></span>
-              </button>
-          </div>
         </div>
       </header>
 
@@ -226,20 +214,10 @@ import { ToastContainerComponent } from '../shared/components/toast/toast-contai
             <div class="sidebar-divider"></div>
             <div class="sidebar-label">Preferences</div>
 
-            <div class="nav-item-group">
-              <a href="#" class="nav-item" 
-                 [class.active-module]="isActiveModule('settings')" 
-                 [class.expanded]="isExpanded('settings')"
-                 (click)="toggleSubMenu('settings', $event)">
-                <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('settings', 9)" [style.mask-image]="getIconUrl('settings', 9)"></div>
-                <span class="nav-text">Settings</span>
-                <i class="las la-angle-down nav-chevron" [class.rotated]="isExpanded('settings')"></i>
-              </a>
-              <div class="sub-menu" *ngIf="(isSidebarExpanded || isHovered) && isExpanded('settings')">
-                <div class="sub-menu-line"></div>
-                <a routerLink="/settings" class="sub-item" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}"><span class="dot"></span>Main Menu</a>
-              </div>
-            </div>
+            <a routerLink="/settings" class="nav-item" [class.active-module]="isActiveModule('settings')" routerLinkActive="active-module">
+              <div class="svg-icon" [style.-webkit-mask-image]="getIconUrl('settings', 9)" [style.mask-image]="getIconUrl('settings', 9)"></div>
+              <span class="nav-text">Settings</span>
+            </a>
           </nav>
 
           <div class="sidebar-bottom">

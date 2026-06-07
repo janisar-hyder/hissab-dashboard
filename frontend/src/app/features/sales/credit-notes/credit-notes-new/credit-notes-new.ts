@@ -9,6 +9,7 @@ import { CustomSelectComponent, SelectOption } from '../../../../shared/componen
 import { CreditNotesService } from '../services/credit-notes.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
 import { ChangeDetectorRef } from '@angular/core';
+import { VatSettingsService } from '../../../settings/vat-compliance/vat-settings/services/vat-settings.service';
 
 interface CreditNoteItem {
   id: number;
@@ -96,8 +97,11 @@ export class CreditNotesNew implements OnInit {
     private route: ActivatedRoute,
     private creditNotesService: CreditNotesService,
     private notificationService: NotificationService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private vatSettingsService: VatSettingsService
   ) {}
+
+  get isVatRegistered(): boolean { return this.vatSettingsService.isVatRegistered; }
 
   ngOnInit(): void {
     this.loadDropdownData();

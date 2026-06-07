@@ -59,7 +59,10 @@ export class VatSettingsComponent implements OnInit {
   }
 
   onFieldChange(field: string, value: any) {
-    if (field === 'isVatRegistered') this.isVatRegistered.set(value);
+    if (field === 'isVatRegistered') {
+      this.isVatRegistered.set(value);
+      this.vatSettingsService.setVatRegistered(value); // update shared app-wide state
+    }
     if (field === 'taxRegistrationNumber') this.taxRegistrationNumber.set(value);
     if (field === 'vatRegisteredOn') this.vatRegisteredOn.set(value);
     

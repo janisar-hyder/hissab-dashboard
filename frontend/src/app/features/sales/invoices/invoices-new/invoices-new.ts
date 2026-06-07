@@ -9,6 +9,7 @@ import { CustomSelectComponent, SelectOption } from '../../../../shared/componen
 import { InvoicesService } from '../services/invoices.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
 import { SalesSettingsService } from '../../../settings/services/sales-settings.service';
+import { VatSettingsService } from '../../../settings/vat-compliance/vat-settings/services/vat-settings.service';
 
 interface InvoiceItem {
   id: number;
@@ -121,8 +122,11 @@ export class InvoicesNew implements OnInit {
     private cdr: ChangeDetectorRef,
     private invoicesService: InvoicesService,
     private notificationService: NotificationService,
-    private salesSettingsService: SalesSettingsService
+    private salesSettingsService: SalesSettingsService,
+    private vatSettingsService: VatSettingsService
   ) {}
+
+  get isVatRegistered(): boolean { return this.vatSettingsService.isVatRegistered; }
 
   ngOnInit(): void {
     this.loadDropdownData();

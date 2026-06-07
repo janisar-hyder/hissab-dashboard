@@ -7,6 +7,7 @@ import { BreadcrumbsComponent } from '../../../../shared/components/breadcrumbs/
 import { AttachmentsModal } from '../../../../shared/components/attachments-modal/attachments-modal';
 import { CustomSelectComponent, SelectOption } from '../../../../shared/components/custom-select/custom-select.component';
 import { RecurringInvoicesService } from '../services/recurring-invoices.service';
+import { VatSettingsService } from '../../../settings/vat-compliance/vat-settings/services/vat-settings.service';
 import { forkJoin } from 'rxjs';
 
 
@@ -109,8 +110,11 @@ export class RecurringInvoicesNewComponent implements OnInit {
     private router: Router, 
     private route: ActivatedRoute,
     private recurringInvoicesService: RecurringInvoicesService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private vatSettingsService: VatSettingsService
   ) {}
+
+  get isVatRegistered(): boolean { return this.vatSettingsService.isVatRegistered; }
 
   ngOnInit(): void {
     this.loadAllData();

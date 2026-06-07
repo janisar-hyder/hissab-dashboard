@@ -8,6 +8,8 @@ import { RecordPaymentModalComponent } from './components/record-payment-modal/r
 import { InvoicesService } from '../services/invoices.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
 import { exportToSelectablePdf, PdfColumn, PdfSummaryRow } from '../../../../shared/utils/selectable-pdf';
+import { VatSettingsService } from '../../../settings/vat-compliance/vat-settings/services/vat-settings.service';
+import { CompanyProfileService } from '../../../settings/company-profile/services/company-profile.service';
 
 export interface InvoiceItem {
     name: string;
@@ -70,8 +72,22 @@ export class InvoiceInfoComponent implements OnInit {
         private router: Router,
         private cdr: ChangeDetectorRef,
         private invoicesService: InvoicesService,
-        private notificationService: NotificationService
+        private notificationService: NotificationService,
+        private vatSettingsService: VatSettingsService,
+        private companyProfileService: CompanyProfileService
     ) {}
+
+    get isVatRegistered(): boolean { return this.vatSettingsService.isVatRegistered; }
+    get companyTrn(): string | null { return this.vatSettingsService.trn; }
+
+    get companyLogo(): string | null {
+        // You can check local storage or use the profile's logo_path if available
+        return localStorage.getItem('company_logo') || '/icons/tamezy-logo.svg';
+    }
+
+    get companyProfile() {
+        return this.companyProfileService.currentProfile;
+    }
 
     ngOnInit(): void {
         this.loadInvoices();
@@ -265,7 +281,9 @@ export class InvoiceInfoComponent implements OnInit {
             summary,
             notes: this.selectedInvoice.notes,
             terms: this.selectedInvoice.termsAndConditions,
-            companyTRN: '235334556400002'
+            companyTRN: this.companyTrn || undefined,
+            companyProfile: this.companyProfile,
+            companyLogo: this.companyLogo || undefined
         }, `Invoice-${this.selectedInvoice.invoiceNumber}.pdf`);
     }
 

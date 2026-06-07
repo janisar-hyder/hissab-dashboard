@@ -7,6 +7,8 @@ import { DeleteModalComponent } from '../../../../shared/components/delete-modal
 import { CustomFilterComponent, FilterOption } from '../../../../shared/components/custom-filter/custom-filter';
 import { DeliveryNotesService } from '../services/delivery-notes.service';
 import { exportToSelectablePdf, PdfColumn, PdfSummaryRow } from '../../../../shared/utils/selectable-pdf';
+import { VatSettingsService } from '../../../settings/vat-compliance/vat-settings/services/vat-settings.service';
+import { CompanyProfileService } from '../../../settings/company-profile/services/company-profile.service';
 
 @Component({
     selector: 'app-delivery-notes-info',
@@ -65,7 +67,9 @@ export class DeliveryNotesInfoComponent implements OnInit {
     constructor(
         private route: ActivatedRoute,
         private router: Router,
-        private deliveryNotesService: DeliveryNotesService
+        private deliveryNotesService: DeliveryNotesService,
+        private vatSettingsService: VatSettingsService,
+        private companyProfileService: CompanyProfileService
     ) {
         // Handle ID changes via effect
         effect(() => {
@@ -80,6 +84,17 @@ export class DeliveryNotesInfoComponent implements OnInit {
                 this.onNoteClick(notes[0].id);
             }
         }, { allowSignalWrites: true });
+    }
+
+    get isVatRegistered(): boolean { return this.vatSettingsService.isVatRegistered; }
+    get companyTrn(): string | null { return this.vatSettingsService.trn; }
+
+    get companyLogo(): string | null {
+        return localStorage.getItem('company_logo') || '/icons/tamezy-logo.svg';
+    }
+
+    get companyProfile() {
+        return this.companyProfileService.currentProfile;
     }
 
     ngOnInit(): void {
@@ -255,7 +270,9 @@ export class DeliveryNotesInfoComponent implements OnInit {
             notes: note.notes,
             terms: note.terms_and_conditions,
             showSignature: true,
-            companyTRN: '236334556400002'
+            companyTRN: this.companyTrn || undefined,
+            companyProfile: this.companyProfile,
+            companyLogo: this.companyLogo || undefined
         }, `DeliveryNote-${note.delivery_note_number}.pdf`);
     }
 

@@ -284,7 +284,9 @@
                 .doc-header {
                     display: flex; justify-content: space-between; margin-bottom: 40px;
                     .main-logo {
-                        height: 40px; // Matched exactly to invoice-info
+                        max-height: 90px;
+                        max-width: 300px;
+                        object-fit: contain;
                     }
                     .company-address {
                         text-align: right; color: #64748b; font-size: 11.5px;

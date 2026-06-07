@@ -116,12 +116,21 @@
                 
                 <div class="doc-header">
                     <div class="company-logo">
-                        <img src="/icons/tamezy-logo.svg" alt="Logo" class="main-logo">
+                        <img [src]="companyLogo" alt="Company Logo" class="main-logo">
                     </div>
                     <div class="company-address">
-                        <p>Flat 10, Building 1234 Road 123, Block 123</p>
-                        <p>Manama North Sehla, Bahrain</p>
-                        <p>TRN: 236334556400002</p>
+                        <ng-container *ngIf="companyProfile; else defaultAddress">
+                            <p *ngIf="companyProfile.company_name" style="font-weight: 500; color: var(--text-dark); margin-bottom: 4px;">{{ companyProfile.company_name }}</p>
+                            <p *ngIf="companyProfile.billing_address_details">{{ companyProfile.billing_address_details }}</p>
+                            <p *ngIf="companyProfile.billing_address_city || companyProfile.billing_address_country">
+                                {{ companyProfile.billing_address_city }}{{ companyProfile.billing_address_city && companyProfile.billing_address_country ? ', ' : '' }}{{ companyProfile.billing_address_country }}
+                            </p>
+                        </ng-container>
+                        <ng-template #defaultAddress>
+                            <p>Flat 10, Building 1234 Road 123, Block 123</p>
+                            <p>Manama North Sehla, Bahrain</p>
+                        </ng-template>
+                        <p *ngIf="isVatRegistered && companyTrn">TRN: {{ companyTrn }}</p>
                     </div>
                 </div>
 
@@ -130,8 +139,7 @@
                         <label>Customer Info</label>
                         <h4>{{ selectedNote()?.customer?.name }}</h4>
                         <div class="address-details">
-                            <p *ngIf="selectedNote()?.customer?.email">{{ selectedNote()?.customer?.email }}</p>
-                            <p *ngIf="selectedNote()?.customer?.phone || selectedNote()?.customer?.mobile">{{ selectedNote()?.customer?.phone || selectedNote()?.customer?.mobile }}</p>
+
                             <p *ngIf="selectedNote()?.delivery_address">{{ selectedNote()?.delivery_address }}</p>
                         </div>
                     </div>
@@ -178,7 +186,7 @@
                         <span>Discount</span>
                         <span class="danger">-{{ selectedNote()?.discount_amount | number:'1.3-3' }}</span>
                     </div>
-                    <div class="summary-row">
+                    <div class="summary-row" *ngIf="isVatRegistered">
                         <span>VAT</span>
                         <span>{{ selectedNote()?.total_vat | number:'1.3-3' }}</span>
                     </div>

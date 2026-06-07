@@ -6,6 +6,8 @@ import { PaginationComponent } from '../../../../shared/components/pagination/pa
 import { CustomFilterComponent } from '../../../../shared/components/custom-filter/custom-filter';
 import { ReceiptsService } from '../services/receipts.service';
 import { exportToSelectablePdf, PdfColumn, PdfSummaryRow } from '../../../../shared/utils/selectable-pdf';
+import { VatSettingsService } from '../../../settings/vat-compliance/vat-settings/services/vat-settings.service';
+import { CompanyProfileService } from '../../../settings/company-profile/services/company-profile.service';
 
 export interface ReceiptInvoiceItem {
     invoiceNumber: string;
@@ -57,8 +59,21 @@ export class ReceiptsInfoComponent implements OnInit {
         private route: ActivatedRoute,
         private router: Router,
         private receiptsService: ReceiptsService,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        private vatSettingsService: VatSettingsService,
+        private companyProfileService: CompanyProfileService
     ) {}
+
+    get isVatRegistered(): boolean { return this.vatSettingsService.isVatRegistered; }
+    get companyTrn(): string | null { return this.vatSettingsService.trn; }
+
+    get companyLogo(): string | null {
+        return localStorage.getItem('company_logo') || '/icons/tamezy-logo.svg';
+    }
+
+    get companyProfile() {
+        return this.companyProfileService.currentProfile;
+    }
 
     ngOnInit(): void {
         this.loadReceipts();
@@ -230,7 +245,9 @@ export class ReceiptsInfoComponent implements OnInit {
             rows,
             summary,
             notes: this.selectedReceipt.notes,
-            companyTRN: '235334556400002'
+            companyTRN: this.companyTrn || undefined,
+            companyProfile: this.companyProfile,
+            companyLogo: this.companyLogo || undefined
         }, `Receipt-${this.selectedReceipt.receiptNumber}.pdf`);
     }
 }

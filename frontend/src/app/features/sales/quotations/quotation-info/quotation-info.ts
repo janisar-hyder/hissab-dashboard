@@ -7,6 +7,8 @@ import { CustomFilterComponent } from '../../../../shared/components/custom-filt
 import { QuotationsService, Quotation } from '../services/quotations.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
 import { exportToSelectablePdf, PdfColumn, PdfSummaryRow } from '../../../../shared/utils/selectable-pdf';
+import { VatSettingsService } from '../../../settings/vat-compliance/vat-settings/services/vat-settings.service';
+import { CompanyProfileService } from '../../../settings/company-profile/services/company-profile.service';
 
 @Component({
     selector: 'app-quotation-info',
@@ -22,6 +24,19 @@ export class QuotationInfoComponent implements OnInit {
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private cdr = inject(ChangeDetectorRef);
+    private vatSettingsService = inject(VatSettingsService);
+    private companyProfileService = inject(CompanyProfileService);
+
+    get isVatRegistered(): boolean { return this.vatSettingsService.isVatRegistered; }
+    get companyTrn(): string | null { return this.vatSettingsService.trn; }
+
+    get companyLogo(): string | null {
+        return localStorage.getItem('company_logo') || '/icons/tamezy-logo.svg';
+    }
+
+    get companyProfile() {
+        return this.companyProfileService.currentProfile;
+    }
 
     quotations = signal<Quotation[]>([]);
     selectedQuotation = signal<Quotation | null>(null);
@@ -218,7 +233,9 @@ export class QuotationInfoComponent implements OnInit {
             summary,
             notes: quotation.customer_notes,
             terms: quotation.terms_and_conditions,
-            companyTRN: '235334556400002'
+            companyTRN: this.companyTrn || undefined,
+            companyProfile: this.companyProfile,
+            companyLogo: this.companyLogo || undefined
         }, `Quotation-${quotation.quotation_number}.pdf`);
     }
 }

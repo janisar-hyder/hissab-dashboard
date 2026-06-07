@@ -44,30 +44,68 @@ export interface PdfOptions {
   terms?: string;
   showSignature?: boolean;
   companyTRN?: string;
+  companyProfile?: any;
+  companyLogo?: string;
 }
 
 // ---------------------------------------------------------------------------
 // Header  (logo + company address)
 // Web CSS: .company-address { font-size: 11.5px; color: #64748b }
 // ---------------------------------------------------------------------------
-function drawHeader(doc: jsPDF, currentY: number, logoPngData?: string, companyTRN?: string): number {
+function drawHeader(doc: jsPDF, currentY: number, logoPngData?: string, imgWidth?: number, imgHeight?: number, options?: PdfOptions): number {
   if (logoPngData) {
-    doc.addImage(logoPngData, 'PNG', 15, currentY, 47.16, 10.8);
+    let wMm = 47.16;
+    let hMm = 10.8;
+    
+    if (imgWidth && imgHeight) {
+      // Scale height to max 12mm, keep aspect ratio
+      const maxH = 12;
+      const maxW = 50;
+      const aspect = imgWidth / imgHeight;
+      hMm = maxH;
+      wMm = hMm * aspect;
+      if (wMm > maxW) {
+        wMm = maxW;
+        hMm = wMm / aspect;
+      }
+    }
+    
+    doc.addImage(logoPngData, 'PNG', 15, currentY, wMm, hMm);
   } else {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(22);
     doc.setTextColor('#2563eb');
-    doc.text('Tamezy', 15, currentY + 8.8);
+    doc.text(options?.companyProfile?.company_name || 'Tamezy', 15, currentY + 8.8);
   }
 
-  // Company address — 11.5px → 8.6pt, color #64748b
+  // Company address
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.6);
   doc.setTextColor('#64748b');
-  doc.text('Flat 10, Building 1234 Road 123, Block 123', 195, currentY + 1.5, { align: 'right' });
-  doc.text('Manama North Sehla, Bahrain',               195, currentY + 5.5, { align: 'right' });
-  const trn = companyTRN || '235334556400002';
-  doc.text('TRN: ' + trn,                               195, currentY + 9.5, { align: 'right' });
+
+  let addrLines: string[] = [];
+  if (options?.companyProfile) {
+    if (options.companyProfile.company_name) addrLines.push(options.companyProfile.company_name);
+    if (options.companyProfile.billing_address_details) addrLines.push(options.companyProfile.billing_address_details);
+    const location = [options.companyProfile.billing_address_city, options.companyProfile.billing_address_country].filter(Boolean).join(', ');
+    if (location) addrLines.push(location);
+  } else {
+    addrLines = [
+      'Flat 10, Building 1234 Road 123, Block 123',
+      'Manama North Sehla, Bahrain'
+    ];
+  }
+
+  let textY = currentY + 1.5;
+  for (const line of addrLines) {
+    doc.text(line, 195, textY, { align: 'right' });
+    textY += 4;
+  }
+
+  if (options?.companyTRN) {
+    doc.text('TRN: ' + options.companyTRN, 195, textY, { align: 'right' });
+    textY += 4;
+  }
 
   return currentY + 22;
 }
@@ -103,12 +141,12 @@ export function exportToSelectablePdf(options: PdfOptions, filename: string): vo
   const img = new Image();
   img.crossOrigin = 'anonymous';
 
-  const renderPdf = (logoPngData?: string) => {
+  const renderPdf = (logoPngData?: string, imgW?: number, imgH?: number) => {
     const doc = new jsPDF('p', 'mm', 'a4');
     let currentY = 15;
 
     // ── 1. Page-1 header ────────────────────────────────────────────────────
-    currentY = drawHeader(doc, currentY, logoPngData, options.companyTRN);
+    currentY = drawHeader(doc, currentY, logoPngData, imgW, imgH, options);
 
     // ── 2. Customer info (left) + doc meta (right) ───────────────────────────
     const metaStartY = currentY;
@@ -206,7 +244,7 @@ export function exportToSelectablePdf(options: PdfOptions, filename: string): vo
 
         doc.addPage();
         currentY = 15;
-        currentY = drawHeader(doc, currentY, logoPngData, options.companyTRN);
+        currentY = drawHeader(doc, currentY, logoPngData, imgW, imgH, options);
         currentY = drawTableHeader(doc, currentY, options.columns);
       }
 
@@ -265,7 +303,7 @@ export function exportToSelectablePdf(options: PdfOptions, filename: string): vo
     if (currentY + summaryHeight > 272) {
       doc.addPage();
       currentY = 15;
-      currentY = drawHeader(doc, currentY, logoPngData, options.companyTRN);
+      currentY = drawHeader(doc, currentY, logoPngData, imgW, imgH, options);
       currentY += 5;
     }
 
@@ -310,7 +348,7 @@ export function exportToSelectablePdf(options: PdfOptions, filename: string): vo
       if (currentY + heightNeeded > 272) {
         doc.addPage();
         currentY = 15;
-        currentY = drawHeader(doc, currentY, logoPngData, options.companyTRN);
+        currentY = drawHeader(doc, currentY, logoPngData, imgW, imgH, options);
         currentY += 5;
       }
 
@@ -344,7 +382,7 @@ export function exportToSelectablePdf(options: PdfOptions, filename: string): vo
       if (currentY + 20 > 272) {
         doc.addPage();
         currentY = 15;
-        currentY = drawHeader(doc, currentY, logoPngData, options.companyTRN);
+        currentY = drawHeader(doc, currentY, logoPngData, imgW, imgH, options);
         currentY += 15;
       } else {
         currentY += 10;
@@ -378,12 +416,20 @@ export function exportToSelectablePdf(options: PdfOptions, filename: string): vo
   img.onload = () => {
     try {
       const canvas = document.createElement('canvas');
-      canvas.width = 131 * 3;
-      canvas.height = 30 * 3;
+      // Maintain aspect ratio instead of stretching to fixed dimensions
+      let tW = img.width;
+      let tH = img.height;
+      const maxH = 90;
+      if (tH > maxH) {
+        tW = tW * (maxH / tH);
+        tH = maxH;
+      }
+      canvas.width = tW;
+      canvas.height = tH;
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.drawImage(img, 0, 0, 131 * 3, 30 * 3);
-        renderPdf(canvas.toDataURL('image/png'));
+        ctx.drawImage(img, 0, 0, tW, tH);
+        renderPdf(canvas.toDataURL('image/png'), tW, tH);
       } else {
         renderPdf(undefined);
       }
@@ -394,5 +440,5 @@ export function exportToSelectablePdf(options: PdfOptions, filename: string): vo
 
   img.onerror = () => renderPdf(undefined);
 
-  img.src = '/icons/tamezy-logo.svg';
+  img.src = options.companyLogo || '/icons/tamezy-logo.svg';
 }

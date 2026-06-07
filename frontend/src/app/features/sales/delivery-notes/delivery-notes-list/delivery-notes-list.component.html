@@ -102,7 +102,7 @@
                                 </ng-container>
                                 <ng-container *ngSwitchCase="'invoice_status'">
                                     <span class="status-pill" [ngClass]="dn.invoice_id ? 'status-invoiced' : 'status-not-invoiced'">
-                                        {{ dn.invoice_id ? 'Invoiced' : 'Not Invoiced' }}
+                                        <span class="dot"></span> {{ dn.invoice_id ? 'Invoiced' : 'Not Invoiced' }}
                                     </span>
                                 </ng-container>
                             </td>

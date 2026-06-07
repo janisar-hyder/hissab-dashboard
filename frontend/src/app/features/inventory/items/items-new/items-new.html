@@ -83,6 +83,21 @@
                     <input type="text" class="form-control" [(ngModel)]="itemData.brands" placeholder="Enter Brand Name">
                 </div>
 
+                <!-- Opening Stock -->
+                <div class="form-group">
+                    <label>Opening Stock</label>
+                    <input type="number" class="form-control" [(ngModel)]="itemData.openingStock" placeholder="0">
+                </div>
+
+                <!-- Opening Stock Value -->
+                <div class="form-group">
+                    <label>Opening Stock Value</label>
+                    <div class="input-with-suffix">
+                        <input type="number" class="form-control" [(ngModel)]="itemData.openingStockValue" step="0.001" placeholder="0.000">
+                        <div class="suffix">BHD</div>
+                    </div>
+                </div>
+
                 <!-- Description (Full Width) -->
                 <div class="form-group full-width">
                     <label>Description</label>
@@ -103,7 +118,7 @@
                 </div>
 
                 <!-- VAT Preference -->
-                <div class="form-group">
+                <div class="form-group" *ngIf="isVatRegistered">
                     <label>VAT Preference</label>
                     <app-custom-select 
                         [(ngModel)]="itemData.vatPreference" 
@@ -183,20 +198,6 @@
                     <input type="number" class="form-control" [(ngModel)]="itemData.stockInHand" placeholder="0">
                 </div>
 
-                <!-- Opening Stock -->
-                <div class="form-group">
-                    <label>Opening Stock</label>
-                    <input type="number" class="form-control" [(ngModel)]="itemData.openingStock" placeholder="0">
-                </div>
-
-                <!-- Opening Stock Value -->
-                <div class="form-group">
-                    <label>Opening Stock Value</label>
-                    <div class="input-with-suffix">
-                        <input type="number" class="form-control" [(ngModel)]="itemData.openingStockValue" step="0.001" placeholder="0.000">
-                        <div class="suffix">BHD</div>
-                    </div>
-                </div>
 
                 <!-- Warranty Period -->
                 <div class="form-group">

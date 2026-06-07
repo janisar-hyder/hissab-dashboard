@@ -54,7 +54,46 @@ exports.getProfile = async (req, res, next) => {
 exports.updateProfile = async (req, res, next) => {
   try {
     const { clientId, userId } = req.user;
-    const profileData = req.body;
+    const body = req.body;
+
+    // Map incoming request fields to valid Prisma schema fields
+    const profileData = {};
+    const fieldMap = {
+      company_name: 'company_name',
+      cr_number: 'cr_number',
+      email: 'email',
+      phone: 'phone',
+      mobile: 'mobile',
+      fiscal_year: 'fiscal_year',
+      fiscal_start_date: 'fiscal_start_date',
+      fiscal_period: 'fiscal_period',
+      logo_path: 'logo_path',
+      default_language: 'default_language',
+      time_zone: 'time_zone',
+      date_format: 'date_format',
+      currency_format: 'currency_format',
+      account_manager_name: 'account_manager_name',
+      account_manager_email: 'account_manager_email',
+      account_manager_phone: 'account_manager_phone',
+      // Billing address fields (accept both alias and canonical names)
+      billing_address: 'billing_address_details',
+      billing_address_details: 'billing_address_details',
+      billing_address_attention: 'billing_address_attention',
+      billing_city: 'billing_address_city',
+      billing_address_city: 'billing_address_city',
+      billing_address_country: 'billing_address_country',
+      // Shipment address fields
+      shipment_address_attention: 'shipment_address_attention',
+      shipment_address_city: 'shipment_address_city',
+      shipment_address_country: 'shipment_address_country',
+      shipment_address_details: 'shipment_address_details',
+    };
+
+    for (const [inputKey, prismaKey] of Object.entries(fieldMap)) {
+      if (body[inputKey] !== undefined) {
+        profileData[prismaKey] = body[inputKey];
+      }
+    }
 
     // Use upsert to handle both creation and update
     const profile = await prisma.companyProfile.upsert({

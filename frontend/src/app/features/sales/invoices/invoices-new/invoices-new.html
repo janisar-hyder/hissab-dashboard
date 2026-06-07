@@ -189,7 +189,7 @@
                     <div class="th-rate">Rate</div>
                     <div class="th-qty">Qty</div>
                     <div class="th-discount" *ngIf="invoiceData.discountAt === 'Line Item Level'">Discount</div>
-                    <div class="th-vat">VAT</div>
+                    <div class="th-vat" *ngIf="isVatRegistered">VAT</div>
                     <div class="th-amount">Amount</div>
                     <div class="th-del"></div>
                 </div>
@@ -237,7 +237,7 @@
                         </div>
 
                         <!-- VAT -->
-                        <div class="td-cell td-vat">
+                        <div class="td-cell td-vat" *ngIf="isVatRegistered">
                             <div class="vat-select-wrapper">
                                 <app-custom-select 
                                     [(ngModel)]="item.vat_rate_id" 
@@ -297,7 +297,7 @@
                         </div>
                     </div>
 
-                    <div class="total-row" *ngIf="hasSelectedItems">
+                    <div class="total-row" *ngIf="isVatRegistered && hasSelectedItems">
                         <span class="total-label">VAT</span>
                         <span class="total-value">{{ totalVat.toFixed(3) }}</span>
                     </div>

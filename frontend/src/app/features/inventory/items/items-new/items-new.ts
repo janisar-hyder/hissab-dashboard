@@ -7,6 +7,8 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { CustomSelectComponent, SelectOption } from '../../../../shared/components/custom-select/custom-select.component';
 import { ItemsService, InventoryItem } from '../services/items.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { VatSettingsService } from '../../../settings/vat-compliance/vat-settings/services/vat-settings.service';
+
 
 @Component({
   selector: 'app-items-new',
@@ -21,6 +23,9 @@ export class ItemsNewComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private cdr = inject(ChangeDetectorRef);
+  private vatSettingsService = inject(VatSettingsService);
+
+  get isVatRegistered(): boolean { return this.vatSettingsService.isVatRegistered; }
 
   activeTab: string = 'basic-info';
   isEditMode = false;

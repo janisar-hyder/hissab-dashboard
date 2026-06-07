@@ -464,7 +464,9 @@
                     margin-bottom: 40px; // Reduced from 60px
 
                     .main-logo {
-                        height: 40px; // Slightly smaller
+                        max-height: 90px;
+                        max-width: 300px;
+                        object-fit: contain;
                     }
 
                     .company-address {

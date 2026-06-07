@@ -8,6 +8,7 @@ import { AttachmentsModal } from '../../../../shared/components/attachments-moda
 import { CustomSelectComponent, SelectOption } from '../../../../shared/components/custom-select/custom-select.component';
 import { DeliveryNotesService } from '../services/delivery-notes.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { VatSettingsService } from '../../../settings/vat-compliance/vat-settings/services/vat-settings.service';
 
 interface DeliveryNoteItem {
   id?: number;
@@ -89,8 +90,11 @@ export class DeliveryNotesNewComponent implements OnInit {
     private route: ActivatedRoute,
     private deliveryNotesService: DeliveryNotesService,
     private notificationService: NotificationService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private vatSettingsService: VatSettingsService
   ) {}
+
+  get isVatRegistered(): boolean { return this.vatSettingsService.isVatRegistered; }
 
   ngOnInit(): void {
     this.loadInitialData();
